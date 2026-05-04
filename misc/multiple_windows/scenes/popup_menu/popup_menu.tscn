@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://j7j6fe7plvmt"]
+
+
+[node name="PopupMenu" type="MWPopupMenu" unique_id=1615429685]
+oversampling_override = 1.0
+visible = true
+unfocusable = true
+
+[node name="SubPopupMenu" type="PopupMenu" parent="." unique_id=1040305780]

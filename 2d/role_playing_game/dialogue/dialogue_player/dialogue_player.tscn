@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://y66h87msahf2"]
+
+
+[node name="DialoguePlayer" type="RPDialoguePlayer" unique_id=2024451782]

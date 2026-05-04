@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://p7lgllpnc8h8"]
+
+[ext_resource type="Texture2D" uid="uid://cehd300ehf1vw" path="res://icon.webp" id="2_yl4m2"]
+
+[node name="Popup" type="MWHideOnMouseExit" unique_id=1536889602]
+oversampling_override = 1.0
+size = Vector2i(128, 128)
+visible = true
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=104761433]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_yl4m2")

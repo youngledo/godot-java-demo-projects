@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://dsqn0vre7npvu"]
+
+[ext_resource type="Texture2D" uid="uid://dlpmesnd2veay" path="res://player/shadow.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://crgo36sk7sfdg" path="res://player/body.png" id="10"]
+[ext_resource type="PackedScene" uid="uid://bgy8u8c4ge6oo" path="res://player/weapon/Sword.tscn" id="13"]
+
+[sub_resource type="Animation" id="1"]
+
+[sub_resource type="Animation" id="2"]
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/Body:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 0, 0, 1), Color(1, 1, 1, 1), Color(1, 0, 0, 1), Color(1, 1, 1, 1), Color(1, 0, 0, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="3"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vi1hn"]
+_data = {
+&"idle": SubResource("1"),
+&"stagger": SubResource("2"),
+&"walk": SubResource("3")
+}
+
+[node name="Player" type="FSPlayerController" unique_id=36282354]
+
+[node name="StateMachine" type="FSPlayerStateMachine" parent="." unique_id=352966517]
+
+[node name="Idle" type="FSIdle" parent="StateMachine" unique_id=23509125]
+
+[node name="Move" type="FSMove" parent="StateMachine" unique_id=1181324630]
+
+[node name="Jump" type="FSJump" parent="StateMachine" unique_id=1100846346]
+
+[node name="Stagger" type="FSStagger" parent="StateMachine" unique_id=1877601174]
+
+[node name="Attack" type="FSAttack" parent="StateMachine" unique_id=656585786]
+
+[node name="Die" type="FSDie" parent="StateMachine" unique_id=130975603]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=952173775]
+libraries/ = SubResource("AnimationLibrary_vi1hn")
+
+[node name="Shadow" type="Sprite2D" parent="." unique_id=548440157]
+self_modulate = Color(1, 1, 1, 0.361098)
+position = Vector2(0, -4)
+texture = ExtResource("9")
+
+[node name="BodyPivot" type="Marker2D" parent="." unique_id=969108435]
+
+[node name="Body" type="Sprite2D" parent="BodyPivot" unique_id=1480506968]
+position = Vector2(0, -58)
+texture = ExtResource("10")
+
+[node name="BulletSpawn" type="FSBulletSpawner" parent="BodyPivot" unique_id=1506281386]
+position = Vector2(0, -58)
+
+[node name="CooldownTimer" type="Timer" parent="BodyPivot/BulletSpawn" unique_id=430476620]
+wait_time = 0.2
+one_shot = true
+
+[node name="WeaponPivot" type="FSWeaponPivot" parent="BodyPivot" unique_id=1470035703]
+position = Vector2(0, -58)
+
+[node name="Offset" type="Marker2D" parent="BodyPivot/WeaponPivot" unique_id=327354530]
+position = Vector2(110, 0)
+
+[node name="Sword" parent="BodyPivot/WeaponPivot/Offset" unique_id=2042083530 instance=ExtResource("13")]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=1598865355]
+polygon = PackedVector2Array(-20, 0, -20, -20, 20, -20, 20, 0)
+
+[node name="StateNameDisplayer" type="Label" parent="." unique_id=1046719461]
+offset_left = -109.0
+offset_top = -180.0
+offset_right = 110.0
+offset_bottom = -143.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 24
+text = "Idle"
+horizontal_alignment = 1
+uppercase = true
+

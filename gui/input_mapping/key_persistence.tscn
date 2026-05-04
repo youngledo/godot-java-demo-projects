@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://bsig003"]
+
+[node name="KeyPersistence" type="KeyPersistence" unique_id=7847291]

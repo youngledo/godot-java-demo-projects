@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://bsig001"]
+
+[node name="Signaling" type="WebRTCMinimalSignaling" unique_id=3847291]

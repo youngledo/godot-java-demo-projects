@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://b4ebsfoqnxu81"]
+
+
+[node name="HandInfo" type="HandInfo" unique_id=93301954]
+
+[node name="Info" type="Label3D" parent="." unique_id=1085149461]
+pixel_size = 0.0015
+text = "Hand info
+.
+.
+.
+."
+horizontal_alignment = 0
+vertical_alignment = 2
+autowrap_mode = 3

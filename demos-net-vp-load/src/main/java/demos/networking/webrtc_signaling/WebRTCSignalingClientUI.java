@@ -1,0 +1,120 @@
+package demos.networking.webrtc_signaling;
+
+import org.godot.Godot;
+import org.godot.annotation.GodotClass;
+import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
+import org.godot.node.Control;
+
+@GodotClass(name = "WebRTCSignalingClientUI", parent = "Control")
+public class WebRTCSignalingClientUI extends Control {
+
+    private Godot client;
+    private Godot host;
+    private Godot room;
+    private Godot meshCheckBox;
+
+    @Override
+    public void _ready() {
+        client = (Godot) call("get_node", "Client");
+        host = (Godot) call("get_node", "VBoxContainer/Connect/Host");
+        room = (Godot) call("get_node", "VBoxContainer/Connect/RoomSecret");
+        meshCheckBox = (Godot) call("get_node", "VBoxContainer/Connect/Mesh");
+
+        client.call("connect", "lobby_joined", new Callable(this, "_lobby_joined"), 0);
+        client.call("connect", "lobby_sealed", new Callable(this, "_lobby_sealed"), 0);
+        client.call("connect", "connected", new Callable(this, "_connected"), 0);
+        client.call("connect", "disconnected", new Callable(this, "_disconnected"), 0);
+
+        Godot mp = (Godot) call("get_multiplayer");
+        mp.call("connect", "connected_to_server", new Callable(this, "_mp_server_connected"), 0);
+        mp.call("connect", "connection_failed", new Callable(this, "_mp_server_disconnect"), 0);
+        mp.call("connect", "server_disconnected", new Callable(this, "_mp_server_disconnect"), 0);
+        mp.call("connect", "peer_connected", new Callable(this, "_mp_peer_connected"), 0);
+        mp.call("connect", "peer_disconnected", new Callable(this, "_mp_peer_disconnected"), 0);
+    }
+
+    @GodotMethod
+    public void ping(double argument) {
+        long senderId = (long) call("multiplayer.get_remote_sender_id");
+        logMsg("[Multiplayer] Ping from peer " + senderId + ": arg: " + argument);
+    }
+
+    @GodotMethod
+    public void _mp_server_connected() {
+        Godot rtcMp = (Godot) client.getProperty("rtc_mp");
+        logMsg("[Multiplayer] Server connected (I am " + rtcMp.call("get_unique_id") + ")");
+    }
+
+    @GodotMethod
+    public void _mp_server_disconnect() {
+        Godot rtcMp = (Godot) client.getProperty("rtc_mp");
+        logMsg("[Multiplayer] Server disconnected (I am " + rtcMp.call("get_unique_id") + ")");
+    }
+
+    @GodotMethod
+    public void _mp_peer_connected(int id) {
+        logMsg("[Multiplayer] Peer " + id + " connected");
+    }
+
+    @GodotMethod
+    public void _mp_peer_disconnected(int id) {
+        logMsg("[Multiplayer] Peer " + id + " disconnected");
+    }
+
+    @GodotMethod
+    public void _connected(int id, boolean useMesh) {
+        logMsg("[Signaling] Server connected with ID: " + id + ". Mesh: " + useMesh);
+    }
+
+    @GodotMethod
+    public void _disconnected() {
+        logMsg("[Signaling] Server disconnected: " + client.getProperty("code") + " - " + client.getProperty("reason"));
+    }
+
+    @GodotMethod
+    public void _lobby_joined(String lobbyStr) {
+        logMsg("[Signaling] Joined lobby " + lobbyStr);
+    }
+
+    @GodotMethod
+    public void _lobby_sealed() {
+        logMsg("[Signaling] Lobby has been sealed");
+    }
+
+    private void logMsg(String msg) {
+        System.out.println(msg);
+        Godot textEdit = (Godot) call("get_node", "VBoxContainer/TextEdit");
+        textEdit.setProperty("text", textEdit.getProperty("text") + msg + "\n");
+    }
+
+    @GodotMethod
+    public void _on_peers_pressed() {
+        Godot mp = (Godot) call("get_multiplayer");
+        logMsg(String.valueOf(mp.call("get_peers")));
+    }
+
+    @GodotMethod
+    public void _on_ping_pressed() {
+        double randVal = Math.random();
+        call("rpc", "ping", randVal);
+    }
+
+    @GodotMethod
+    public void _on_seal_pressed() {
+        client.call("seal_lobby");
+    }
+
+    @GodotMethod
+    public void _on_start_pressed() {
+        String hostText = (String) host.getProperty("text");
+        String roomText = (String) room.getProperty("text");
+        boolean meshVal = (boolean) meshCheckBox.getProperty("button_pressed");
+        client.call("start", hostText, roomText, meshVal);
+    }
+
+    @GodotMethod
+    public void _on_stop_pressed() {
+        client.call("stop");
+    }
+}

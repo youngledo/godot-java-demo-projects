@@ -1,0 +1,69 @@
+package demos.twod.dynamic_tilemap_layers;
+
+import org.godot.annotation.GodotClass;
+import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
+import org.godot.math.Color;
+import org.godot.node.TileMapLayer;
+
+@GodotClass(name = "SecretTileMap", parent = "TileMapLayer")
+public class SecretTileMap extends TileMapLayer {
+
+	private boolean playerInSecret = false;
+	private double layerAlpha = 1.0;
+	private boolean processing = false;
+
+	@Override
+	public void _ready() {
+		// Connect to secret detector signals
+		org.godot.Godot detector = (org.godot.Godot) call("get_node", "../SecretDetector");
+		if (detector != null) {
+			detector.connect("body_entered", new Callable(this, "_on_secret_detector_body_entered"), 0);
+			detector.connect("body_exited", new Callable(this, "_on_secret_detector_body_exited"), 0);
+		}
+		call("set_process", false);
+	}
+
+	@Override
+	public void _process(double delta) {
+		if (playerInSecret) {
+			if (layerAlpha > 0.3) {
+				layerAlpha = moveToward(layerAlpha, 0.3, delta);
+				setProperty("self_modulate", new Color(1, 1, 1, layerAlpha));
+			} else {
+				call("set_process", false);
+			}
+		} else {
+			if (layerAlpha < 1.0) {
+				layerAlpha = moveToward(layerAlpha, 1.0, delta);
+				setProperty("self_modulate", new Color(1, 1, 1, layerAlpha));
+			} else {
+				call("set_process", false);
+			}
+		}
+	}
+
+	@GodotMethod
+	public void _on_secret_detector_body_entered(Object body) {
+		// Check if it's a CharacterBody2D (player)
+		String className = (String) ((org.godot.Godot) body).call("get_class");
+		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
+			playerInSecret = true;
+			call("set_process", true);
+		}
+	}
+
+	@GodotMethod
+	public void _on_secret_detector_body_exited(Object body) {
+		String className = (String) ((org.godot.Godot) body).call("get_class");
+		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
+			playerInSecret = false;
+			call("set_process", true);
+		}
+	}
+
+	private static double moveToward(double current, double target, double maxDelta) {
+		if (Math.abs(target - current) <= maxDelta) return target;
+		return current + Math.signum(target - current) * maxDelta;
+	}
+}

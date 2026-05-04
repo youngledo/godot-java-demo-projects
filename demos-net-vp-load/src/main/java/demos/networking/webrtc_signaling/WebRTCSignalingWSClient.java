@@ -1,0 +1,182 @@
+package demos.networking.webrtc_signaling;
+
+import org.godot.Godot;
+import org.godot.annotation.Export;
+import org.godot.annotation.GodotClass;
+import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
+import org.godot.node.Node;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@GodotClass(name = "WebRTCSignalingWSClient", parent = "Node")
+public class WebRTCSignalingWSClient extends Node {
+
+    // Message types matching the GDScript enum
+    private static final int MSG_JOIN = 0;
+    private static final int MSG_ID = 1;
+    private static final int MSG_PEER_CONNECT = 2;
+    private static final int MSG_PEER_DISCONNECT = 3;
+    private static final int MSG_OFFER = 4;
+    private static final int MSG_ANSWER = 5;
+    private static final int MSG_CANDIDATE = 6;
+    private static final int MSG_SEAL = 7;
+
+    @Export
+    public boolean autojoin = true;
+
+    @Export
+    public String lobby = "";
+
+    @Export
+    public boolean mesh = true;
+
+    @Signal
+    public void connected() {}
+
+    @Signal
+    public void disconnected() {}
+
+    @Signal
+    public void lobby_joined() {}
+
+    @Signal
+    public void lobby_sealed() {}
+
+    @Signal
+    public void peer_connected() {}
+
+    @Signal
+    public void peer_disconnected() {}
+
+    @Signal
+    public void offer_received() {}
+
+    @Signal
+    public void answer_received() {}
+
+    @Signal
+    public void candidate_received() {}
+
+    private Godot ws;
+    long code = 1000;
+    String reason = "Unknown";
+    private long oldState = 3L; // STATE_CLOSED
+
+    @Override
+    public void _ready() {
+        ws = (Godot) call("WebSocketPeer.new");
+    }
+
+    public void connectToUrl(String url) {
+        close();
+        code = 1000;
+        reason = "Unknown";
+        ws.call("connect_to_url", url);
+    }
+
+    public void close() {
+        ws.call("close");
+    }
+
+    @Override
+    public void _process(double delta) {
+        ws.call("poll");
+        long state = (long) ws.call("get_ready_state");
+
+        if (state != oldState && state == 1L && autojoin) { // STATE_OPEN
+            join_lobby(lobby);
+        }
+
+        while (state == 1L && (long) ws.call("get_available_packet_count") > 0) {
+            if (!parseMsg()) {
+                System.out.println("Error parsing message from server.");
+            }
+        }
+
+        if (state != oldState && state == 3L) { // STATE_CLOSED
+            code = (long) ws.call("get_close_code");
+            reason = (String) ws.call("get_close_reason");
+            call("emit_signal", "disconnected");
+        }
+        oldState = state;
+    }
+
+    private boolean parseMsg() {
+        byte[] pkt = (byte[]) ws.call("get_packet");
+        String pktStr = new String(pkt);
+        Object parsed = call("JSON.parse_string", pktStr);
+
+        if (parsed == null) return false;
+
+        long msgType = ((Number) ((Map<?, ?>) parsed).get("type")).longValue();
+        long srcId = ((Number) ((Map<?, ?>) parsed).get("id")).longValue();
+        String data = (String) ((Map<?, ?>) parsed).get("data");
+
+        if (data == null) return false;
+
+        if (msgType == MSG_ID) {
+            call("emit_signal", "connected", (int) srcId, "true".equals(data));
+        } else if (msgType == MSG_JOIN) {
+            call("emit_signal", "lobby_joined", data);
+        } else if (msgType == MSG_SEAL) {
+            call("emit_signal", "lobby_sealed");
+        } else if (msgType == MSG_PEER_CONNECT) {
+            call("emit_signal", "peer_connected", (int) srcId);
+        } else if (msgType == MSG_PEER_DISCONNECT) {
+            call("emit_signal", "peer_disconnected", (int) srcId);
+        } else if (msgType == MSG_OFFER) {
+            call("emit_signal", "offer_received", (int) srcId, data);
+        } else if (msgType == MSG_ANSWER) {
+            call("emit_signal", "answer_received", (int) srcId, data);
+        } else if (msgType == MSG_CANDIDATE) {
+            String[] candidate = data.split("\n");
+            if (candidate.length != 3) return false;
+            try {
+                int index = Integer.parseInt(candidate[1].trim());
+                call("emit_signal", "candidate_received", (int) srcId, candidate[0], index, candidate[2]);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
+    @GodotMethod
+    public long join_lobby(String lobbyName) {
+        return sendMsg(MSG_JOIN, mesh ? 0 : 1, lobbyName);
+    }
+
+    @GodotMethod
+    public long seal_lobby() {
+        return sendMsg(MSG_SEAL, 0, "");
+    }
+
+    @GodotMethod
+    public long send_candidate(int id, String mid, int index, String sdp) {
+        return sendMsg(MSG_CANDIDATE, id, "\n" + mid + "\n" + index + "\n" + sdp);
+    }
+
+    @GodotMethod
+    public long send_offer(int id, String offer) {
+        return sendMsg(MSG_OFFER, id, offer);
+    }
+
+    @GodotMethod
+    public long send_answer(int id, String answer) {
+        return sendMsg(MSG_ANSWER, id, answer);
+    }
+
+    private long sendMsg(int type, int id, String data) {
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("type", type);
+        msg.put("id", id);
+        msg.put("data", data);
+        String json = (String) call("JSON.stringify", msg);
+        return (long) ws.call("send_text", json);
+    }
+}

@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://c10fjiuf6t856"]
+
+[ext_resource type="PackedScene" uid="uid://rdpn3n6t1ita" path="res://combat/combatants/sprites/sprite.tscn" id="3"]
+
+[node name="Combatant" type="RPCombatant" unique_id=1490421423]
+damage = 2
+
+[node name="Health" type="RPHealth" parent="." unique_id=188119126]
+life = 10
+
+[node name="Sprite2D" parent="." unique_id=988224128 instance=ExtResource("3")]

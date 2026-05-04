@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bfsfek8h27vha"]
+
+[ext_resource type="Texture2D" uid="uid://cehd300ehf1vw" path="res://icon.webp" id="1_ryu0x"]
+
+[node name="StatusIndicator" type="MWStatusIndicator" unique_id=1179131778]
+icon = ExtResource("1_ryu0x")
+menu = NodePath("PopupMenu")
+
+[node name="PopupMenu" type="PopupMenu" parent="." unique_id=407581194]
+prefer_native_menu = true

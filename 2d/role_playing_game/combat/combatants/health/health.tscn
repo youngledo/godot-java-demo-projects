@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://18l6nomt2plh"]
+
+
+[node name="Health" type="RPHealth" unique_id=1355120022]

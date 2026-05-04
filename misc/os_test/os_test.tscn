@@ -1,0 +1,132 @@
+[gd_scene format=3 uid="uid://c2c0pl5bga2qv"]
+
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dl4cr"]
+
+[node name="OSTest" type="OSActions" unique_id=940490937]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+focus_mode = 2
+theme_override_constants/line_separation = 6
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dl4cr")
+bbcode_enabled = true
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Actions"
+horizontal_alignment = 1
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Open Shell (web)"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Open Shell (folder)"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Change Window Title"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Change Window Icon"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Move Window to Foreground"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Request Attention"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Vibrate Device (200 ms)"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Vibrate Device (1000 ms)"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Add Global Menu Items"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Remove Global Menu Item"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Get Clipboard Contents"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Set Clipboard Contents"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Display Alert"
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Kill Current Process"
+
+[node name="CSharpTest" type="Node" parent="." unique_id=321606031]
+
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/OpenShellWeb" to="HBoxContainer/Actions" method="_on_open_shell_web_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/OpenShellFolder" to="HBoxContainer/Actions" method="_on_open_shell_folder_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/ChangeWindowTitle" to="HBoxContainer/Actions" method="_on_change_window_title_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/ChangeWindowIcon" to="HBoxContainer/Actions" method="_on_change_window_icon_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/MoveWindowToForeground" to="HBoxContainer/Actions" method="_on_move_window_to_foreground_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/RequestAttention" to="HBoxContainer/Actions" method="_on_request_attention_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/VibrateDeviceShort" to="HBoxContainer/Actions" method="_on_vibrate_device_short_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/VibrateDeviceLong" to="HBoxContainer/Actions" method="_on_vibrate_device_long_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/AddGlobalMenuItems" to="HBoxContainer/Actions" method="_on_add_global_menu_items_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/RemoveGlobalMenuItem" to="HBoxContainer/Actions" method="_on_remove_global_menu_item_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/GetClipboard" to="HBoxContainer/Actions" method="_on_get_clipboard_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/SetClipboard" to="HBoxContainer/Actions" method="_on_set_clipboard_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/DisplayAlert" to="HBoxContainer/Actions" method="_on_display_alert_pressed"]
+[connection signal="pressed" from="HBoxContainer/Actions/GridContainer/KillCurrentProcess" to="HBoxContainer/Actions" method="_on_kill_current_process_pressed"]
