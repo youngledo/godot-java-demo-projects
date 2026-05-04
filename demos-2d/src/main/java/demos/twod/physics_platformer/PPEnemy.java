@@ -23,23 +23,44 @@ public class PPEnemy extends RigidBody2D {
 	}
 
 	@Override
-	public void _physicsProcess(double delta) {
-		// _integrate_forces equivalent - simplified
-		org.godot.Godot stateObj = (org.godot.Godot) call("get_direct_space_state");
+	public void _integrateForces(java.lang.Object stateObj) {
+		org.godot.Godot bodyState = (org.godot.Godot) stateObj;
+		if (bodyState == null) return;
 
-		Vector2 vel = (Vector2) getProperty("linear_velocity");
+		Vector2 vel = (Vector2) bodyState.call("get_linear_velocity");
 		if (vel == null) vel = new Vector2(0, 0);
 
 		String newAnim = anim;
 
-		if (state == 1) {
+		if (this.state == 1) {
 			newAnim = "explode";
-		} else if (state == 0) {
+		} else if (this.state == 0) {
 			newAnim = "walk";
 
-			// Check raycasts for wall detection
-			org.godot.Godot rcLeft = (org.godot.Godot) call("get_node", "RaycastLeft");
-			org.godot.Godot rcRight = (org.godot.Godot) call("get_node", "RaycastRight");
+			double wallSide = 0;
+			long contactCount = (long) bodyState.call("get_contact_count");
+
+			for (long i = 0; i < contactCount; i++) {
+				Object collider = bodyState.call("get_contact_collider_object", i);
+				Vector2 collisionNormal = (Vector2) bodyState.call("get_contact_local_normal", i);
+
+				if (collider != null && collisionNormal != null) {
+					if (collisionNormal.getX() > 0.9) {
+						wallSide = 1.0;
+					} else if (collisionNormal.getX() < -0.9) {
+						wallSide = -1.0;
+					}
+				}
+			}
+
+			if (wallSide != 0 && wallSide != direction) {
+				direction = -direction;
+				flipSprite();
+			}
+
+			// Check raycasts for edge detection
+			org.godot.Godot rcLeft = (org.godot.Godot) call("get_node_or_null", "RaycastLeft");
+			org.godot.Godot rcRight = (org.godot.Godot) call("get_node_or_null", "RaycastRight");
 
 			boolean leftColliding = rcLeft != null && (boolean) rcLeft.call("is_colliding");
 			boolean rightColliding = rcRight != null && (boolean) rcRight.call("is_colliding");
@@ -61,7 +82,7 @@ public class PPEnemy extends RigidBody2D {
 			if (animPlayer != null) animPlayer.call("play", anim);
 		}
 
-		setProperty("linear_velocity", vel);
+		bodyState.call("set_linear_velocity", vel);
 	}
 
 	private void flipSprite() {

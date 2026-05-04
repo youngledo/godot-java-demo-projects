@@ -1,6 +1,7 @@
 package demos.twod.bullet_shower;
 
 import org.godot.annotation.GodotClass;
+import org.godot.math.Color;
 import org.godot.math.Vector2;
 import org.godot.node.Node2D;
 
@@ -10,11 +11,13 @@ public class BSBullets extends Node2D {
 	private static final int BULLET_COUNT = 500;
 	private static final double SPEED_MIN = 20;
 	private static final double SPEED_MAX = 80;
+	private static final double BULLET_RADIUS = 4.0;
 
 	private double[] posX = new double[BULLET_COUNT];
 	private double[] posY = new double[BULLET_COUNT];
 	private double[] speeds = new double[BULLET_COUNT];
 	private double viewportWidth = 1152;
+	private double viewportHeight = 648;
 	private boolean initialized = false;
 
 	@Override
@@ -27,15 +30,23 @@ public class BSBullets extends Node2D {
 			Object rect = viewport.call("get_visible_rect");
 			if (rect != null) {
 				Vector2 size = (Vector2) ((org.godot.Godot) rect).getProperty("size");
-				if (size != null) viewportWidth = size.getX();
+				if (size != null) {
+					viewportWidth = size.getX();
+					viewportHeight = size.getY();
+				}
 			}
 		}
 
 		for (int i = 0; i < BULLET_COUNT; i++) {
 			speeds[i] = SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN);
-			posX[i] = Math.random() * viewportWidth + viewportWidth; // Start offscreen
-			posY[i] = Math.random() * viewportWidth;
+			posX[i] = Math.random() * viewportWidth + viewportWidth;
+			posY[i] = Math.random() * viewportHeight;
 		}
+	}
+
+	@Override
+	public void _process(double delta) {
+		call("queue_redraw");
 	}
 
 	@Override
@@ -49,9 +60,11 @@ public class BSBullets extends Node2D {
 		}
 	}
 
-	// Note: The original uses _draw() to draw bullet textures and PhysicsServer2D
-	// for low-level collision. Due to FFI limitations with canvas drawing and
-	// PhysicsServer2D RID management, this is a simplified version that just
-	// handles movement. Full PhysicsServer2D integration would require
-	// additional godot-java API support.
+	@Override
+	public void _draw() {
+		Color color = new Color(1, 1, 0.4, 0.9);
+		for (int i = 0; i < BULLET_COUNT; i++) {
+			call("draw_circle", new Vector2(posX[i], posY[i]), BULLET_RADIUS, color);
+		}
+	}
 }
