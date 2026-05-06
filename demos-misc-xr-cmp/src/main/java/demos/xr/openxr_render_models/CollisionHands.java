@@ -2,6 +2,7 @@ package demos.xr.openxr_render_models;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "CollisionHands3D", parent = "AnimatableBody3D")
 public class CollisionHands extends org.godot.Godot {
@@ -22,10 +23,10 @@ public class CollisionHands extends org.godot.Godot {
     @Override
     public void _physicsProcess(double delta) {
         // Follow our parent node around.
-        org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+        org.godot.node.Node3D parent = (org.godot.node.Node3D) call("get_parent");
         if (parent == null) return;
 
-        org.godot.math.Transform3D destTransform = (org.godot.math.Transform3D) parent.call("get_global_transform");
+        org.godot.math.Transform3D destTransform = (org.godot.math.Transform3D) parent.getGlobalTransform();
 
         // We just apply rotation for this example.
         setProperty("global_basis", destTransform.getBasis());

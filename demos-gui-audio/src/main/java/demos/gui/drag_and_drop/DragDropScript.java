@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.ColorPickerButton;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "DragDropScript", parent = "ColorPickerButton")
 public class DragDropScript extends ColorPickerButton {
@@ -12,7 +13,7 @@ public class DragDropScript extends ColorPickerButton {
     // in Godot's Control class. In godot-java these may need to be registered
     // differently. This port provides the logic matching the GDScript behavior.
 
-    public Object _get_drag_data(Vector2 atPosition) {
+    public Object GetDragData(Vector2 atPosition) {
         org.godot.Godot cpb = (org.godot.Godot) call("new"); // ColorPickerButton.new()
         if (cpb != null) {
             Object color = getProperty("color");
@@ -22,19 +23,19 @@ public class DragDropScript extends ColorPickerButton {
             org.godot.Godot preview = (org.godot.Godot) ((org.godot.Godot) call("get_class", "")).call("new");
             // Create a Control node as preview container
             org.godot.node.Control previewControl = new org.godot.node.Control();
-            previewControl.call("add_child", cpb);
+            previewControl.addChild((org.godot.node.Node) cpb);
             Vector2 size = (Vector2) cpb.getProperty("size");
             if (size != null) {
                 cpb.setProperty("position", new Vector2(-0.5 * size.getX(), -0.5 * size.getY()));
             }
 
-            call("set_drag_preview", previewControl);
+            setDragPreview(previewControl);
         }
 
         return getProperty("color");
     }
 
-    public boolean _can_drop_data(Vector2 atPosition, Object data) {
+    public boolean CanDropData(Vector2 atPosition, Object data) {
         if (data instanceof org.godot.collection.GodotDictionary) {
             return "Color".equals(((org.godot.collection.GodotDictionary) data).get("type"));
         }
@@ -42,7 +43,7 @@ public class DragDropScript extends ColorPickerButton {
         return data != null && data.getClass().getSimpleName().equals("Color");
     }
 
-    public void _drop_data(Vector2 atPosition, Object data) {
+    public void DropData(Vector2 atPosition, Object data) {
         setProperty("color", data);
     }
 }

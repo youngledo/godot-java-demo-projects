@@ -4,12 +4,14 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "BSPlayer", parent = "Node2D")
 public class BSPlayer extends Node2D {
 
 	private int touching = 0;
-	private org.godot.Godot sprite;
+	private org.godot.node.AnimatedSprite2D sprite;
 	private boolean initialized = false;
 
 	@Override
@@ -17,15 +19,15 @@ public class BSPlayer extends Node2D {
 		if (initialized) return;
 		initialized = true;
 
-		sprite = (org.godot.Godot) call("get_node", "AnimatedSprite2D");
+		sprite = (org.godot.node.AnimatedSprite2D) getNode("AnimatedSprite2D");
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-		input.call("set_mouse_mode", 1); // MOUSE_MODE_HIDDEN
+		input.setMouseMode(1); // MOUSE_MODE_HIDDEN
 	}
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
 		if ("InputEventMouseMotion".equals(className)) {
 			Vector2 evPos = (Vector2) ev.getProperty("position");
@@ -37,7 +39,7 @@ public class BSPlayer extends Node2D {
 	}
 
 	@GodotMethod
-	public void _on_body_shape_entered(Object bodyId, Object body, long bodyShapeIndex, long localShapeIndex) {
+	public void OnBodyShapeEntered(Object bodyId, Object body, long bodyShapeIndex, long localShapeIndex) {
 		touching++;
 		if (touching >= 1 && sprite != null) {
 			sprite.setProperty("frame", 1);
@@ -45,7 +47,7 @@ public class BSPlayer extends Node2D {
 	}
 
 	@GodotMethod
-	public void _on_body_shape_exited(Object bodyId, Object body, long bodyShapeIndex, long localShapeIndex) {
+	public void OnBodyShapeExited(Object bodyId, Object body, long bodyShapeIndex, long localShapeIndex) {
 		touching--;
 		if (touching == 0 && sprite != null) {
 			sprite.setProperty("frame", 0);

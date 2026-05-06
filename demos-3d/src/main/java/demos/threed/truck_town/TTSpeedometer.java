@@ -31,7 +31,7 @@ public class TTSpeedometer extends Button {
 	}
 
 	@GodotMethod
-	public void _on_speedometer_pressed() {
+	public void OnSpeedometerPressed() {
 		speedUnit = (speedUnit + 1) % 3;
 	}
 }

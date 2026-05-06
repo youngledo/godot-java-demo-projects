@@ -5,18 +5,19 @@ import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector2;
 import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "DTCMain", parent = "Node")
 public class DTCMain extends Node {
 
 	private int score = 0;
-	private org.godot.Godot player;
-	private org.godot.Godot scoreTimer;
-	private org.godot.Godot mobTimer;
-	private org.godot.Godot startTimer;
-	private org.godot.Godot hud;
-	private org.godot.Godot music;
-	private org.godot.Godot deathSound;
+	private org.godot.node.Node player;
+	private org.godot.node.Node scoreTimer;
+	private org.godot.node.Node mobTimer;
+	private org.godot.node.Node startTimer;
+	private org.godot.node.Node hud;
+	private org.godot.node.Node music;
+	private org.godot.node.Node deathSound;
 	private boolean initialized = false;
 
 	@Override
@@ -24,13 +25,13 @@ public class DTCMain extends Node {
 		if (initialized) return;
 		initialized = true;
 
-		player = (org.godot.Godot) call("get_node", "Player");
-		scoreTimer = (org.godot.Godot) call("get_node", "ScoreTimer");
-		mobTimer = (org.godot.Godot) call("get_node", "MobTimer");
-		startTimer = (org.godot.Godot) call("get_node", "StartTimer");
-		hud = (org.godot.Godot) call("get_node", "HUD");
-		music = (org.godot.Godot) call("get_node", "Music");
-		deathSound = (org.godot.Godot) call("get_node", "DeathSound");
+		player = getNode("Player");
+		scoreTimer = getNode("ScoreTimer");
+		mobTimer = getNode("MobTimer");
+		startTimer = getNode("StartTimer");
+		hud = getNode("HUD");
+		music = getNode("Music");
+		deathSound = getNode("DeathSound");
 
 		// Connect signals programmatically
 		if (mobTimer != null) mobTimer.connect("timeout", new Callable(this, "_on_mob_timer_timeout"), 0);
@@ -48,11 +49,11 @@ public class DTCMain extends Node {
 
 	@GodotMethod
 	public void newGame() {
-		org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-		if (tree != null) tree.call("call_group", "mobs", "queue_free");
+		org.godot.node.SceneTree tree = getTree();
+		if (tree != null) tree.callGroup("mobs", "queue_free");
 		score = 0;
 
-		org.godot.Godot startPos = (org.godot.Godot) call("get_node", "StartPosition");
+		org.godot.node.Node startPos = getNode("StartPosition");
 		if (player != null && startPos != null) {
 			Vector2 pos = (Vector2) startPos.getProperty("position");
 			player.call("start", pos);
@@ -76,12 +77,12 @@ public class DTCMain extends Node {
 	}
 
 	@GodotMethod
-	public void _on_mob_timer_timeout() {
-		Object mobSceneObj = call("load", "res://Mob.tscn");
+	public void OnMobTimerTimeout() {
+		org.godot.node.PackedScene mobSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://Mob.tscn");
 		if (mobSceneObj == null) return;
-		org.godot.Godot mob = (org.godot.Godot) ((org.godot.Godot) mobSceneObj).call("instantiate");
+		org.godot.Godot mob = mobSceneObj.instantiate();
 
-		org.godot.Godot spawnLocation = (org.godot.Godot) call("get_node", "MobPath/MobSpawnLocation");
+		org.godot.node.Node spawnLocation = getNode("MobPath/MobSpawnLocation");
 		if (spawnLocation != null) {
 			spawnLocation.setProperty("progress_ratio", Math.random());
 			Vector2 pos = (Vector2) spawnLocation.getProperty("position");
@@ -99,23 +100,23 @@ public class DTCMain extends Node {
 			mob.setProperty("linear_velocity", new Vector2(vel.getX() * cosD - vel.getY() * sinD, vel.getX() * sinD + vel.getY() * cosD));
 		}
 
-		call("add_child", mob);
+		addChild((org.godot.node.Node) mob);
 	}
 
 	@GodotMethod
-	public void _on_score_timer_timeout() {
+	public void OnScoreTimerTimeout() {
 		score++;
 		if (hud != null) hud.call("update_score", score);
 	}
 
 	@GodotMethod
-	public void _on_start_timer_timeout() {
+	public void OnStartTimerTimeout() {
 		if (mobTimer != null) mobTimer.call("start");
 		if (scoreTimer != null) scoreTimer.call("start");
 	}
 
 	@GodotMethod
-	public void _on_player_hit() {
+	public void OnPlayerHit() {
 		gameOver();
 	}
 }

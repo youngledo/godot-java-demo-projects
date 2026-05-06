@@ -3,6 +3,9 @@ package demos.xr.openxr_composition_layers;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "MainComposition", parent = "Node3D")
 public class OXCLMain extends Node3D {
@@ -13,7 +16,7 @@ public class OXCLMain extends Node3D {
 
     // Pointer handling state (from original main.gd)
     private org.godot.Godot tween;
-    private org.godot.Godot activeHand;
+    private org.godot.node.Node activeHand;
 
     @Override
     public void _ready() {
@@ -24,10 +27,10 @@ public class OXCLMain extends Node3D {
         xrInterface = (org.godot.Godot) call("find_interface", "OpenXR");
         if (xrInterface != null && (boolean) xrInterface.call("is_initialized")) {
             System.out.println("OpenXR instantiated successfully.");
-            org.godot.Godot vp = (org.godot.Godot) call("get_viewport");
+            org.godot.node.Viewport vp = getViewport();
 
             vp.setProperty("use_xr", true);
-            org.godot.singleton.DisplayServer.singleton().call("window_set_vsync_mode", 1);
+            org.godot.singleton.DisplayServer.singleton().windowSetVsyncMode(1);
 
             org.godot.Godot renderingServer = org.godot.singleton.RenderingServer.singleton();
             if (renderingServer != null && renderingServer.call("get_rendering_device") != null) {
@@ -40,31 +43,31 @@ public class OXCLMain extends Node3D {
             org.godot.core.Callable sessionStoppingCb = new org.godot.core.Callable(this, "_on_openxr_stopping");
             org.godot.core.Callable poseRecenteredCb = new org.godot.core.Callable(this, "_on_openxr_pose_recentered");
 
-            xrInterface.call("connect", "session_begun", sessionBegunCb);
-            xrInterface.call("connect", "session_visible", sessionVisibleCb);
-            xrInterface.call("connect", "session_focussed", sessionFocussedCb);
-            xrInterface.call("connect", "session_stopping", sessionStoppingCb);
-            xrInterface.call("connect", "pose_recentered", poseRecenteredCb);
+            xrInterface.connect("session_begun", sessionBegunCb, 0);
+            xrInterface.connect("session_visible", sessionVisibleCb, 0);
+            xrInterface.connect("session_focussed", sessionFocussedCb, 0);
+            xrInterface.connect("session_stopping", sessionStoppingCb, 0);
+            xrInterface.connect("pose_recentered", poseRecenteredCb, 0);
         } else {
             System.out.println("OpenXR not instantiated!");
-            org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-            if (tree != null) tree.call("quit");
+            org.godot.node.SceneTree tree = getTree();
+            if (tree != null) tree.quit();
         }
 
         // Pointer initialization (from original main.gd _ready)
-        org.godot.Godot leftPointer = (org.godot.Godot) call("get_node", "XROrigin3D/LeftHand/Pointer");
-        org.godot.Godot rightPointer = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand/Pointer");
+        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
+        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
 
         if (leftPointer != null) leftPointer.setProperty("visible", false);
         if (rightPointer != null) rightPointer.setProperty("visible", true);
 
-        activeHand = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand");
+        activeHand = getNode("XROrigin3D/RightHand");
     }
 
     // --- XR session callbacks ---
 
     @GodotMethod
-    public void _on_openxr_session_begun() {
+    public void OnOpenxrSessionBegun() {
         double currentRefreshRate = (double) xrInterface.call("get_display_refresh_rate");
         if (currentRefreshRate > 0) {
             System.out.println("OpenXR: Refresh rate reported as " + currentRefreshRate);
@@ -94,14 +97,14 @@ public class OXCLMain extends Node3D {
             currentRefreshRate = newRate;
         }
 
-        org.godot.Godot engine = (org.godot.Godot) call("get_node", "/root/Engine");
+        org.godot.node.Node engine = getNode("/root/Engine");
         if (engine != null) {
             engine.setProperty("physics_ticks_per_second", (int) Math.round(currentRefreshRate));
         }
     }
 
     @GodotMethod
-    public void _on_openxr_visible_state() {
+    public void OnOpenxrVisibleState() {
         if (xrIsFocused) {
             System.out.println("OpenXR lost focus");
             xrIsFocused = false;
@@ -110,28 +113,28 @@ public class OXCLMain extends Node3D {
     }
 
     @GodotMethod
-    public void _on_openxr_focused_state() {
+    public void OnOpenxrFocusedState() {
         System.out.println("OpenXR gained focus");
         xrIsFocused = true;
         setProperty("process_mode", 0);
     }
 
     @GodotMethod
-    public void _on_openxr_stopping() {
+    public void OnOpenxrStopping() {
         System.out.println("OpenXR is stopping");
     }
 
     @GodotMethod
-    public void _on_openxr_pose_recentered() {
+    public void OnOpenxrPoseRecentered() {
         // Pose recentered signal.
     }
 
     // --- Pointer handling (from original main.gd) ---
 
     @GodotMethod
-    public void _update_energy(double newValue) {
+    public void UpdateEnergy(double newValue) {
         if (activeHand == null) return;
-        org.godot.Godot pointer = (org.godot.Godot) activeHand.call("get_node", "Pointer");
+        org.godot.Godot pointer = (org.godot.Godot) activeHand.getNode("Pointer");
         if (pointer == null) return;
         org.godot.Godot material = (org.godot.Godot) pointer.getProperty("material_override");
         if (material != null) {
@@ -151,17 +154,17 @@ public class OXCLMain extends Node3D {
     }
 
     @GodotMethod
-    public void _on_left_hand_button_pressed(String actionName) {
+    public void OnLeftHandButtonPressed(String actionName) {
         if (!"select".equals(actionName)) return;
 
-        org.godot.Godot leftPointer = (org.godot.Godot) call("get_node", "XROrigin3D/LeftHand/Pointer");
-        org.godot.Godot rightPointer = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand/Pointer");
+        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
+        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
         if (leftPointer != null) leftPointer.setProperty("visible", true);
         if (rightPointer != null) rightPointer.setProperty("visible", false);
 
-        activeHand = (org.godot.Godot) call("get_node", "XROrigin3D/LeftHand");
+        activeHand = getNode("XROrigin3D/LeftHand");
 
-        org.godot.Godot equirect = (org.godot.Godot) call("get_node", "XROrigin3D/OpenXRCompositionLayerEquirect");
+        org.godot.node.Node equirect = getNode("XROrigin3D/OpenXRCompositionLayerEquirect");
         if (equirect != null) equirect.setProperty("controller", activeHand);
 
         doTweenEnergy();
@@ -171,17 +174,17 @@ public class OXCLMain extends Node3D {
     }
 
     @GodotMethod
-    public void _on_right_hand_button_pressed(String actionName) {
+    public void OnRightHandButtonPressed(String actionName) {
         if (!"select".equals(actionName)) return;
 
-        org.godot.Godot leftPointer = (org.godot.Godot) call("get_node", "XROrigin3D/LeftHand/Pointer");
-        org.godot.Godot rightPointer = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand/Pointer");
+        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
+        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
         if (leftPointer != null) leftPointer.setProperty("visible", false);
         if (rightPointer != null) rightPointer.setProperty("visible", true);
 
-        activeHand = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand");
+        activeHand = getNode("XROrigin3D/RightHand");
 
-        org.godot.Godot equirect = (org.godot.Godot) call("get_node", "XROrigin3D/OpenXRCompositionLayerEquirect");
+        org.godot.node.Node equirect = getNode("XROrigin3D/OpenXRCompositionLayerEquirect");
         if (equirect != null) equirect.setProperty("controller", activeHand);
 
         doTweenEnergy();

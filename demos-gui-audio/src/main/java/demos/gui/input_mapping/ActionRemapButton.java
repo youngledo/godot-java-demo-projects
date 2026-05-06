@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Button;
 import org.godot.math.Color;
+import org.godot.node.Node;
 
 @GodotClass(name = "ActionRemapButton", parent = "Button")
 public class ActionRemapButton extends Button {
@@ -22,29 +23,29 @@ public class ActionRemapButton extends Button {
         org.godot.singleton.InputMap inputMap = org.godot.singleton.InputMap.singleton();
         assert (boolean) inputMap.call("has_action", action);
 
-        call("set_process_unhandled_key_input", false);
+        setProcessUnhandledKeyInput(false);
         displayCurrentKey();
     }
 
     @GodotMethod
     public void _toggled(boolean isButtonPressed) {
-        call("set_process_unhandled_key_input", isButtonPressed);
+        setProcessUnhandledKeyInput(isButtonPressed);
         if (isButtonPressed) {
             setProperty("text", "<press a key>");
             setProperty("modulate", new Color(1, 1, 0));
-            call("release_focus");
+            releaseFocus();
         } else {
             displayCurrentKey();
             setProperty("modulate", new Color(1, 1, 1));
-            call("grab_focus");
+            grabFocus();
         }
     }
 
     @Override
     public boolean _unhandledKeyInput(Object inputEvent) {
         if (inputEvent instanceof org.godot.Godot) {
-            org.godot.Godot ev = (org.godot.Godot) inputEvent;
-            String className = (String) ev.call("get_class");
+            org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+            String className = ev.get_class_();
             long keycode = ev.getProperty("keycode") != null ? (long) ev.getProperty("keycode") : 0;
             // KEY_ENTER = 4194305, skip it
             if ("InputEventKey".equals(className) && keycode != 4194305) {
@@ -64,7 +65,7 @@ public class ActionRemapButton extends Button {
         inputMap.call("action_add_event", action, inputEvent);
 
         // Save to keymaps via KeyPersistence autoload
-        org.godot.Godot keyPersistence = (org.godot.Godot) call("get_node", "/root/KeyPersistence");
+        org.godot.node.Node keyPersistence = getNode("/root/KeyPersistence");
         if (keyPersistence != null) {
             org.godot.collection.GodotDictionary keymaps = (org.godot.collection.GodotDictionary) keyPersistence.getProperty("keymaps");
             if (keymaps != null) {

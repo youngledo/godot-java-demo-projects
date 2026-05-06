@@ -5,6 +5,7 @@ import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
 import org.godot.node.CharacterBody2D;
 import org.godot.math.Vector2;
+import org.godot.node.Node;
 
 @GodotClass(name = "FSPlayerController", parent = "CharacterBody2D")
 public class FSPlayerController extends CharacterBody2D {
@@ -13,7 +14,7 @@ public class FSPlayerController extends CharacterBody2D {
     private boolean initialized = false;
 
     @Signal
-    public void direction_changed() {}
+    public void directionChanged() {}
 
     @Override
     public void _ready() {
@@ -23,17 +24,17 @@ public class FSPlayerController extends CharacterBody2D {
 
     public void setLookDirection(Vector2 value) {
         lookDirection = value;
-        call("emit_signal", "direction_changed", value);
+        emitSignal("direction_changed", value);
     }
 
     public Vector2 getLookDirection() { return lookDirection; }
 
     @GodotMethod
-    public void take_damage(Object attacker, double amount, Object effect) {
+    public void takeDamage(Object attacker, double amount, Object effect) {
         org.godot.Godot atk = (org.godot.Godot) attacker;
         if (atk != null && (boolean) call("is_ancestor_of", atk)) return;
 
-        org.godot.Godot stagger = (org.godot.Godot) call("get_node", "States/Stagger");
+        org.godot.node.Node stagger = getNode("States/Stagger");
         if (stagger != null) {
             Object selfPos = getProperty("global_position");
             Object atkPos = atk != null ? atk.getProperty("global_position") : null;
@@ -43,15 +44,15 @@ public class FSPlayerController extends CharacterBody2D {
             }
         }
 
-        org.godot.Godot health = (org.godot.Godot) call("get_node", "Health");
+        org.godot.node.Node health = getNode("Health");
         if (health != null) health.call("take_damage", amount, effect);
     }
 
     @GodotMethod
-    public void set_dead(boolean value) {
-        call("set_process_input", !value);
-        call("set_physics_process", !value);
-        org.godot.Godot collision = (org.godot.Godot) call("get_node", "CollisionPolygon2D");
+    public void setDead(boolean value) {
+        setProcessInput(!value);
+        setPhysicsProcess(!value);
+        org.godot.node.CollisionPolygon2D collision = (org.godot.node.CollisionPolygon2D) getNode("CollisionPolygon2D");
         if (collision != null) collision.setProperty("disabled", value);
     }
 }

@@ -5,6 +5,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "STCMob", parent = "CharacterBody3D")
 public class STCMob extends CharacterBody3D {
@@ -14,8 +15,8 @@ public class STCMob extends CharacterBody3D {
 	@Export
 	public double maxSpeed = 18.0;
 
-	private org.godot.Godot animPlayer;
-	private org.godot.Godot notifier;
+	private org.godot.node.AnimationPlayer animPlayer;
+	private org.godot.node.VisibleOnScreenNotifier3D notifier;
 	private boolean initialized = false;
 
 	@Override
@@ -24,29 +25,29 @@ public class STCMob extends CharacterBody3D {
 		initialized = true;
 
 		call("add_user_signal", "squashed");
-		animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-		notifier = (org.godot.Godot) call("get_node", "VisibleOnScreenNotifier3D");
+		animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		notifier = (org.godot.node.VisibleOnScreenNotifier3D) getNode("VisibleOnScreenNotifier3D");
 
 		if (notifier != null) {
 			org.godot.core.Callable cb = new org.godot.core.Callable(this, "_on_screen_exited");
-			notifier.connect("screen_exited", cb, 0);
+			notifier.connect("screen_exited", cb);
 		}
 	}
 
 	@Override
 	public void _physicsProcess(double delta) {
-		call("move_and_slide");
+		moveAndSlide();
 	}
 
 	@GodotMethod
 	public void initialize(Vector3 startPosition, Vector3 playerPosition) {
 		// Look at player (ignoring height)
 		Vector3 target = new Vector3(playerPosition.getX(), startPosition.getY(), playerPosition.getZ());
-		call("look_at_from_position", startPosition, target, new Vector3(0, 1, 0));
+		lookAtFromPosition(startPosition, target, new Vector3(0, 1, 0));
 
 		// Random rotation offset
 		double randomAngle = (Math.random() - 0.5) * Math.PI / 2;
-		call("rotate_y", randomAngle);
+		rotateY(randomAngle);
 
 		// Random speed
 		double randomSpeed = minSpeed + Math.random() * (maxSpeed - minSpeed);
@@ -69,19 +70,19 @@ public class STCMob extends CharacterBody3D {
 
 	@GodotMethod
 	public void squash() {
-		call("emit_signal", "squashed");
-		call("queue_free");
+		emitSignal("squashed");
+		queueFree();
 	}
 
 	@GodotMethod
-	public void _on_screen_exited() {
-		call("queue_free");
+	public void OnScreenExited() {
+		queueFree();
 	}
 
 	@Override
 	public void _exitTree() {
 		if (animPlayer != null) {
-			animPlayer.call("stop");
+			animPlayer.stop();
 			animPlayer = null;
 		}
 	}

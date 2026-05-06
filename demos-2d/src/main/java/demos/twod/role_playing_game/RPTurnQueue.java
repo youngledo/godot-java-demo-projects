@@ -15,7 +15,7 @@ public class RPTurnQueue extends Node {
     private boolean initialized = false;
 
     @Signal
-    public void active_combatant_changed() {}
+    public void activeCombatantChanged() {}
 
     @Override
     public void _ready() {
@@ -24,13 +24,13 @@ public class RPTurnQueue extends Node {
     }
 
     public void initialize() {
-        org.godot.Godot combatantsList = (org.godot.Godot) getProperty("combatants_list");
+        org.godot.node.Node combatantsList = (org.godot.node.Node) getProperty("combatants_list");
         if (combatantsList == null) return;
 
-        Object children = combatantsList.call("get_children");
+        Object children = combatantsList.getChildren();
         queue.clear();
         if (children instanceof org.godot.Godot[]) {
-            for (org.godot.Godot node : (org.godot.Godot[]) children) {
+            for (org.godot.Godot node : (org.godot.node.Node[]) children) {
                 queue.add(node);
                 node.call("set_active", false);
             }
@@ -40,13 +40,13 @@ public class RPTurnQueue extends Node {
             activeCombatant = queue.get(0);
             connectTurnSignal();
             activeCombatant.call("set_active", true);
-            call("emit_signal", "active_combatant_changed", activeCombatant);
+            emitSignal("active_combatant_changed", activeCombatant);
         }
     }
 
     private void connectTurnSignal() {
         if (activeCombatant == null) return;
-        activeCombatant.call("connect", "turn_finished", new org.godot.core.Callable(this, "on_turn_finished"));
+        activeCombatant.connect("turn_finished", new org.godot.core.Callable(this, "on_turn_finished"), 0);
     }
 
     private void disconnectTurnSignal() {
@@ -55,7 +55,7 @@ public class RPTurnQueue extends Node {
     }
 
     @GodotMethod
-    public void on_turn_finished() {
+    public void onTurnFinished() {
         if (queue.isEmpty()) return;
 
         disconnectTurnSignal();
@@ -68,15 +68,15 @@ public class RPTurnQueue extends Node {
             activeCombatant = queue.get(0);
             connectTurnSignal();
             activeCombatant.call("set_active", true);
-            call("emit_signal", "active_combatant_changed", activeCombatant);
+            emitSignal("active_combatant_changed", activeCombatant);
         }
     }
 
-    public void removeCombatant(org.godot.Godot combatant) {
+    public void removeCombatant(org.godot.node.Node combatant) {
         if (activeCombatant == combatant) {
             disconnectTurnSignal();
         }
         queue.remove(combatant);
-        combatant.call("queue_free");
+        combatant.queueFree();
     }
 }

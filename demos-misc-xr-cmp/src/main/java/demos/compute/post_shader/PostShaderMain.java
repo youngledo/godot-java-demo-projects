@@ -3,6 +3,7 @@ package demos.compute.post_shader;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 /**
  * Port of compute/post_shader/main.gd
@@ -21,7 +22,7 @@ public class PostShaderMain extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        Object worldEnv = call("get_node", "WorldEnvironment");
+        Object worldEnv = getNode("WorldEnvironment");
         if (worldEnv != null) {
             compositor = callOn(worldEnv, "get", "compositor");
         }
@@ -59,7 +60,7 @@ public class PostShaderMain extends Node3D {
     }
 
     private void updateInfoText() {
-        Object info = call("get_node", "Info");
+        Object info = getNode("Info");
         if (info == null || compositor == null) return;
 
         Object effects = callOn(compositor, "get", "compositor_effects");

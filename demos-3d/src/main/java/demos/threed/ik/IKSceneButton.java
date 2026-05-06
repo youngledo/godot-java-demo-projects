@@ -2,6 +2,7 @@ package demos.threed.ik;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Button;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "IKSceneButton", parent = "Button")
 public class IKSceneButton extends Button {
@@ -15,16 +16,16 @@ public class IKSceneButton extends Button {
 
         String scenePath = (String) getProperty("scene_to_change_to");
         if (scenePath != null && !scenePath.isEmpty()) {
-            call("connect", "pressed", this, "change_scene");
+		connect("pressed", new org.godot.core.Callable(this, "change_scene"), 0);
         }
     }
 
-    public void change_scene() {
+    public void changeScene() {
         String scenePath = (String) getProperty("scene_to_change_to");
         if (scenePath != null && !scenePath.isEmpty()) {
-            org.godot.Godot sceneTree = (org.godot.Godot) call("get_tree");
+            org.godot.node.SceneTree sceneTree = getTree();
             if (sceneTree != null) {
-                sceneTree.call("change_scene_to_file", scenePath);
+                sceneTree.changeSceneToFile(scenePath);
             }
         }
     }

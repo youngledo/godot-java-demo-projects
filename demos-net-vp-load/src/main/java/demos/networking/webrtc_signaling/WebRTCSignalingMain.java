@@ -10,13 +10,13 @@ public class WebRTCSignalingMain extends Control {
 
     @Override
     public void _enterTree() {
-        Godot clients = (Godot) call("get_node", "VBoxContainer/Clients");
+        Godot clients = (Godot) getNode("VBoxContainer/Clients");
         Godot[] children = (Godot[]) clients.call("get_children");
         for (Godot c : children) {
             Godot path = (Godot) call("get_path");
             String cName = (String) c.getProperty("name");
             Godot nodePath = (Godot) call("NodePath", path + "/VBoxContainer/Clients/" + cName);
-            Godot tree = (Godot) call("get_tree");
+            Godot tree = (Godot) getTree();
             Godot newMp = (Godot) call("MultiplayerAPI.create_default_interface");
             tree.call("set_multiplayer", newMp, nodePath);
         }
@@ -26,16 +26,16 @@ public class WebRTCSignalingMain extends Control {
     public void _ready() {
         String osName = (String) call("OS.get_name");
         if ("Web".equals(osName)) {
-            Godot signaling = (Godot) call("get_node", "VBoxContainer/Signaling");
+            Godot signaling = (Godot) getNode("VBoxContainer/Signaling");
             signaling.call("hide");
         }
     }
 
     @GodotMethod
-    public void _on_listen_toggled(boolean buttonPressed) {
-        Godot server = (Godot) call("get_node", "Server");
+    public void OnListenToggled(boolean buttonPressed) {
+        Godot server = (Godot) getNode("Server");
         if (buttonPressed) {
-            Godot portSpinBox = (Godot) call("get_node", "VBoxContainer/Signaling/Port");
+            Godot portSpinBox = (Godot) getNode("VBoxContainer/Signaling/Port");
             int port = (int) (long) portSpinBox.call("get_value");
             server.call("listen", port);
         } else {
@@ -44,7 +44,7 @@ public class WebRTCSignalingMain extends Control {
     }
 
     @GodotMethod
-    public void _on_LinkButton_pressed() {
+    public void OnLinkButtonPressed() {
         call("OS.shell_open", "https://github.com/godotengine/webrtc-native/releases");
     }
 }

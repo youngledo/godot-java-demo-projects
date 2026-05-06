@@ -14,12 +14,12 @@ public class WSMinimalClient extends Node {
 
     @Override
     public void _ready() {
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketPeer");
+        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
 
         long err = (long) socket.call("connect_to_url", WEBSOCKET_URL);
         if (err != 0) {
             logMessage("Unable to connect.");
-            call("set_process", false);
+            setProcess(false);
         }
     }
 
@@ -43,14 +43,14 @@ public class WSMinimalClient extends Node {
     }
 
     @GodotMethod
-    public void _on_button_ping_pressed() {
+    public void OnButtonPingPressed() {
         socket.call("send_text", "Ping");
     }
 
     private void logMessage(String message) {
         String time = (String) call("Time.get_time_string_from_system");
         String formatted = "[color=#aaaaaa] " + time + " |[/color] " + message + "\n";
-        Godot textClient = (Godot) call("get_node", "%TextClient");
+        Godot textClient = (Godot) getNode("%TextClient");
         textClient.call("append_text", formatted);
     }
 }

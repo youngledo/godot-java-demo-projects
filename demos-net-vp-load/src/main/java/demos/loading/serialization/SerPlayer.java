@@ -26,8 +26,8 @@ public class SerPlayer extends CharacterBody2D {
         if (initialized) return;
         initialized = true;
         input = Input.singleton();
-        progressBar = (Godot) call("get_node", "ProgressBar");
-        sprite = (Godot) call("get_node", "Sprite2D");
+        progressBar = (Godot) getNode("ProgressBar");
+        sprite = (Godot) getNode("Sprite2D");
     }
 
     @Override
@@ -45,7 +45,7 @@ public class SerPlayer extends CharacterBody2D {
             }
             setProperty("velocity", new Vector2(vec.x * MOVEMENT_SPEED, vec.y * MOVEMENT_SPEED));
         }
-        call("move_and_slide");
+        moveAndSlide();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class SerPlayer extends CharacterBody2D {
         }
         if (health <= 0.0) {
             // The player died - reload scene.
-            Godot tree = (Godot) call("get_tree");
+            Godot tree = (Godot) getTree();
             if (tree != null) tree.call("reload_current_scene");
         }
     }

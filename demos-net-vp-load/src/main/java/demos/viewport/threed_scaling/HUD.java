@@ -21,13 +21,13 @@ public class HUD extends Control {
         if (initialized) return;
         initialized = true;
 
-        viewport = (org.godot.Godot) call("get_tree");
+        viewport = getTree();
         if (viewport != null) {
             viewport = (org.godot.Godot) viewport.getProperty("root");
         }
 
-        scaleLabel = (Label) call("get_node", "VBoxContainer/Scale");
-        filterLabel = (Label) call("get_node", "VBoxContainer/Filter");
+        scaleLabel = (Label) getNode("VBoxContainer/Scale");
+        filterLabel = (Label) getNode("VBoxContainer/Filter");
 
         if (viewport != null) {
             viewport.setProperty("scaling_3d_mode", filterMode);

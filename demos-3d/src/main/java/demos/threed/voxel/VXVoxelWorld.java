@@ -33,7 +33,7 @@ public class VXVoxelWorld extends Node {
 
     private final Map<String, VXChunk.ChunkData> chunks = new LinkedHashMap<>();
 
-    private org.godot.Godot player;
+    private org.godot.node.Node player;
     private VXSettings settings;
     private boolean initialized = false;
 
@@ -42,8 +42,8 @@ public class VXVoxelWorld extends Node {
         if (initialized) return;
         initialized = true;
 
-        player = (org.godot.Godot) call("get_node", "../Player");
-        java.lang.Object settingsObj = call("get_node", "/root/Settings");
+        player = getNode("../Player");
+        java.lang.Object settingsObj = getNode("/root/Settings");
         if (settingsObj instanceof VXSettings) {
             settings = (VXSettings) settingsObj;
         }
@@ -92,7 +92,7 @@ public class VXVoxelWorld extends Node {
                     StaticBody3D node = StaticBody3D.create();
                     VXChunk.ChunkData cd = VXChunk.initChunk(node, x, y, z, worldType);
                     chunks.put(key, cd);
-                    call("add_child", node);
+                    addChild(node);
 
                     // Try initial mesh generation.
                     tryInitialGenerateMesh(cd);
@@ -193,9 +193,9 @@ public class VXVoxelWorld extends Node {
      */
     public void cleanUp() {
         chunks.clear();
-        call("set_process", false);
+        setProcess(false);
 
-        Node[] children = get_children(false);
+        Node[] children = getChildren(false);
         for (Node child : children) {
             child.call("free");
         }
@@ -220,7 +220,7 @@ public class VXVoxelWorld extends Node {
             Vector3 chunkPos = new Vector3(cp[0], cp[1], cp[2]);
             double dist = playerChunk.sub(chunkPos).length();
             if (dist > deleteDistance) {
-                entry.getValue().node.queue_free();
+                entry.getValue().node.queueFree();
                 it.remove();
                 deletedThisFrame++;
                 if (deletedThisFrame > maxDeletions) {

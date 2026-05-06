@@ -37,10 +37,10 @@ public class ThreadLoad extends Control {
      */
     public Object _bgLoad(String path) {
         System.out.println("Calling thread function.");
-        Object tex = call("load", path);
+        org.godot.node.Resource tex = org.godot.singleton.ResourceLoader.singleton().load(path);
         // call_deferred tells the main thread to call a method during idle time.
         // Our method operates on nodes in the tree, so it isn't safe to call directly.
-        call("call_deferred", "_bgLoadDone");
+        callDeferred("_bgLoadDone");
         return tex;
     }
 
@@ -53,7 +53,7 @@ public class ThreadLoad extends Control {
             Object tex = thread.call("wait_to_finish");
             System.out.println("Thread finished.");
 
-            Godot textureRect = (Godot) call("get_node", "TextureRect");
+            Godot textureRect = (Godot) getNode("TextureRect");
             if (textureRect != null) {
                 textureRect.setProperty("texture", tex);
             }

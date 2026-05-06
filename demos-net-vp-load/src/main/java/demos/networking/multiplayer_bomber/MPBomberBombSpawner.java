@@ -15,7 +15,7 @@ public class MPBomberBombSpawner extends MultiplayerSpawner {
     }
 
     @GodotMethod
-    public Object _spawn_bomb(Object[] data) {
+    public Object SpawnBomb(Object[] data) {
         if (data == null || data.length != 2) return null;
 
         // Validate data types - check for Vector2 and integer

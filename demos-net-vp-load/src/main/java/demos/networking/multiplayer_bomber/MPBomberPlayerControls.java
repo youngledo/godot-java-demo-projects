@@ -21,15 +21,15 @@ public class MPBomberPlayerControls extends Node {
 
         double mx = 0.0;
         double my = 0.0;
-        if ((boolean) input.call("is_action_pressed", "move_left")) mx -= 1;
-        if ((boolean) input.call("is_action_pressed", "move_right")) mx += 1;
-        if ((boolean) input.call("is_action_pressed", "move_up")) my -= 1;
-        if ((boolean) input.call("is_action_pressed", "move_down")) my += 1;
+        if ((boolean) input.isActionPressed("move_left")) mx -= 1;
+        if ((boolean) input.isActionPressed("move_right")) mx += 1;
+        if ((boolean) input.isActionPressed("move_up")) my -= 1;
+        if ((boolean) input.isActionPressed("move_down")) my += 1;
 
         // Clamp values
         mx = Math.max(-1.0, Math.min(1.0, mx));
         my = Math.max(-1.0, Math.min(1.0, my));
         motion = new Vector2(mx, my);
-        bombing = (boolean) input.call("is_action_pressed", "set_bomb");
+        bombing = (boolean) input.isActionPressed("set_bomb");
     }
 }

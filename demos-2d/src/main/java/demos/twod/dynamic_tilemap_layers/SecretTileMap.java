@@ -5,6 +5,7 @@ import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Color;
 import org.godot.node.TileMapLayer;
+import org.godot.node.Node;
 
 @GodotClass(name = "SecretTileMap", parent = "TileMapLayer")
 public class SecretTileMap extends TileMapLayer {
@@ -16,12 +17,12 @@ public class SecretTileMap extends TileMapLayer {
 	@Override
 	public void _ready() {
 		// Connect to secret detector signals
-		org.godot.Godot detector = (org.godot.Godot) call("get_node", "../SecretDetector");
+		org.godot.node.Node detector = getNode("../SecretDetector");
 		if (detector != null) {
 			detector.connect("body_entered", new Callable(this, "_on_secret_detector_body_entered"), 0);
 			detector.connect("body_exited", new Callable(this, "_on_secret_detector_body_exited"), 0);
 		}
-		call("set_process", false);
+		setProcess(false);
 	}
 
 	@Override
@@ -31,34 +32,34 @@ public class SecretTileMap extends TileMapLayer {
 				layerAlpha = moveToward(layerAlpha, 0.3, delta);
 				setProperty("self_modulate", new Color(1, 1, 1, layerAlpha));
 			} else {
-				call("set_process", false);
+				setProcess(false);
 			}
 		} else {
 			if (layerAlpha < 1.0) {
 				layerAlpha = moveToward(layerAlpha, 1.0, delta);
 				setProperty("self_modulate", new Color(1, 1, 1, layerAlpha));
 			} else {
-				call("set_process", false);
+				setProcess(false);
 			}
 		}
 	}
 
 	@GodotMethod
-	public void _on_secret_detector_body_entered(Object body) {
+	public void OnSecretDetectorBodyEntered(Object body) {
 		// Check if it's a CharacterBody2D (player)
 		String className = (String) ((org.godot.Godot) body).call("get_class");
 		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
 			playerInSecret = true;
-			call("set_process", true);
+			setProcess(true);
 		}
 	}
 
 	@GodotMethod
-	public void _on_secret_detector_body_exited(Object body) {
+	public void OnSecretDetectorBodyExited(Object body) {
 		String className = (String) ((org.godot.Godot) body).call("get_class");
 		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
 			playerInSecret = false;
-			call("set_process", true);
+			setProcess(true);
 		}
 	}
 

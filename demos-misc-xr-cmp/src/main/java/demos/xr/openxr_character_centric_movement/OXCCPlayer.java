@@ -6,6 +6,7 @@ import org.godot.math.Transform3D;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "OXCCPlayer", parent = "CharacterBody3D")
 public class OXCCPlayer extends CharacterBody3D {
@@ -15,10 +16,10 @@ public class OXCCPlayer extends CharacterBody3D {
     private double movementAcceleration = 5.0;
     private double gravity;
 
-    private org.godot.Godot originNode;
-    private org.godot.Godot cameraNode;
-    private org.godot.Godot neckPositionNode;
-    private org.godot.Godot blackOut;
+    private org.godot.node.Node originNode;
+    private org.godot.node.Node cameraNode;
+    private org.godot.node.Node neckPositionNode;
+    private org.godot.node.Node blackOut;
 
     private boolean initialized = false;
 
@@ -29,10 +30,10 @@ public class OXCCPlayer extends CharacterBody3D {
 
         gravity = (double) call("get_setting", "physics/3d/default_gravity");
 
-        originNode = (org.godot.Godot) call("get_node", "XROrigin3D");
-        cameraNode = (org.godot.Godot) call("get_node", "XROrigin3D/XRCamera3D");
-        neckPositionNode = (org.godot.Godot) call("get_node", "XROrigin3D/XRCamera3D/Neck");
-        blackOut = (org.godot.Godot) call("get_node", "XROrigin3D/XRCamera3D/BlackOut");
+        originNode = getNode("XROrigin3D");
+        cameraNode = getNode("XROrigin3D/XRCamera3D");
+        neckPositionNode = getNode("XROrigin3D/XRCamera3D/Neck");
+        blackOut = getNode("XROrigin3D/XRCamera3D/BlackOut");
     }
 
     @org.godot.annotation.GodotMethod
@@ -78,8 +79,8 @@ public class OXCCPlayer extends CharacterBody3D {
     }
 
     private Vector2 getMovementInput() {
-        org.godot.Godot leftHand = (org.godot.Godot) call("get_node", "XROrigin3D/LeftHand");
-        org.godot.Godot rightHand = (org.godot.Godot) call("get_node", "XROrigin3D/RightHand");
+        org.godot.node.Node leftHand = getNode("XROrigin3D/LeftHand");
+        org.godot.node.Node rightHand = getNode("XROrigin3D/RightHand");
 
         Vector2 movement = new Vector2(0, 0);
         if (leftHand != null) {
@@ -138,7 +139,7 @@ public class OXCCPlayer extends CharacterBody3D {
 
         Vector3 velocity = globalOrigin.sub(orgPlayerBody).div(delta);
         setProperty("velocity", velocity);
-        call("move_and_slide");
+        moveAndSlide();
 
         // Move XROrigin back.
         Vector3 newGlobalPos = (Vector3) getProperty("global_position");
@@ -160,10 +161,10 @@ public class OXCCPlayer extends CharacterBody3D {
         double locationOffset = globalOrigin.sub(newGlobalPos).length();
         if (locationOffset > 0.1) {
             double fadeValue = Math.max(0.0, Math.min(1.0, (locationOffset - 0.1) / 0.1));
-            if (blackOut != null) blackOut.call("set", "fade", fadeValue);
+            if (blackOut != null) blackOut.set("fade", fadeValue);
             return true;
         } else {
-            if (blackOut != null) blackOut.call("set", "fade", 0.0);
+            if (blackOut != null) blackOut.set("fade", 0.0);
             return false;
         }
     }
@@ -205,7 +206,7 @@ public class OXCCPlayer extends CharacterBody3D {
         Vector3 velocity = (Vector3) getProperty("velocity");
         velocity = new Vector3(velocity.x, velocity.y - gravity * delta, velocity.z);
         setProperty("velocity", velocity);
-        call("move_and_slide");
+        moveAndSlide();
     }
 
     private double moveToward(double current, double target, double maxDelta) {

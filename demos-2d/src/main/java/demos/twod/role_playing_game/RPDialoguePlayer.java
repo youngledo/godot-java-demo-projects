@@ -17,10 +17,10 @@ public class RPDialoguePlayer extends Node {
     private boolean initialized = false;
 
     @Signal
-    public void dialogue_started() {}
+    public void dialogueStarted() {}
 
     @Signal
-    public void dialogue_finished() {}
+    public void dialogueFinished() {}
 
     @Override
     public void _ready() {
@@ -31,8 +31,8 @@ public class RPDialoguePlayer extends Node {
         if (fileObj instanceof String) dialogueFile = (String) fileObj;
     }
 
-    public void start_dialogue() {
-        call("emit_signal", "dialogue_started");
+    public void startDialogue() {
+        emitSignal("dialogue_started");
         current = 0;
         indexDialogue();
         if (!dialogueKeys.isEmpty()) {
@@ -51,10 +51,10 @@ public class RPDialoguePlayer extends Node {
         }
     }
 
-    public void next_dialogue() {
+    public void nextDialogue() {
         current++;
         if (current >= dialogueKeys.size()) {
-            call("emit_signal", "dialogue_finished");
+            emitSignal("dialogue_finished");
             return;
         }
         Object entry = dialogueKeys.get(current);

@@ -3,6 +3,8 @@ package demos.threed.truck_town;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.SceneTree;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "TTCarSelect", parent = "Control")
 public class TTCarSelect extends Control {
@@ -19,7 +21,7 @@ public class TTCarSelect extends Control {
 	@Override
 	public void _process(double delta) {
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-		if ((boolean) input.call("is_action_just_pressed", "back")) {
+		if ((boolean) (boolean) input.isActionJustPressed("back")) {
 			onBackPressed();
 		}
 	}
@@ -40,19 +42,19 @@ public class TTCarSelect extends Control {
 	}
 
 	private void loadScene(String carPath) {
-		Object carSceneObj = call("load", carPath);
+		org.godot.node.PackedScene carSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load(carPath);
 		if (carSceneObj == null) return;
-		org.godot.Godot car = (org.godot.Godot) ((org.godot.Godot) carSceneObj).call("instantiate");
+		org.godot.Godot car = carSceneObj.instantiate();
 
-		Object townSceneObj = call("load", "res://town/town_scene.tscn");
+		org.godot.node.PackedScene townSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://town/town_scene.tscn");
 		if (townSceneObj == null) return;
-		town = (org.godot.Godot) ((org.godot.Godot) townSceneObj).call("instantiate");
+		town = townSceneObj.instantiate();
 
 		if (town != null) {
 			town.call("setup", car, null, false);
-			org.godot.Godot parent = (org.godot.Godot) call("get_parent");
-			if (parent != null) parent.call("add_child", town);
-			call("hide");
+			org.godot.node.Node parent = (org.godot.node.Node) getParent();
+			if (parent != null) parent.addChild((org.godot.node.Node) town);
+			hide();
 		}
 	}
 
@@ -61,10 +63,10 @@ public class TTCarSelect extends Control {
 		if (town != null) {
 			town.call("queue_free");
 			town = null;
-			call("show");
+			show();
 		} else {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-			if (tree != null) tree.call("quit");
+			org.godot.node.SceneTree tree = getTree();
+			if (tree != null) tree.quit();
 		}
 	}
 }

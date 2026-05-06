@@ -12,12 +12,12 @@ public class RPCombatant extends Node {
     protected int defense = 1;
     protected boolean active = false;
 
-    private org.godot.Godot animationPlayback;
-    private org.godot.Godot healthNode;
+    private org.godot.node.Node animationPlayback;
+    private org.godot.node.Node healthNode;
     private boolean initialized = false;
 
     @Signal
-    public void turn_finished() {}
+    public void turnFinished() {}
 
     @Override
     public void _ready() {
@@ -29,14 +29,14 @@ public class RPCombatant extends Node {
         Object defObj = getProperty("defense");
         if (defObj instanceof Number) defense = ((Number) defObj).intValue();
 
-        animationPlayback = (org.godot.Godot) call("get_node", "Sprite2D/AnimationTree");
-        healthNode = (org.godot.Godot) call("get_node", "Health");
+        animationPlayback = getNode("Sprite2D/AnimationTree");
+        healthNode = getNode("Health");
     }
 
     public void setActive(boolean value) {
         active = value;
-        call("set_process", value);
-        call("set_process_input", value);
+        setProcess(value);
+        setProcessInput(value);
         if (!active) return;
 
         if (healthNode != null) {
@@ -53,20 +53,20 @@ public class RPCombatant extends Node {
     @GodotMethod
     public void attack(Object target) {
         if (target instanceof org.godot.Godot) {
-            org.godot.Godot tgt = (org.godot.Godot) target;
-            org.godot.Godot targetHealth = (org.godot.Godot) tgt.call("get_node", "Health");
+            org.godot.node.Node tgt = (org.godot.node.Node) target;
+            org.godot.Godot targetHealth = (org.godot.node.Node) tgt.getNode("Health");
             if (targetHealth != null) {
                 targetHealth.call("take_damage", damage);
             }
-            org.godot.Godot targetAnimTree = (org.godot.Godot) tgt.call("get_node", "Sprite2D/AnimationTree");
+            org.godot.Godot targetAnimTree = (org.godot.node.Node) tgt.getNode("Sprite2D/AnimationTree");
             if (targetAnimTree != null) {
-                Object playback = targetAnimTree.call("get", "parameters/playback");
+                Object playback = targetAnimTree.getProperty("parameters/playback");
                 if (playback instanceof org.godot.Godot) {
                     ((org.godot.Godot) playback).call("start", "take_damage");
                 }
             }
         }
-        call("emit_signal", "turn_finished");
+        emitSignal("turn_finished");
     }
 
     @GodotMethod
@@ -76,11 +76,11 @@ public class RPCombatant extends Node {
             int armor = armorObj instanceof Number ? ((Number) armorObj).intValue() : 0;
             healthNode.setProperty("armor", armor + defense);
         }
-        call("emit_signal", "turn_finished");
+        emitSignal("turn_finished");
     }
 
     @GodotMethod
     public void flee() {
-        call("emit_signal", "turn_finished");
+        emitSignal("turn_finished");
     }
 }

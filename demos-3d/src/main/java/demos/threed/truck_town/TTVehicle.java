@@ -5,6 +5,9 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.VehicleBody3D;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "TTVehicle", parent = "VehicleBody3D")
 public class TTVehicle extends VehicleBody3D {
@@ -19,11 +22,11 @@ public class TTVehicle extends VehicleBody3D {
 	private boolean turboActive = false;
 	private boolean headlightsActive = false;
 	private double steerTarget = 0.0;
-	private org.godot.Godot engineSound;
-	private org.godot.Godot impactSound;
-	private org.godot.Godot honkSound;
+	private org.godot.node.Node engineSound;
+	private org.godot.node.Node impactSound;
+	private org.godot.node.Node honkSound;
 	private org.godot.Godot turbometer;
-	private org.godot.Godot turboAnimator;
+	private org.godot.node.AnimationPlayer turboAnimator;
 	private boolean initialized = false;
 
 	@Override
@@ -31,9 +34,9 @@ public class TTVehicle extends VehicleBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		engineSound = (org.godot.Godot) call("get_node", "EngineSound");
-		impactSound = (org.godot.Godot) call("get_node", "ImpactSound");
-		honkSound = (org.godot.Godot) call("get_node", "HonkSound");
+		engineSound = getNode("EngineSound");
+		impactSound = getNode("ImpactSound");
+		honkSound = getNode("HonkSound");
 	}
 
 	@Override
@@ -41,8 +44,8 @@ public class TTVehicle extends VehicleBody3D {
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 
 		steerTarget = 0.0;
-		if ((boolean) input.call("is_action_pressed", "turn_left")) steerTarget += 1;
-		if ((boolean) input.call("is_action_pressed", "turn_right")) steerTarget -= 1;
+		if ((boolean) input.isActionPressed("turn_left")) steerTarget += 1;
+		if ((boolean) input.isActionPressed("turn_right")) steerTarget -= 1;
 		steerTarget *= STEER_LIMIT;
 
 		// Engine sound
@@ -60,13 +63,13 @@ public class TTVehicle extends VehicleBody3D {
 		}
 
 		// Acceleration / reverse
-		if ((boolean) input.call("is_action_pressed", "accelerate")) {
+		if ((boolean) input.isActionPressed("accelerate")) {
 			double ef = engineForceValue;
 			if (speed < 5.0 && speed > 0.001) {
 				ef = Math.min(100.0, engineForceValue * 5.0 / speed);
 			}
 			setProperty("engine_force", ef);
-		} else if ((boolean) input.call("is_action_pressed", "reverse")) {
+		} else if ((boolean) input.isActionPressed("reverse")) {
 			double ef = -engineForceValue;
 			if (speed < 5.0 && speed > 0.001) {
 				ef = -Math.min(100.0, engineForceValue * 5.0 / speed);
@@ -87,10 +90,10 @@ public class TTVehicle extends VehicleBody3D {
 		setProperty("steering", newSteer);
 
 		// Boost
-		boolean boostPressed = (boolean) input.call("is_action_pressed", "boost");
+		boolean boostPressed = (boolean) input.isActionPressed("boost");
 		boolean newTurbo = boostPressed && turbometer != null && (double) turbometer.getProperty("value") > 0;
 		if (newTurbo != turboActive && turboAnimator != null) {
-			turboAnimator.call("play", newTurbo ? "TURBO" : "Idle");
+			turboAnimator.play(newTurbo ? "TURBO" : "Idle");
 		}
 		turboActive = newTurbo;
 		if (turboActive && turbometer != null) {
@@ -113,17 +116,17 @@ public class TTVehicle extends VehicleBody3D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		if ((boolean) ev.call("is_action_pressed", "honk")) {
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		if ((boolean) ev.isActionPressed("honk")) {
 			if (honkSound != null) honkSound.call("play");
 		}
 		return false;
 	}
 
 	@GodotMethod
-	public void toggle_headlights() {
+	public void toggleHeadlights() {
 		headlightsActive = !headlightsActive;
-		org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+		org.godot.node.SceneTree tree = getTree();
 		if (tree != null) {
 			tree.call("call_group", "headlight", "set_visible", headlightsActive);
 		}

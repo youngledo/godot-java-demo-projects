@@ -10,6 +10,7 @@ import org.godot.node.Camera3D;
 import org.godot.node.MeshInstance3D;
 import org.godot.node.Node3D;
 import org.godot.node.SubViewport;
+import org.godot.node.Node;
 
 @GodotClass(name = "GUI3D", parent = "Node3D")
 public class GUI3D extends Node3D {
@@ -29,9 +30,9 @@ public class GUI3D extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        nodeViewport = (SubViewport) call("get_node", "SubViewport");
-        nodeQuad = (MeshInstance3D) call("get_node", "Quad");
-        nodeArea = (Area3D) call("get_node", "Quad/Area3D");
+        nodeViewport = (SubViewport) getNode("SubViewport");
+        nodeQuad = (MeshInstance3D) getNode("Quad");
+        nodeArea = (Area3D) getNode("Quad/Area3D");
 
         // Connect signals
         if (nodeArea != null) {
@@ -53,7 +54,7 @@ public class GUI3D extends Node3D {
         }
 
         if (!billboardEnabled) {
-            call("set_process", false);
+            setProcess(false);
         }
     }
 
@@ -90,14 +91,14 @@ public class GUI3D extends Node3D {
         isMouseInside = true;
         // Notify the viewport that the mouse is now hovering it
         if (nodeViewport != null) {
-            nodeViewport.call("notification", 42); // NOTIFICATION_VP_MOUSE_ENTER
+            nodeViewport.notification(42); // NOTIFICATION_VP_MOUSE_ENTER
         }
     }
 
     @GodotMethod
     public void _mouseExitedArea() {
         if (nodeViewport != null) {
-            nodeViewport.call("notification", 43); // NOTIFICATION_VP_MOUSE_EXIT
+            nodeViewport.notification(43); // NOTIFICATION_VP_MOUSE_EXIT
         }
         isMouseInside = false;
     }
@@ -140,8 +141,8 @@ public class GUI3D extends Node3D {
 
             // Convert from (-quad_size/2 -> quad_size/2) to (0 -> 1)
             eventPos2D = new Vector2(
-                (eventPos2D.getX() / quadMeshSize.getX()) + 0.5,
-                (eventPos2D.getY() / quadMeshSize.getY()) + 0.5
+                eventPos2D.getX() / quadMeshSize.getX() + 0.5,
+                eventPos2D.getY() / quadMeshSize.getY() + 0.5
             );
 
             // Convert to (0 -> viewport.size)
@@ -196,7 +197,7 @@ public class GUI3D extends Node3D {
         }
 
         if (mode > 0) {
-            Object vp = call("get_viewport");
+            Object vp = getViewport();
             if (vp == null) return;
 
             Object cam = ((org.godot.Godot) vp).call("get_camera_3d");

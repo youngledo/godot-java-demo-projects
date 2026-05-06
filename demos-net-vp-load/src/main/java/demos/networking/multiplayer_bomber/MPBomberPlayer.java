@@ -27,12 +27,12 @@ public class MPBomberPlayer extends CharacterBody2D {
     public void _ready() {
         stunned = false;
         setProperty("position", syncedPosition);
-        inputs = (Godot) call("get_node", "Inputs");
+        inputs = (Godot) getNode("Inputs");
 
         String nameStr = (String) getProperty("name");
         try {
             int nameInt = Integer.parseInt(nameStr);
-            Godot inputsSync = (Godot) call("get_node", "Inputs/InputsSync");
+            Godot inputsSync = (Godot) getNode("Inputs/InputsSync");
             inputsSync.call("set_multiplayer_authority", nameInt);
         } catch (NumberFormatException ignored) {
         }
@@ -40,7 +40,7 @@ public class MPBomberPlayer extends CharacterBody2D {
 
     @Override
     public void _physicsProcess(double delta) {
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         Object mpPeer = mp.getProperty("multiplayer_peer");
         String nameStr = (String) getProperty("name");
         long uniqueId = (long) mp.call("get_unique_id");
@@ -57,7 +57,7 @@ public class MPBomberPlayer extends CharacterBody2D {
             boolean isBombing = (boolean) inputs.getProperty("bombing");
             if (!stunned && (boolean) call("is_multiplayer_authority") && isBombing && lastBombTime >= BOMB_RATE) {
                 lastBombTime = 0.0;
-                Godot bombSpawner = (Godot) call("get_node", "../../BombSpawner");
+                Godot bombSpawner = (Godot) getNode("../../BombSpawner");
                 Vector2 position = (Vector2) getProperty("position");
                 Object[] spawnData = new Object[]{position, Integer.parseInt(nameStr)};
                 bombSpawner.call("spawn", new Object[]{spawnData});
@@ -71,7 +71,7 @@ public class MPBomberPlayer extends CharacterBody2D {
             double mx = motion != null ? motion.getX() : 0;
             double my = motion != null ? motion.getY() : 0;
             setProperty("velocity", new Vector2(mx * MOTION_SPEED, my * MOTION_SPEED));
-            call("move_and_slide");
+            moveAndSlide();
         }
 
         // Update animation
@@ -89,19 +89,19 @@ public class MPBomberPlayer extends CharacterBody2D {
 
         if (!newAnim.equals(currentAnim)) {
             currentAnim = newAnim;
-            Godot anim = (Godot) call("get_node", "anim");
+            Godot anim = (Godot) getNode("anim");
             anim.call("play", currentAnim);
         }
     }
 
     @GodotMethod
-    public void set_player_name(String value) {
-        Godot label = (Godot) call("get_node", "label");
+    public void setPlayerName(String value) {
+        Godot label = (Godot) getNode("label");
         label.setProperty("text", value);
-        Godot gamestate = (Godot) call("get_node", "/root/gamestate");
+        Godot gamestate = (Godot) getNode("/root/gamestate");
         Object color = gamestate.call("get_player_color", value);
         label.setProperty("modulate", color);
-        Godot sprite = (Godot) call("get_node", "sprite");
+        Godot sprite = (Godot) getNode("sprite");
         Godot modColor = (Godot) call("Color", 0.5, 0.5, 0.5);
         // Add gamestate color to gray
         sprite.setProperty("modulate", modColor);
@@ -111,7 +111,7 @@ public class MPBomberPlayer extends CharacterBody2D {
     public void exploded(int byWho) {
         if (stunned) return;
         stunned = true;
-        Godot anim = (Godot) call("get_node", "anim");
+        Godot anim = (Godot) getNode("anim");
         anim.call("play", "stunned");
     }
 }

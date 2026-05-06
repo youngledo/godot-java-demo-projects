@@ -3,6 +3,7 @@ package demos.audio.device_changer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 /**
  * Device changer demo - lists and switches audio output devices.
@@ -10,28 +11,28 @@ import org.godot.node.Control;
 @GodotClass(name = "DeviceChanger", parent = "Control")
 public class DeviceChanger extends Control {
 
-    private org.godot.Godot itemList;
+    private org.godot.node.ItemList itemList;
 
     @Override
     public void _ready() {
-        itemList = (org.godot.Godot) call("get_node", "ItemList");
+        itemList = (org.godot.node.ItemList) getNode("ItemList");
 
         org.godot.singleton.AudioServer audioServer = org.godot.singleton.AudioServer.singleton();
 
         // Populate device list.
         Object[] deviceList = (Object[]) audioServer.call("get_output_device_list");
         for (Object device : deviceList) {
-            if (itemList != null) itemList.call("add_item", device);
+            if (itemList != null) itemList.addItem((String) device);
         }
 
         // Select current device.
         String currentDevice = (String) audioServer.call("get_output_device");
         if (itemList != null) {
-            int itemCount = ((Number) itemList.call("get_item_count")).intValue();
+            int itemCount = ((Number) itemList.getItemCount()).intValue();
             for (int i = 0; i < itemCount; i++) {
-                String itemText = (String) itemList.call("get_item_text", i);
+                String itemText = (String) itemList.getItemText(i);
                 if (currentDevice.equals(itemText)) {
-                    itemList.call("select", i);
+                    itemList.select(i);
                     break;
                 }
             }
@@ -53,7 +54,7 @@ public class DeviceChanger extends Control {
             speakerModeText = "Surround 7.1";
         }
 
-        org.godot.Godot deviceInfo = (org.godot.Godot) call("get_node", "DeviceInfo");
+        org.godot.node.Control deviceInfo = (org.godot.node.Control) getNode("DeviceInfo");
         if (deviceInfo != null) {
             String device = (String) audioServer.call("get_output_device");
             deviceInfo.setProperty("text", "Current Device: " + device + "\nSpeaker Mode: " + speakerModeText);
@@ -63,25 +64,24 @@ public class DeviceChanger extends Control {
     @GodotMethod
     public void _onButtonButtonDown() {
         if (itemList == null) return;
-        Object[] selectedItems = (Object[]) itemList.call("get_selected_items");
-        for (Object item : selectedItems) {
-            int idx = ((Number) item).intValue();
+        int[] selectedItems = (int[]) itemList.call("get_selected_items");
+        for (int idx : selectedItems) {
             String device = (String) itemList.call("get_item_text", idx);
-            org.godot.singleton.AudioServer.singleton().call("set_output_device", device);
+            org.godot.singleton.AudioServer.singleton().setOutputDevice(device);
         }
     }
 
     @GodotMethod
     public void _onPlayAudioButtonDown() {
-        org.godot.Godot audioPlayer = (org.godot.Godot) call("get_node", "AudioStreamPlayer");
-        org.godot.Godot playAudioBtn = (org.godot.Godot) call("get_node", "PlayAudio");
+        org.godot.node.AudioStreamPlayer audioPlayer = (org.godot.node.AudioStreamPlayer) getNode("AudioStreamPlayer");
+        org.godot.node.Node playAudioBtn = getNode("PlayAudio");
         if (audioPlayer == null) return;
 
         if ((boolean) audioPlayer.call("playing")) {
-            audioPlayer.call("stop");
+            audioPlayer.stop();
             if (playAudioBtn != null) playAudioBtn.setProperty("text", "Play Audio");
         } else {
-            audioPlayer.call("play");
+            audioPlayer.play();
             if (playAudioBtn != null) playAudioBtn.setProperty("text", "Stop Audio");
         }
     }

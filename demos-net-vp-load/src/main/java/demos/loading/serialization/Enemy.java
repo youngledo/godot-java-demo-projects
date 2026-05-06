@@ -3,6 +3,7 @@ package demos.loading.serialization;
 import org.godot.annotation.GodotClass;
 import org.godot.Godot;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
 
 /**
  * Enemy that moves right across the screen and damages the player on contact.

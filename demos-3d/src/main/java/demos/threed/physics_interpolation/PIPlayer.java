@@ -4,6 +4,8 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "PIPlayer", parent = "CharacterBody3D")
 public class PIPlayer extends CharacterBody3D {
@@ -24,15 +26,15 @@ public class PIPlayer extends CharacterBody3D {
 		initialized = true;
 
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-		input.call("set_mouse_mode", 2);
+		input.setMouseMode(2);
 
 		cycleCameraType();
 	}
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String cls = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String cls = ev.get_class_();
 
 		if ("InputEventMouseMotion".equals(cls)) {
 			org.godot.math.Vector2 rel = (org.godot.math.Vector2) ev.getProperty("screen_relative");
@@ -41,7 +43,7 @@ public class PIPlayer extends CharacterBody3D {
 				pitch += rel.getY() * MOUSE_SENSITIVITY * 0.002;
 				pitch = Math.max(-Math.PI, Math.min(Math.PI, pitch));
 
-				org.godot.Godot rig = (org.godot.Godot) call("get_node", "Rig");
+				org.godot.node.Node rig = getNode("Rig");
 				if (rig != null) rig.setProperty("rotation", new Vector3(0, yaw, 0));
 			}
 		}
@@ -52,19 +54,19 @@ public class PIPlayer extends CharacterBody3D {
 	public void _process(double delta) {
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 
-		if ((boolean) input.call("is_action_just_pressed", "cycle_camera_type")) {
+		if ((boolean) (boolean) input.isActionJustPressed("cycle_camera_type")) {
 			cycleCameraType();
 		}
 
-		if ((boolean) input.call("is_action_just_pressed", "jump")) {
-			if ((boolean) call("is_on_floor")) {
+		if ((boolean) (boolean) input.isActionJustPressed("jump")) {
+			if (((boolean) isOnFloor())) {
 				Vector3 vel = (Vector3) getProperty("velocity");
 				if (vel == null) vel = new Vector3(0, 0, 0);
 				setProperty("velocity", new Vector3(vel.getX(), JUMP_VELOCITY, vel.getZ()));
 			}
 		}
 
-		if ((boolean) input.call("is_action_just_pressed", "reset_position")) {
+		if ((boolean) (boolean) input.isActionJustPressed("reset_position")) {
 			setProperty("position", new Vector3(0, 1, 0));
 			setProperty("velocity", new Vector3(0, 0, 0));
 			yaw = 0;
@@ -72,7 +74,7 @@ public class PIPlayer extends CharacterBody3D {
 		}
 
 		// Update head rotation
-		org.godot.Godot head = (org.godot.Godot) call("get_node", "Rig/Head");
+		org.godot.node.Node head = getNode("Rig/Head");
 		if (head != null) head.setProperty("rotation", new Vector3(pitch * -0.5, 0, 0));
 	}
 
@@ -81,10 +83,10 @@ public class PIPlayer extends CharacterBody3D {
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 
 		double mx = 0, mz = 0;
-		if ((boolean) input.call("is_action_pressed", "move_left")) mx -= 1;
-		if ((boolean) input.call("is_action_pressed", "move_right")) mx += 1;
-		if ((boolean) input.call("is_action_pressed", "move_forward")) mz -= 1;
-		if ((boolean) input.call("is_action_pressed", "move_backward")) mz += 1;
+		if ((boolean) input.isActionPressed("move_left")) mx -= 1;
+		if ((boolean) input.isActionPressed("move_right")) mx += 1;
+		if ((boolean) input.isActionPressed("move_forward")) mz -= 1;
+		if ((boolean) input.isActionPressed("move_backward")) mz += 1;
 
 		// Rotate input by yaw
 		double cosY = Math.cos(yaw);
@@ -104,21 +106,21 @@ public class PIPlayer extends CharacterBody3D {
 		vz *= frictionDelta;
 
 		setProperty("velocity", new Vector3(vx, vy, vz));
-		call("move_and_slide");
+		moveAndSlide();
 	}
 
 	@GodotMethod
 	public void cycleCameraType() {
 		camType = (camType + 1) % 3;
-		org.godot.Godot fpsCam = (org.godot.Godot) call("get_node", "Rig/Head/Camera_FPS");
-		org.godot.Godot tpsCam = (org.godot.Godot) call("get_node", "Rig/Camera_TPS");
+		org.godot.node.Node fpsCam = getNode("Rig/Head/Camera_FPS");
+		org.godot.node.Node tpsCam = getNode("Rig/Camera_TPS");
 
 		if (camType == 1 && fpsCam != null) {
 			fpsCam.call("make_current");
 		} else if (camType == 2 && tpsCam != null) {
 			tpsCam.call("make_current");
 		} else {
-			org.godot.Godot fixedCam = (org.godot.Godot) call("get_node", "../Camera_Fixed");
+			org.godot.node.Node fixedCam = getNode("../Camera_Fixed");
 			if (fixedCam != null) fixedCam.call("make_current");
 		}
 	}

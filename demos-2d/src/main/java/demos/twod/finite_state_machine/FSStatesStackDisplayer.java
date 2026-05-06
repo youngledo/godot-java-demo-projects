@@ -2,18 +2,19 @@ package demos.twod.finite_state_machine;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Panel;
+import org.godot.node.Node;
 
 @GodotClass(name = "FSStatesStackDisplayer", parent = "Panel")
 public class FSStatesStackDisplayer extends Panel {
 
-    private org.godot.Godot fsmNode;
+    private org.godot.node.Node fsmNode;
     private boolean initialized = false;
 
     @Override
     public void _ready() {
         if (initialized) return;
         initialized = true;
-        fsmNode = (org.godot.Godot) call("get_node", "../../Player/StateMachine");
+        fsmNode = getNode("../../Player/StateMachine");
     }
 
     @Override
@@ -38,8 +39,8 @@ public class FSStatesStackDisplayer extends Panel {
             }
         }
 
-        org.godot.Godot statesLabel = (org.godot.Godot) call("get_node", "States");
-        org.godot.Godot numbersLabel = (org.godot.Godot) call("get_node", "Numbers");
+        org.godot.node.Node statesLabel = getNode("States");
+        org.godot.node.Node numbersLabel = getNode("Numbers");
         if (statesLabel != null) statesLabel.setProperty("text", statesNames.toString());
         if (numbersLabel != null) numbersLabel.setProperty("text", numbers.toString());
     }

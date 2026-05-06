@@ -5,6 +5,9 @@ import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "MVRMain", parent = "Node3D")
 public class MVRMain extends Node3D {
@@ -22,7 +25,7 @@ public class MVRMain extends Node3D {
             boolean initialized2 = (boolean) ((org.godot.Godot) xrInterface).call("initialize");
             if (initialized2) {
                 // Set up viewport.
-                org.godot.Godot vp = (org.godot.Godot) call("get_viewport");
+                org.godot.node.Viewport vp = getViewport();
                 if (vp != null) {
                     vp.setProperty("use_xr", true);
                     vp.setProperty("vrs_mode", 2); // Viewport.VRS_XR
@@ -32,8 +35,8 @@ public class MVRMain extends Node3D {
         }
 
         // How did we get here?
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-        if (tree != null) tree.call("quit");
+        org.godot.node.SceneTree tree = getTree();
+        if (tree != null) tree.quit();
     }
 
     @Override
@@ -44,18 +47,18 @@ public class MVRMain extends Node3D {
         double dirX = 0.0;
         double dirY = 0.0;
 
-        if ((boolean) input.call("is_action_pressed", "ui_left", false)) {
+        if ((boolean) input.isActionPressed("ui_left")) {
             dirX = -1.0;
-        } else if ((boolean) input.call("is_action_pressed", "ui_right", false)) {
+        } else if ((boolean) input.isActionPressed("ui_right")) {
             dirX = 1.0;
         }
-        if ((boolean) input.call("is_action_pressed", "ui_up", false)) {
+        if ((boolean) input.isActionPressed("ui_up")) {
             dirY = -1.0;
-        } else if ((boolean) input.call("is_action_pressed", "ui_down", false)) {
+        } else if ((boolean) input.isActionPressed("ui_down")) {
             dirY = 1.0;
         }
 
-        org.godot.Godot xrOrigin = (org.godot.Godot) call("get_node", "XROrigin3D");
+        org.godot.node.Node xrOrigin = getNode("XROrigin3D");
         if (xrOrigin == null) return;
 
         Object globalTransformObj = xrOrigin.call("get_global_transform");

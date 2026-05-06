@@ -3,6 +3,7 @@ package demos.misc.pause;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Button;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "PauseButton", parent = "Button")
 public class PauseButton extends Button {
@@ -21,7 +22,7 @@ public class PauseButton extends Button {
 
     @GodotMethod
     public void _toggled(boolean isButtonPressed) {
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+        org.godot.node.SceneTree tree = getTree();
         if (tree != null) {
             tree.setProperty("paused", isButtonPressed);
         }

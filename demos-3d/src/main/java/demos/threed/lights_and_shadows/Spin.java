@@ -3,6 +3,7 @@ package demos.threed.lights_and_shadows;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "Spin", parent = "Node3D")
 public class Spin extends Node3D {

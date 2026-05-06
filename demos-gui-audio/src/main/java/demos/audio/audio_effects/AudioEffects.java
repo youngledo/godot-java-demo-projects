@@ -3,6 +3,7 @@ package demos.audio.audio_effects;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 /**
  * Audio effects demo - toggles various AudioServer bus effects on and off,
@@ -13,7 +14,7 @@ public class AudioEffects extends Control {
 
     @GodotMethod
     public void _onToggleMusicToggled(boolean buttonPressed) {
-        org.godot.Godot music = (org.godot.Godot) call("get_node", "SoundEffects/Music");
+        org.godot.node.Node music = getNode("SoundEffects/Music");
         if (music == null) return;
         if (buttonPressed) {
             music.call("play");
@@ -148,7 +149,7 @@ public class AudioEffects extends Control {
     }
 
     private void playSoundEffect(String name) {
-        org.godot.Godot sfx = (org.godot.Godot) call("get_node", "SoundEffects/" + name);
+        org.godot.node.Node sfx = getNode("SoundEffects/" + name);
         if (sfx != null) sfx.call("play");
     }
 

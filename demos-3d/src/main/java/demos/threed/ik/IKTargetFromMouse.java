@@ -3,13 +3,15 @@ package demos.threed.ik;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Camera3D;
 import org.godot.math.Vector3;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "IKTargetFromMouse", parent = "Camera3D")
 public class IKTargetFromMouse extends Camera3D {
 
     private double movementSpeed = 12.0;
     private boolean flipAxis = false;
-    private org.godot.Godot targets;
+    private org.godot.node.Node targets;
     private boolean initialized = false;
 
     @Override
@@ -23,17 +25,17 @@ public class IKTargetFromMouse extends Camera3D {
         Object flipObj = getProperty("flip_axis");
         if (flipObj instanceof Boolean) flipAxis = (Boolean) flipObj;
 
-        targets = (org.godot.Godot) call("get_node", "Targets");
+        targets = getNode("Targets");
     }
 
     @Override
     public void _process(double delta) {
         if (targets == null) return;
 
-        org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport viewport = getViewport();
         if (viewport == null) return;
 
-        Object mousePosObj = viewport.call("get_mouse_position");
+        Object mousePosObj = viewport.getMousePosition();
         if (mousePosObj == null) return;
 
         Object rayNormalObj = call("project_local_ray_normal", mousePosObj);

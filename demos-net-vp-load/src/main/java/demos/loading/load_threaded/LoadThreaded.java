@@ -30,7 +30,7 @@ public class LoadThreaded extends VBoxContainer {
         }
 
         // Enable all buttons in the GetLoaded container.
-        Godot getLoaded = (Godot) call("get_node", "GetLoaded");
+        Godot getLoaded = (Godot) getNode("GetLoaded");
         if (getLoaded != null) {
             int childCount = (int) getLoaded.call("get_child_count");
             for (int i = 0; i < childCount; i++) {
@@ -75,12 +75,12 @@ public class LoadThreaded extends VBoxContainer {
     private void setPaintingTexture(String paintingNodePath, String resourcePath, String buttonNodePath) {
         // Get the loaded texture from the threaded loader.
         Object tex = call("ResourceLoader.load_threaded_get", resourcePath);
-        Godot painting = (Godot) call("get_node", paintingNodePath);
+        Godot painting = (Godot) getNode(paintingNodePath);
         if (painting != null && tex != null) {
             painting.setProperty("texture", tex);
         }
         // Disable the button after loading.
-        Godot btn = (Godot) call("get_node", buttonNodePath);
+        Godot btn = (Godot) getNode(buttonNodePath);
         if (btn != null) {
             btn.setProperty("disabled", true);
         }

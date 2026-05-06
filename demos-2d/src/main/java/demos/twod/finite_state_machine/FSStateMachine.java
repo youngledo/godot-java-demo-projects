@@ -17,7 +17,7 @@ public class FSStateMachine extends Node {
     private boolean initialized = false;
 
     @Signal
-    public void state_changed() {}
+    public void stateChanged() {}
 
     @Override
     public void _enterTree() {
@@ -25,7 +25,7 @@ public class FSStateMachine extends Node {
         initialized = true;
 
         // Initialize states map from children
-        Object children = call("get_children");
+        Object children = getChildren();
         if (children instanceof org.godot.Godot[]) {
             for (org.godot.Godot child : (org.godot.Godot[]) children) {
                 Object nameObj = child.getProperty("name");
@@ -79,7 +79,7 @@ public class FSStateMachine extends Node {
 
         if (!statesStack.isEmpty()) {
             currentState = statesStack.get(0);
-            call("emit_signal", "state_changed", currentState);
+            emitSignal("state_changed", currentState);
             updateStateNameDisplayer();
             if (!FSState.PREVIOUS.equals(stateName)) {
                 currentState.call("enter");
@@ -97,16 +97,16 @@ public class FSStateMachine extends Node {
         }
 
         currentState = statesStack.get(0);
-        call("emit_signal", "state_changed", currentState);
+        emitSignal("state_changed", currentState);
         updateStateNameDisplayer();
         currentState.call("enter");
     }
 
     private void updateStateNameDisplayer() {
         if (currentState == null) return;
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot label = (org.godot.Godot) owner.call("get_node_or_null", "StateNameDisplayer");
+            org.godot.Godot label = (org.godot.node.Node) owner.getNodeOrNull("StateNameDisplayer");
             if (label != null) {
                 Object nameObj = currentState.getProperty("name");
                 label.setProperty("text", nameObj != null ? nameObj.toString() : "");

@@ -6,13 +6,14 @@ import org.godot.math.Vector2;
 import org.godot.node.Label;
 import org.godot.node.Node2D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "TweenDemo", parent = "Node2D")
 public class TweenDemo extends Node2D {
 
-	private org.godot.Godot icon;
-	private org.godot.Godot progress;
-	private org.godot.Godot tween;
+	private org.godot.node.CanvasItem icon;
+	private org.godot.node.Node progress;
+	private org.godot.node.Tween tween;
 	private boolean initialized = false;
 
 	@Override
@@ -20,8 +21,8 @@ public class TweenDemo extends Node2D {
 		if (initialized) return;
 		initialized = true;
 
-		icon = (org.godot.Godot) call("get_node", "Icon");
-		progress = (org.godot.Godot) call("get_node", "CanvasLayer/Progress");
+		icon = (org.godot.node.CanvasItem) getNode("Icon");
+		progress = getNode("CanvasLayer/Progress");
 	}
 
 	@Override
@@ -40,7 +41,7 @@ public class TweenDemo extends Node2D {
 	public boolean _unhandledInput(Object inputEvent) {
 		Input input = Input.singleton();
 
-		if (input.is_action_just_pressed("ui_accept", false)) {
+		if ((boolean) (boolean) input.isActionJustPressed("ui_accept")) {
 			startAnimation();
 			return true;
 		}
@@ -50,7 +51,7 @@ public class TweenDemo extends Node2D {
 	private void startAnimation() {
 		reset();
 
-		tween = (org.godot.Godot) call("create_tween");
+		tween = (org.godot.node.Tween) call("create_tween");
 		if (tween == null) return;
 
 		if (progress != null) {
@@ -83,20 +84,20 @@ public class TweenDemo extends Node2D {
 		}
 
 		// Loop back
-		tween.call("tween_callback", new org.godot.core.Callable(this, "showIcon"));
+		tween.tweenCallback(new org.godot.core.Callable(this, "showIcon"));
 	}
 
 	@org.godot.annotation.GodotMethod
 	public void showIcon() {
 		if (icon != null) {
-			icon.call("show");
+			icon.show();
 			icon.setProperty("self_modulate", new Color(1, 1, 1));
 		}
 	}
 
 	private void reset() {
 		if (tween != null) {
-			tween.call("kill");
+			tween.kill();
 			tween = null;
 		}
 		if (icon != null) {
@@ -104,7 +105,7 @@ public class TweenDemo extends Node2D {
 			icon.setProperty("self_modulate", new Color(1, 1, 1));
 			icon.setProperty("rotation", 0.0);
 			icon.setProperty("scale", new Vector2(1, 1));
-			icon.call("show");
+			icon.show();
 		}
 	}
 }

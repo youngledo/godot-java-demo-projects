@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Camera3D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "FogCamera", parent = "Camera3D")
 public class FogCamera extends Camera3D {
@@ -13,7 +14,7 @@ public class FogCamera extends Camera3D {
 
 	private Vector3 rot = new Vector3(0, 0, 0);
 	private Vector3 velocity = new Vector3(0, 0, 0);
-	private org.godot.Godot label;
+	private org.godot.node.Label label;
 	private boolean initialized = false;
 
 	@Override
@@ -21,9 +22,9 @@ public class FogCamera extends Camera3D {
 		if (initialized) return;
 		initialized = true;
 
-		label = (org.godot.Godot) call("get_node", "Label");
+		label = (org.godot.node.Label) getNode("Label");
 		Input input = Input.singleton();
-		input.call("set_mouse_mode", 2); // MOUSE_MODE_CAPTURED
+		input.setMouseMode(2); // MOUSE_MODE_CAPTURED
 	}
 
 	@Override
@@ -55,11 +56,11 @@ public class FogCamera extends Camera3D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
 		if ("InputEventMouseMotion".equals(className)) {
-			Object mouseMode = Input.singleton().call("get_mouse_mode");
+			Object mouseMode = Input.singleton().getMouseMode();
 			if (mouseMode != null && ((long) mouseMode) == 2) { // CAPTURED
 				org.godot.math.Vector2 relative = (org.godot.math.Vector2) ev.getProperty("screen_relative");
 				if (relative != null) {
@@ -68,17 +69,17 @@ public class FogCamera extends Camera3D {
 						rot.getY() - relative.getX() * MOUSE_SENSITIVITY,
 						rot.getZ()
 					);
-					call("set_rotation", rot);
+					setRotation(rot);
 				}
 			}
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "toggle_mouse_capture")) {
-			Object mouseMode = Input.singleton().call("get_mouse_mode");
+		if ((boolean) ev.isActionPressed("toggle_mouse_capture")) {
+			Object mouseMode = Input.singleton().getMouseMode();
 			if (mouseMode != null && ((long) mouseMode) == 2) {
-				Input.singleton().call("set_mouse_mode", 0); // VISIBLE
+				Input.singleton().setMouseMode(0); // VISIBLE
 			} else {
-				Input.singleton().call("set_mouse_mode", 2); // CAPTURED
+				Input.singleton().setMouseMode(2); // CAPTURED
 			}
 		}
 		return false;

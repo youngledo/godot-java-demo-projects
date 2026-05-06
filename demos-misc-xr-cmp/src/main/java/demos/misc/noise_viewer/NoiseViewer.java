@@ -3,6 +3,7 @@ package demos.misc.noise_viewer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "NoiseViewer", parent = "Control")
 public class NoiseViewer extends Control {
@@ -17,7 +18,7 @@ public class NoiseViewer extends Control {
         if (initialized) return;
         initialized = true;
 
-        org.godot.Godot seamlessTexture = (org.godot.Godot) call("get_node", "SeamlessNoiseTexture");
+        org.godot.node.Node seamlessTexture = getNode("SeamlessNoiseTexture");
         if (seamlessTexture != null) {
             Object texture = seamlessTexture.getProperty("texture");
             if (texture instanceof org.godot.Godot) {
@@ -27,11 +28,11 @@ public class NoiseViewer extends Control {
 
         // Set up noise with basic info
         if (noise != null) {
-            org.godot.Godot seedBox = (org.godot.Godot) call("get_node", "ParameterContainer/SeedSpinBox");
-            org.godot.Godot freqBox = (org.godot.Godot) call("get_node", "ParameterContainer/FrequencySpinBox");
-            org.godot.Godot octavesBox = (org.godot.Godot) call("get_node", "ParameterContainer/FractalOctavesSpinBox");
-            org.godot.Godot gainBox = (org.godot.Godot) call("get_node", "ParameterContainer/FractalGainSpinBox");
-            org.godot.Godot lacBox = (org.godot.Godot) call("get_node", "ParameterContainer/FractalLacunaritySpinBox");
+            org.godot.node.Node seedBox = getNode("ParameterContainer/SeedSpinBox");
+            org.godot.node.Node freqBox = getNode("ParameterContainer/FrequencySpinBox");
+            org.godot.node.Node octavesBox = getNode("ParameterContainer/FractalOctavesSpinBox");
+            org.godot.node.Node gainBox = getNode("ParameterContainer/FractalGainSpinBox");
+            org.godot.node.Node lacBox = getNode("ParameterContainer/FractalLacunaritySpinBox");
 
             if (seedBox != null) seedBox.setProperty("value", noise.getProperty("seed"));
             if (freqBox != null) freqBox.setProperty("value", noise.getProperty("frequency"));
@@ -47,9 +48,9 @@ public class NoiseViewer extends Control {
         double min = (minNoise + 1) / 2.0;
         double max = (maxNoise + 1) / 2.0;
 
-        org.godot.Godot seamlessTexture = (org.godot.Godot) call("get_node", "SeamlessNoiseTexture");
+        org.godot.node.Node seamlessTexture = getNode("SeamlessNoiseTexture");
         if (seamlessTexture != null) {
-            org.godot.Godot material = (org.godot.Godot) seamlessTexture.getProperty("material");
+            org.godot.node.ShaderMaterial material = (org.godot.node.ShaderMaterial) seamlessTexture.getProperty("material");
             if (material != null) {
                 material.call("set_shader_parameter", "min_value", min);
                 material.call("set_shader_parameter", "max_value", max);
@@ -58,53 +59,52 @@ public class NoiseViewer extends Control {
     }
 
     @GodotMethod
-    public void _on_documentation_button_pressed() {
-        org.godot.singleton.OS.singleton().call("shell_open",
-            "https://docs.godotengine.org/en/latest/classes/class_fastnoiselite.html");
+    public void OnDocumentationButtonPressed() {
+        org.godot.singleton.OS.singleton().shellOpen("https://docs.godotengine.org/en/latest/classes/class_fastnoiselite.html");
     }
 
     @GodotMethod
-    public void _on_random_seed_button_pressed() {
+    public void OnRandomSeedButtonPressed() {
         double randomVal = Math.random() * (2147483648.0 - (-2147483648.0)) + (-2147483648.0);
-        org.godot.Godot seedBox = (org.godot.Godot) call("get_node", "ParameterContainer/SeedSpinBox");
+        org.godot.node.Node seedBox = getNode("ParameterContainer/SeedSpinBox");
         if (seedBox != null) {
             seedBox.setProperty("value", Math.floor(randomVal));
         }
     }
 
     @GodotMethod
-    public void _on_seed_spin_box_value_changed(double value) {
+    public void OnSeedSpinBoxValueChanged(double value) {
         if (noise != null) noise.setProperty("seed", (int) value);
     }
 
     @GodotMethod
-    public void _on_frequency_spin_box_value_changed(double value) {
+    public void OnFrequencySpinBoxValueChanged(double value) {
         if (noise != null) noise.setProperty("frequency", value);
     }
 
     @GodotMethod
-    public void _on_fractal_octaves_spin_box_value_changed(double value) {
+    public void OnFractalOctavesSpinBoxValueChanged(double value) {
         if (noise != null) noise.setProperty("fractal_octaves", (int) value);
     }
 
     @GodotMethod
-    public void _on_fractal_gain_spin_box_value_changed(double value) {
+    public void OnFractalGainSpinBoxValueChanged(double value) {
         if (noise != null) noise.setProperty("fractal_gain", value);
     }
 
     @GodotMethod
-    public void _on_fractal_lacunarity_spin_box_value_changed(double value) {
+    public void OnFractalLacunaritySpinBoxValueChanged(double value) {
         if (noise != null) noise.setProperty("fractal_lacunarity", value);
     }
 
     @GodotMethod
-    public void _on_min_clip_spin_box_value_changed(double value) {
+    public void OnMinClipSpinBoxValueChanged(double value) {
         minNoise = value;
         refreshShaderParams();
     }
 
     @GodotMethod
-    public void _on_max_clip_spin_box_value_changed(double value) {
+    public void OnMaxClipSpinBoxValueChanged(double value) {
         maxNoise = value;
         refreshShaderParams();
     }

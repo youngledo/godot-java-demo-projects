@@ -33,10 +33,10 @@ public class SSSplitScreen extends VBoxContainer {
         if (initialized) return;
         initialized = true;
 
-        opt = (OptionButton) call("get_node", "OptionButton");
-        viewport = (SubViewport) call("get_node", "InputRoutingViewportContainer/SubViewport");
-        inputRouter = (SSInputRoutingViewportContainer) call("get_node", "InputRoutingViewportContainer");
-        play = (SSPlayer) call("get_node", "InputRoutingViewportContainer/SubViewport/Player");
+        opt = (OptionButton) getNode("OptionButton");
+        viewport = (SubViewport) getNode("InputRoutingViewportContainer/SubViewport");
+        inputRouter = (SSInputRoutingViewportContainer) getNode("InputRoutingViewportContainer");
+        play = (SSPlayer) getNode("InputRoutingViewportContainer/SubViewport/Player");
     }
 
     @Override
@@ -52,16 +52,16 @@ public class SSSplitScreen extends VBoxContainer {
         this.numJoypads = numJoypads;
 
         if (opt == null) {
-            opt = (OptionButton) call("get_node", "OptionButton");
+            opt = (OptionButton) getNode("OptionButton");
         }
         if (play == null) {
-            play = (SSPlayer) call("get_node", "InputRoutingViewportContainer/SubViewport/Player");
+            play = (SSPlayer) getNode("InputRoutingViewportContainer/SubViewport/Player");
         }
         if (viewport == null) {
-            viewport = (SubViewport) call("get_node", "InputRoutingViewportContainer/SubViewport");
+            viewport = (SubViewport) getNode("InputRoutingViewportContainer/SubViewport");
         }
         if (inputRouter == null) {
-            inputRouter = (SSInputRoutingViewportContainer) call("get_node", "InputRoutingViewportContainer");
+            inputRouter = (SSInputRoutingViewportContainer) getNode("InputRoutingViewportContainer");
         }
 
         if (play != null) {
@@ -70,14 +70,14 @@ public class SSSplitScreen extends VBoxContainer {
         }
 
         if (opt != null) {
-            opt.call("clear");
+            opt.clear();
             for (String name : names) {
-                opt.call("add_item", name);
+                opt.addItem(name);
             }
             for (int i = 0; i < numJoypads; i++) {
-                opt.call("add_item", JOYPAD_PREFIX + (i + 1));
+                opt.addItem(JOYPAD_PREFIX + (i + 1));
             }
-            opt.call("select", index);
+            opt.select(index);
             onOptionButtonItemSelected(index);
         }
 

@@ -27,11 +27,11 @@ public class TCCGradientsControls extends Node {
 
 	private void setShaderParamOnAllBars(String param, Object value) {
 		// Iterate children looking for TCCGradientBars nodes
-		long childCount = (long) call("get_child_count");
+		long childCount = (long) getChildCount();
 		for (int i = 0; i < childCount; i++) {
-			org.godot.Godot child = (org.godot.Godot) call("get_child", i);
+			org.godot.node.Node child = getChild(i);
 			if (child == null) continue;
-			String className = (String) child.call("get_class");
+			String className = child.get_class_();
 			if ("TCCGradientBars".equals(className)) {
 				org.godot.Godot hdrBar = (org.godot.Godot) child.getProperty("hdr_bar");
 				if (hdrBar != null) {

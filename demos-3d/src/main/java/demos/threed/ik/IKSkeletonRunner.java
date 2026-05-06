@@ -12,6 +12,6 @@ public class IKSkeletonRunner extends SkeletonIK3D {
     public void _ready() {
         if (initialized) return;
         initialized = true;
-        call("start", false);
+        start(false);
     }
 }

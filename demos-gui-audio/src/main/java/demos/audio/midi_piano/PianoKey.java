@@ -4,6 +4,7 @@ import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 /**
  * PianoKey - represents a single key on the piano keyboard.
@@ -23,11 +24,11 @@ public class PianoKey extends Control {
         if (initialized) return;
         initialized = true;
 
-        keyColorRect = (Godot) call("get_node", "Key");
+        keyColorRect = (Godot) getNode("Key");
         if (keyColorRect != null) {
-            startColor = (org.godot.math.Color) keyColorRect.call("get", "color");
+            startColor = (org.godot.math.Color) keyColorRect.getProperty("color");
         }
-        colorTimer = (Godot) call("get_node", "ColorTimer");
+        colorTimer = (Godot) getNode("ColorTimer");
     }
 
     @GodotMethod
@@ -49,21 +50,21 @@ public class PianoKey extends Control {
                     (yellow.g + startColor.g) / 2,
                     (yellow.b + startColor.b) / 2
             );
-            keyColorRect.call("set", "color", mixed);
+            keyColorRect.setProperty("color", mixed);
         }
 
         // Create audio player for this key press.
         Godot audio = org.godot.node.AudioStreamPlayer.create();
-        call("add_child", audio);
+        addChild((org.godot.node.Node) audio);
         Object sample = org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/A440.wav", "", 1);
-        audio.call("set", "stream", sample);
-        audio.call("set", "pitch_scale", pitchScale);
+        audio.setProperty("stream", sample);
+        audio.setProperty("pitch_scale", pitchScale);
         audio.call("play");
 
         if (colorTimer != null) colorTimer.call("start");
 
         // Schedule cleanup after 8 seconds.
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         if (tree != null) {
             Godot timer = (Godot) tree.call("create_timer", 8.0);
             if (timer != null) {
@@ -76,7 +77,7 @@ public class PianoKey extends Control {
     public void deactivate() {
         ensureInitialized();
         if (keyColorRect != null && startColor != null) {
-            keyColorRect.call("set", "color", startColor);
+            keyColorRect.setProperty("color", startColor);
         }
     }
 
@@ -84,9 +85,9 @@ public class PianoKey extends Control {
     public void _exitTree() {
         if (colorTimer != null) colorTimer.call("stop");
         // Free any dynamically created AudioStreamPlayer children
-        int childCount = ((Number) call("get_child_count")).intValue();
+        int childCount = ((Number) getChildCount()).intValue();
         for (int i = childCount - 1; i >= 0; i--) {
-            Godot child = (Godot) call("get_child", i);
+            Godot child = (Godot) getChild(i);
             if (child != null) {
                 String cls = (String) child.call("get_class");
                 if ("AudioStreamPlayer".equals(cls)) {

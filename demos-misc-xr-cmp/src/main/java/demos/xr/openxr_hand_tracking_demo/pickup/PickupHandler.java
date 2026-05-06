@@ -2,6 +2,7 @@ package demos.xr.openxr_hand_tracking_demo.pickup;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Area3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PickupHandler3D", parent = "Area3D")
 public class PickupHandler extends Area3D {
@@ -24,7 +25,7 @@ public class PickupHandler extends Area3D {
     }
 
     private void updateDetectRange() {
-        org.godot.Godot collisionShape = (org.godot.Godot) call("get_node", "CollisionShape3D");
+        org.godot.node.CollisionShape3D collisionShape = (org.godot.node.CollisionShape3D) getNode("CollisionShape3D");
         if (collisionShape != null) {
             org.godot.Godot shape = (org.godot.Godot) collisionShape.getProperty("shape");
             if (shape != null) {
@@ -81,7 +82,7 @@ public class PickupHandler extends Area3D {
     }
 
     private org.godot.Godot getParentController() {
-        org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+        org.godot.Godot parent = (org.godot.Godot) getParent();
         while (parent != null) {
             String className = (String) parent.call("get_class");
             if ("XRController3D".equals(className)) {

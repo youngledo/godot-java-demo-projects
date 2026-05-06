@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Color;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "Label3DLayout", parent = "Node3D")
 public class Label3DLayout extends Node3D {
@@ -13,10 +14,10 @@ public class Label3DLayout extends Node3D {
 	private int health = 0;
 	private double counter = 0.0;
 
-	private org.godot.Godot healthLabel;
-	private org.godot.Godot healthBarFg;
-	private org.godot.Godot healthBarBg;
-	private org.godot.Godot nameNode;
+	private org.godot.node.Node healthLabel;
+	private org.godot.node.Node healthBarFg;
+	private org.godot.node.Node healthBarBg;
+	private org.godot.node.Node nameNode;
 	private boolean initialized = false;
 
 	@Override
@@ -24,10 +25,10 @@ public class Label3DLayout extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		healthLabel = (org.godot.Godot) call("get_node", "Health");
-		healthBarFg = (org.godot.Godot) call("get_node", "HealthBarForeground");
-		healthBarBg = (org.godot.Godot) call("get_node", "HealthBarBackground");
-		nameNode = (org.godot.Godot) call("get_node", "Name");
+		healthLabel = getNode("Health");
+		healthBarFg = getNode("HealthBarForeground");
+		healthBarBg = getNode("HealthBarBackground");
+		nameNode = getNode("Name");
 	}
 
 	@Override
@@ -37,7 +38,7 @@ public class Label3DLayout extends Node3D {
 	}
 
 	@GodotMethod
-	public void _on_line_edit_text_changed(String newText) {
+	public void OnLineEditTextChanged(String newText) {
 		if (nameNode != null) {
 			nameNode.setProperty("text", newText);
 		}

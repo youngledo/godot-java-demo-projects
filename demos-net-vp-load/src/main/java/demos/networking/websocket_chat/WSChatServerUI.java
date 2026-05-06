@@ -17,10 +17,10 @@ public class WSChatServerUI extends Control {
 
     @Override
     public void _ready() {
-        server = (Godot) call("get_node", "WebSocketServer");
-        logDest = (Godot) call("get_node", "Panel/VBoxContainer/RichTextLabel");
-        lineEdit = (Godot) call("get_node", "Panel/VBoxContainer/Send/LineEdit");
-        listenPort = (Godot) call("get_node", "Panel/VBoxContainer/Connect/Port");
+        server = (Godot) getNode("WebSocketServer");
+        logDest = (Godot) getNode("Panel/VBoxContainer/RichTextLabel");
+        lineEdit = (Godot) getNode("Panel/VBoxContainer/Send/LineEdit");
+        listenPort = (Godot) getNode("Panel/VBoxContainer/Connect/Port");
     }
 
     private void info(String msg) {
@@ -29,8 +29,8 @@ public class WSChatServerUI extends Control {
     }
 
     @GodotMethod
-    public void _on_web_socket_server_client_connected(long peerId) {
-        Godot peersDict = (Godot) server.call("get", "peers");
+    public void OnWebSocketServerClientConnected(long peerId) {
+        Godot peersDict = (Godot) server.getProperty("peers");
         Godot peer = (Godot) peersDict.call("get", (int) peerId);
         String protocol = (String) peer.call("get_selected_protocol");
         info("Remote client connected: " + peerId + ". Protocol: " + protocol);
@@ -38,19 +38,19 @@ public class WSChatServerUI extends Control {
     }
 
     @GodotMethod
-    public void _on_web_socket_server_client_disconnected(long peerId) {
+    public void OnWebSocketServerClientDisconnected(long peerId) {
         info("Remote client disconnected: " + peerId);
         server.call("send", -(int) peerId, "[" + peerId + "] disconnected");
     }
 
     @GodotMethod
-    public void _on_web_socket_server_message_received(long peerId, String message) {
+    public void OnWebSocketServerMessageReceived(long peerId, String message) {
         info("Server received data from peer " + peerId + ": " + message);
         server.call("send", -(int) peerId, "[" + peerId + "] Says: " + message);
     }
 
     @GodotMethod
-    public void _on_send_pressed() {
+    public void OnSendPressed() {
         String text = (String) lineEdit.getProperty("text");
         if (text.isEmpty()) return;
 
@@ -60,7 +60,7 @@ public class WSChatServerUI extends Control {
     }
 
     @GodotMethod
-    public void _on_listen_toggled(boolean pressed) {
+    public void OnListenToggled(boolean pressed) {
         if (!pressed) {
             server.call("stop");
             info("Server stopped");

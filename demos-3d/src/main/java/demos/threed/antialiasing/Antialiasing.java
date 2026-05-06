@@ -5,6 +5,7 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "Antialiasing", parent = "Node")
 public class Antialiasing extends Node {
@@ -18,11 +19,11 @@ public class Antialiasing extends Node {
 	private double rotY = Math.PI * 2 / 8;
 	private double cameraDistance = 2.0;
 
-	private org.godot.Godot testers;
-	private org.godot.Godot cameraHolder;
-	private org.godot.Godot rotationX;
-	private org.godot.Godot camera;
-	private org.godot.Godot fpsLabel;
+	private org.godot.node.Node testers;
+	private org.godot.node.Camera3D cameraHolder;
+	private org.godot.node.Node rotationX;
+	private org.godot.node.Camera3D camera;
+	private org.godot.node.Node fpsLabel;
 	private boolean initialized = false;
 
 	@Override
@@ -30,24 +31,24 @@ public class Antialiasing extends Node {
 		if (initialized) return;
 		initialized = true;
 
-		testers = (org.godot.Godot) call("get_node", "Testers");
-		cameraHolder = (org.godot.Godot) call("get_node", "CameraHolder");
-		rotationX = (org.godot.Godot) call("get_node", "CameraHolder/RotationX");
-		camera = (org.godot.Godot) call("get_node", "CameraHolder/RotationX/Camera3D");
-		fpsLabel = (org.godot.Godot) call("get_node", "FPSLabel");
+		testers = getNode("Testers");
+		cameraHolder = (org.godot.node.Camera3D) getNode("CameraHolder");
+		rotationX = getNode("CameraHolder/RotationX");
+		camera = (org.godot.node.Camera3D) getNode("CameraHolder/RotationX/Camera3D");
+		fpsLabel = getNode("FPSLabel");
 
-		if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
+		if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
 		if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
 		updateGui();
 	}
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
-		if ((boolean) ev.call("is_action_pressed", "ui_left")) { onPreviousPressed(); return true; }
-		if ((boolean) ev.call("is_action_pressed", "ui_right")) { onNextPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_left")) { onPreviousPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_right")) { onNextPressed(); return true; }
 
 		if ("InputEventMouseButton".equals(className)) {
 			long buttonIndex = (long) ev.getProperty("button_index");
@@ -64,7 +65,7 @@ public class Antialiasing extends Node {
 				rotY -= relative.getX() * ROT_SPEED;
 				rotX -= relative.getY() * ROT_SPEED;
 				rotX = clamp(rotX, -1.57, 0);
-				if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
+				if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
 				if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
 				return true;
 			}
@@ -75,7 +76,7 @@ public class Antialiasing extends Node {
 	@Override
 	public void _process(double delta) {
 		if (testers == null || cameraHolder == null || camera == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.Godot currentTester = (org.godot.Godot) testers.getChild(testerIndex);
 		if (currentTester == null) return;
 
 		Vector3 holderPos = (Vector3) cameraHolder.getProperty("global_position");
@@ -88,9 +89,9 @@ public class Antialiasing extends Node {
 		camera.setProperty("position", new Vector3(camPos.getX(), camPos.getY(), newCamZ));
 
 		if (fpsLabel != null) {
-			org.godot.Godot engine = (org.godot.Godot) call("get_node", "/root/Engine");
-			// Use get_tree()->get_frame() for rough FPS display
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+			org.godot.node.Node engine = getNode("/root/Engine");
+			// Use getTree()->getFrame() for rough FPS display
+			org.godot.node.SceneTree tree = getTree();
 			// Simplified FPS display
 			fpsLabel.setProperty("text", "FPS counter active");
 		}
@@ -102,7 +103,7 @@ public class Antialiasing extends Node {
 	@GodotMethod
 	public void onNextPressed() {
 		if (testers != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			testerIndex = Math.min(testerIndex + 1, count - 1);
 		}
 		updateGui();
@@ -110,17 +111,17 @@ public class Antialiasing extends Node {
 
 	private void updateGui() {
 		if (testers == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.Godot currentTester = (org.godot.Godot) testers.getChild(testerIndex);
 		if (currentTester == null) return;
 		String name = (String) currentTester.call("get_name");
 
-		org.godot.Godot testName = (org.godot.Godot) call("get_node", "TestName");
+		org.godot.node.Node testName = getNode("TestName");
 		if (testName != null) testName.setProperty("text", capitalize(name));
-		org.godot.Godot prevBtn = (org.godot.Godot) call("get_node", "Previous");
-		org.godot.Godot nextBtn = (org.godot.Godot) call("get_node", "Next");
+		org.godot.node.Node prevBtn = getNode("Previous");
+		org.godot.node.Node nextBtn = getNode("Next");
 		if (prevBtn != null) prevBtn.setProperty("disabled", testerIndex == 0);
 		if (nextBtn != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			nextBtn.setProperty("disabled", testerIndex == count - 1);
 		}
 	}

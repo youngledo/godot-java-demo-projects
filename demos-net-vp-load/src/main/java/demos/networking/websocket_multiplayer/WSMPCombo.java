@@ -22,16 +22,16 @@ public class WSMPCombo extends Control {
         }
 
         org.godot.singleton.ClassDB classDB = org.godot.singleton.ClassDB.singleton();
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         for (String path : paths) {
-            Godot newMp = (Godot) classDB.class_call_static("MultiplayerAPI", "create_default_interface");
+            Godot newMp = (Godot) classDB.classCallStatic("MultiplayerAPI", "create_default_interface");
             tree.call("set_multiplayer", newMp, path);
         }
     }
 
     @Override
     public void _exitTree() {
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         for (String path : paths) {
             tree.call("set_multiplayer", null, path);
         }

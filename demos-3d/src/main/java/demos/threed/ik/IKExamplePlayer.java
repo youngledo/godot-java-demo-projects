@@ -5,6 +5,8 @@ import org.godot.node.CharacterBody3D;
 import org.godot.math.Vector3;
 import org.godot.math.Basis;
 import org.godot.math.Transform3D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "IKExamplePlayer", parent = "CharacterBody3D")
 public class IKExamplePlayer extends CharacterBody3D {
@@ -30,11 +32,11 @@ public class IKExamplePlayer extends CharacterBody3D {
     private boolean animDone = true;
     private String currentAnim = "Starter";
 
-    private org.godot.Godot cameraHolder;
-    private org.godot.Godot camera;
+    private org.godot.node.Node cameraHolder;
+    private org.godot.node.Node3D camera;
     private org.godot.Godot pathFollowNode;
-    private org.godot.Godot animPlayer;
-    private org.godot.Godot pistolEnd;
+    private org.godot.node.AnimationPlayer animPlayer;
+    private org.godot.node.Node3D pistolEnd;
     private org.godot.singleton.Input input;
     private boolean initialized = false;
 
@@ -45,20 +47,20 @@ public class IKExamplePlayer extends CharacterBody3D {
 
         input = org.godot.singleton.Input.singleton();
 
-        cameraHolder = (org.godot.Godot) call("get_node", "CameraHolder");
+        cameraHolder = getNode("CameraHolder");
         if (cameraHolder != null) {
-            camera = (org.godot.Godot) cameraHolder.call("get_node", "LeanPath/PathFollow3D/IK_LookAt_Chest/Camera3D");
-            pathFollowNode = (org.godot.Godot) cameraHolder.call("get_node", "LeanPath/PathFollow3D");
-            animPlayer = (org.godot.Godot) cameraHolder.call("get_node", "AnimationPlayer");
-            pistolEnd = (org.godot.Godot) cameraHolder.call("get_node", "Weapon/Pistol/PistolEnd");
+            camera = (org.godot.node.Node3D) cameraHolder.getNode("LeanPath/PathFollow3D/IK_LookAt_Chest/Camera3D");
+            pathFollowNode = (org.godot.node.Node3D) cameraHolder.getNode("LeanPath/PathFollow3D");
+            animPlayer = (org.godot.node.AnimationPlayer) cameraHolder.getNode("AnimationPlayer");
+            pistolEnd = (org.godot.node.Node3D) cameraHolder.getNode("Weapon/Pistol/PistolEnd");
         }
 
         if (animPlayer != null) {
-            animPlayer.call("connect", "animation_finished", this, "on_animation_finished");
+            animPlayer.connect("animation_finished", new org.godot.core.Callable(this, "on_animation_finished"), 0);
         }
 
         if (input != null) {
-            input.call("set_mouse_mode", 2); // MOUSE_MODE_CAPTURED
+            input.setMouseMode(2); // MOUSE_MODE_CAPTURED
         }
     }
 
@@ -74,12 +76,12 @@ public class IKExamplePlayer extends CharacterBody3D {
 
         Object isMotion = ((org.godot.Godot) event).call("is_class", "InputEventMouseMotion");
         if (isMotion instanceof Boolean && (Boolean) isMotion) {
-            Object mouseMode = input.call("get_mouse_mode");
+            Object mouseMode = input.getMouseMode();
             if (mouseMode instanceof Number && ((Number) mouseMode).intValue() == 2) {
                 Object relObj = ((org.godot.Godot) event).getProperty("screen_relative");
                 if (relObj instanceof org.godot.math.Vector2) {
                     org.godot.math.Vector2 rel = (org.godot.math.Vector2) relObj;
-                    call("rotate_y", Math.toRadians(rel.x * MOUSE_SENSITIVITY * -1));
+                    rotateY(Math.toRadians(rel.x * MOUSE_SENSITIVITY * -1));
                     if (cameraHolder != null) {
                         cameraHolder.call("rotate_x", Math.toRadians(rel.y * MOUSE_SENSITIVITY));
                         Object rotObj = cameraHolder.getProperty("rotation_degrees");
@@ -99,7 +101,7 @@ public class IKExamplePlayer extends CharacterBody3D {
         dir = new Vector3();
 
         if (camera == null) return;
-        Object camXformObj = camera.call("get_global_transform");
+        Object camXformObj = camera.getGlobalTransform();
         if (!(camXformObj instanceof Transform3D)) return;
         Transform3D camXform = (Transform3D) camXformObj;
         Basis camBasis = camXform.getBasis();
@@ -107,10 +109,10 @@ public class IKExamplePlayer extends CharacterBody3D {
         if (input == null) return;
 
         // Walking - using key checks
-        boolean upPressed = (boolean) input.call("is_key_pressed", 87) || (boolean) input.call("is_key_pressed", 4194320);
-        boolean downPressed = (boolean) input.call("is_key_pressed", 83) || (boolean) input.call("is_key_pressed", 4194322);
-        boolean leftPressed = (boolean) input.call("is_key_pressed", 65) || (boolean) input.call("is_key_pressed", 4194321);
-        boolean rightPressed = (boolean) input.call("is_key_pressed", 68) || (boolean) input.call("is_key_pressed", 4194323);
+        boolean upPressed = (boolean) input.isKeyPressed(87) || (boolean) input.isKeyPressed(4194320);
+        boolean downPressed = (boolean) input.isKeyPressed(83) || (boolean) input.isKeyPressed(4194322);
+        boolean leftPressed = (boolean) input.isKeyPressed(65) || (boolean) input.isKeyPressed(4194321);
+        boolean rightPressed = (boolean) input.isKeyPressed(68) || (boolean) input.isKeyPressed(4194323);
 
         Vector3 fwd = new Vector3(camBasis.zx, camBasis.zy, camBasis.zz).mul(-1);
         Vector3 right = new Vector3(camBasis.xx, camBasis.xy, camBasis.xz);
@@ -121,14 +123,14 @@ public class IKExamplePlayer extends CharacterBody3D {
         if (rightPressed) dir = dir.add(right);
 
         // Sprinting
-        isSprinting = (boolean) input.call("is_key_pressed", 4194325); // KEY_SHIFT
+        isSprinting = (boolean) input.isKeyPressed(4194325); // KEY_SHIFT
 
         // Jumping
-        boolean spacePressed = (boolean) input.call("is_key_pressed", 32); // KEY_SPACE
+        boolean spacePressed = (boolean) input.isKeyPressed(32); // KEY_SPACE
         if (spacePressed) {
             if (!jumpButtonDown) {
                 jumpButtonDown = true;
-                if ((boolean) call("is_on_floor")) {
+                if (((boolean) isOnFloor())) {
                     vel = new Vector3(vel.x, JUMP_SPEED, vel.z);
                 }
             }
@@ -137,8 +139,8 @@ public class IKExamplePlayer extends CharacterBody3D {
         }
 
         // Leaning
-        boolean qPressed = (boolean) input.call("is_key_pressed", 81); // KEY_Q
-        boolean ePressed = (boolean) input.call("is_key_pressed", 69); // KEY_E
+        boolean qPressed = (boolean) input.isKeyPressed(81); // KEY_Q
+        boolean ePressed = (boolean) input.isKeyPressed(69); // KEY_E
         if (qPressed) {
             leanValue += 1.2 * delta;
         } else if (ePressed) {
@@ -172,7 +174,7 @@ public class IKExamplePlayer extends CharacterBody3D {
         }
 
         // Shooting
-        boolean mouse1 = (boolean) input.call("is_mouse_button_pressed", 1);
+        boolean mouse1 = (boolean) input.isMouseButtonPressed(1);
         if (mouse1) {
             if (leftMouseTimer <= 0) {
                 leftMouseTimer = LEFT_MOUSE_FIRE_TIME;
@@ -184,16 +186,16 @@ public class IKExamplePlayer extends CharacterBody3D {
 
     private void fireBullet() {
         if (pistolEnd == null) return;
-        Object bulletSceneObj = call("load", "res://fps/simple_bullet.tscn");
+        org.godot.node.PackedScene bulletSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://fps/simple_bullet.tscn");
         if (bulletSceneObj == null) return;
 
-        org.godot.Godot newBullet = (org.godot.Godot) ((org.godot.Godot) bulletSceneObj).call("instantiate");
+        org.godot.Godot newBullet = bulletSceneObj.instantiate();
         if (newBullet == null) return;
 
-        org.godot.Godot root = (org.godot.Godot) ((org.godot.Godot) call("get_tree")).call("get_root");
-        if (root != null) root.call("add_child", newBullet);
+        org.godot.node.Node root = (org.godot.node.Node) (getTree().call("get_root"));
+        if (root != null) root.addChild((org.godot.node.Node) newBullet);
 
-        Object btObj = pistolEnd.call("get_global_transform");
+        Object btObj = pistolEnd.getGlobalTransform();
         if (btObj instanceof Transform3D) {
             Transform3D bt = (Transform3D) btObj;
             newBullet.call("set_global_transform", bt);
@@ -223,12 +225,12 @@ public class IKExamplePlayer extends CharacterBody3D {
         vel = new Vector3(hvel.x, vel.y, hvel.z);
 
         setProperty("velocity", vel);
-        call("move_and_slide");
+        moveAndSlide();
         vel = (Vector3) getProperty("velocity");
         if (vel == null) vel = new Vector3();
     }
 
-    public void on_animation_finished(String animName) {
+    public void onAnimationFinished(String animName) {
         animDone = true;
     }
 }

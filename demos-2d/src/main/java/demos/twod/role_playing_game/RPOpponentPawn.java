@@ -8,6 +8,6 @@ public class RPOpponentPawn extends RPWalker {
     @Override
     public void _ready() {
         super._ready();
-        call("set_process", false);
+        setProcess(false);
     }
 }

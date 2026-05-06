@@ -14,25 +14,25 @@ public class RPOpponentCombatant extends RPCombatant {
         super.setActive(value);
         if (!active) return;
 
-        org.godot.Godot timer = (org.godot.Godot) call("get_node", "Timer");
+        org.godot.node.Timer timer = (org.godot.node.Timer) getNode("Timer");
         if (timer == null) return;
 
         aiStarted = true;
-        timer.call("start");
+        timer.start();
 
         // Connect timeout signal to perform attack
-        timer.call("connect", "timeout", new org.godot.core.Callable(this, "on_ai_timeout"));
+        timer.connect("timeout", new org.godot.core.Callable(this, "on_ai_timeout"), 0);
     }
 
     @GodotMethod
-    public void on_ai_timeout() {
+    public void onAiTimeout() {
         if (!active) return;
 
-        org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+        org.godot.node.Node parent = getParent();
         if (parent == null) return;
 
         // Find the first other combatant
-        Object children = parent.call("get_children");
+        Object children = parent.getChildren();
         if (children instanceof org.godot.Godot[]) {
             for (org.godot.Godot actor : (org.godot.Godot[]) children) {
                 if (actor != this) {

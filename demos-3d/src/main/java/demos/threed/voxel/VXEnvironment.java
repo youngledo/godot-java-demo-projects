@@ -12,7 +12,7 @@ import org.godot.node.WorldEnvironment;
 @GodotClass(name = "VXEnvironment", parent = "WorldEnvironment")
 public class VXEnvironment extends WorldEnvironment {
 
-    private org.godot.Godot voxelWorld;
+    private org.godot.node.Node voxelWorld;
     private VXSettings settings;
     private boolean initialized = false;
 
@@ -21,8 +21,8 @@ public class VXEnvironment extends WorldEnvironment {
         if (initialized) return;
         initialized = true;
 
-        voxelWorld = (org.godot.Godot) call("get_node", "../VoxelWorld");
-        Object settingsObj = call("get_node", "/root/Settings");
+        voxelWorld = getNode("../VoxelWorld");
+        Object settingsObj = getNode("/root/Settings");
         if (settingsObj instanceof VXSettings) {
             settings = (VXSettings) settingsObj;
         }
@@ -34,7 +34,7 @@ public class VXEnvironment extends WorldEnvironment {
         if (env == null) return;
         if (settings == null) return;
 
-        env.setFog_enabled(settings.fogEnabled);
+        env.setFogEnabled(settings.fogEnabled);
 
         int effectiveRD = 2;
         int rd = settings.renderDistance;
@@ -55,6 +55,6 @@ public class VXEnvironment extends WorldEnvironment {
             settings.fogDistance += Math.signum(diff) * rate;
         }
 
-        env.setFog_density(0.5 / settings.fogDistance);
+        env.setFogDensity(0.5 / settings.fogDistance);
     }
 }

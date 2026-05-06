@@ -19,6 +19,6 @@ public class VXSplashText extends Label {
     public void _process(double delta) {
         time += delta;
         double scale = 1.0 + 0.1 * Math.sin(time * 2);
-        call("set_scale", new org.godot.math.Vector2(scale, scale));
+        setScale(new org.godot.math.Vector2(scale, scale));
     }
 }

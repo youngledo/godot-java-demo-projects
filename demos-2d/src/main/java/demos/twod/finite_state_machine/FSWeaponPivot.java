@@ -18,14 +18,14 @@ public class FSWeaponPivot extends Marker2D {
 
         org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
         if (owner != null) {
-            owner.call("connect", "direction_changed", new org.godot.core.Callable(this, "on_direction_changed"));
+            owner.connect("direction_changed", new org.godot.core.Callable(this, "on_direction_changed"), 0);
         }
         Object zObj = getProperty("z_index");
         zIndexStart = zObj instanceof Number ? ((Number) zObj).intValue() : 0;
     }
 
     @GodotMethod
-    public void on_direction_changed(Vector2 direction) {
+    public void onDirectionChanged(Vector2 direction) {
         setProperty("rotation", direction.angle());
         if (direction.y == -1 && direction.x == 0) {
             setProperty("z_index", zIndexStart - 1);

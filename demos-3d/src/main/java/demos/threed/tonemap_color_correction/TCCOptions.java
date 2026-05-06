@@ -4,6 +4,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.VBoxContainer;
+import org.godot.node.Node;
 
 @GodotClass(name = "TCCOptions", parent = "VBoxContainer")
 public class TCCOptions extends VBoxContainer {
@@ -11,7 +12,7 @@ public class TCCOptions extends VBoxContainer {
 	@Export
 	public String[] scenePaths;
 
-	private org.godot.Godot currentScene;
+	private org.godot.node.Node currentScene;
 	private org.godot.Godot worldEnvironment;
 	private boolean initialized = false;
 
@@ -26,7 +27,7 @@ public class TCCOptions extends VBoxContainer {
 	@GodotMethod
 	public void onSceneOptionButtonItemSelected(int index) {
 		if (currentScene != null) {
-			currentScene.call("queue_free");
+			currentScene.queueFree();
 			currentScene = null;
 		}
 
@@ -34,11 +35,11 @@ public class TCCOptions extends VBoxContainer {
 
 		if (scenePaths != null && index < scenePaths.length) {
 			Object sceneObj = call("load", scenePaths[index]);
-			if (sceneObj instanceof org.godot.Godot sceneRes) {
-				org.godot.Godot instance = (org.godot.Godot) sceneRes.call("instantiate");
+			if (sceneObj instanceof org.godot.node.PackedScene sceneRes) {
+				org.godot.node.Node instance = (org.godot.node.Node) sceneRes.instantiate();
 				if (instance != null) {
 					currentScene = instance;
-					call("add_child", instance);
+					addChild(instance);
 
 					worldEnvironment = (org.godot.Godot) instance.getProperty("world_environment");
 				}

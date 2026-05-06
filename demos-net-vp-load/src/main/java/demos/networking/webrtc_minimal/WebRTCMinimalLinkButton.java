@@ -8,7 +8,7 @@ import org.godot.node.LinkButton;
 public class WebRTCMinimalLinkButton extends LinkButton {
 
     @GodotMethod
-    public void _on_LinkButton_pressed() {
+    public void OnLinkButtonPressed() {
         call("OS.shell_open", "https://github.com/godotengine/webrtc-native/releases");
     }
 }

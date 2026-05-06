@@ -19,7 +19,7 @@ public class HideOnMouseExit extends Popup {
     }
 
     @GodotMethod
-    public void _on_mouse_exited() {
-        call("hide");
+    public void OnMouseExited() {
+        hide();
     }
 }

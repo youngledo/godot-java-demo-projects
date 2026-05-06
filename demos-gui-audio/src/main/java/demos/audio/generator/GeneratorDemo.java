@@ -18,9 +18,9 @@ public class GeneratorDemo extends Node {
     private double phase = 0.0;
 
     // Actual playback stream, assigned in _ready().
-    private org.godot.Godot playback;
+    private org.godot.node.AudioStreamPlayback playback;
 
-    private org.godot.Godot player;
+    private org.godot.node.Node player;
 
     private void fillBuffer() {
         if (playback == null) {
@@ -41,7 +41,7 @@ public class GeneratorDemo extends Node {
 
     @Override
     public void _process(double delta) {
-        if (!is_inside_tree() || player == null || playback == null) {
+        if (!isInsideTree() || player == null || playback == null) {
             return;
         }
         fillBuffer();
@@ -49,7 +49,7 @@ public class GeneratorDemo extends Node {
 
     @Override
     public void _ready() {
-        player = (org.godot.Godot) call("get_node", "Player");
+        player = getNode("Player");
         if (player == null) return;
 
         // Setting mix rate is only possible before play().
@@ -58,15 +58,15 @@ public class GeneratorDemo extends Node {
             stream.setProperty("mix_rate", sampleHz);
         }
         player.call("call_deferred", "play");
-        playback = (org.godot.Godot) player.call("call_deferred", "get_stream_playback");
+        playback = (org.godot.node.AudioStreamPlayback) player.call("call_deferred", "get_stream_playback");
     }
 
     @GodotMethod
     public void _onFrequencyHSliderValueChanged(double value) {
-        if (!is_inside_tree()) {
+        if (!isInsideTree() ) {
             return;
         }
-        org.godot.Godot frequencyLabel = (org.godot.Godot) call("get_node", "CenterContainer/Frequency/FrequencyLabel");
+        org.godot.node.Node frequencyLabel = getNode("CenterContainer/Frequency/FrequencyLabel");
         if (frequencyLabel != null) {
             frequencyLabel.setProperty("text", String.format("%d Hz", (int) value));
         }
@@ -75,12 +75,12 @@ public class GeneratorDemo extends Node {
 
     @GodotMethod
     public void _onVolumeHSliderValueChanged(double value) {
-        if (!is_inside_tree()) {
+        if (!isInsideTree() ) {
             return;
         }
         // Use linear_to_db to get a volume slider that matches perceptual human hearing.
         double db = linearToDb(value);
-        org.godot.Godot volumeLabel = (org.godot.Godot) call("get_node", "CenterContainer/Volume/VolumeLabel");
+        org.godot.node.Node volumeLabel = getNode("CenterContainer/Volume/VolumeLabel");
         if (volumeLabel != null) {
             volumeLabel.setProperty("text", String.format("%.2f dB", db));
         }

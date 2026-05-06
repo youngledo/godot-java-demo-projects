@@ -5,6 +5,9 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "RagdollDemo", parent = "Node3D")
 public class RagdollDemo extends Node3D {
@@ -12,8 +15,8 @@ public class RagdollDemo extends Node3D {
 	private static final double MOUSE_SENSITIVITY = 0.01;
 	private static final double INITIAL_VELOCITY_STRENGTH = 0.5;
 
-	private org.godot.Godot cameraPivot;
-	private org.godot.Godot camera;
+	private org.godot.node.Camera3D cameraPivot;
+	private org.godot.node.Camera3D camera;
 	private boolean initialized = false;
 
 	@Override
@@ -21,34 +24,34 @@ public class RagdollDemo extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		cameraPivot = (org.godot.Godot) call("get_node", "CameraPivot");
-		camera = (org.godot.Godot) call("get_node", "CameraPivot/Camera3D");
+		cameraPivot = (org.godot.node.Camera3D) getNode("CameraPivot");
+		camera = (org.godot.node.Camera3D) getNode("CameraPivot/Camera3D");
 	}
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
-		if ((boolean) ev.call("is_action_pressed", "reset_simulation")) {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-			if (tree != null) tree.call("reload_current_scene");
+		if ((boolean) ev.isActionPressed("reset_simulation")) {
+			org.godot.node.SceneTree tree = getTree();
+			if (tree != null) tree.reloadCurrentScene();
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "place_ragdoll")) {
+		if ((boolean) ev.isActionPressed("place_ragdoll")) {
 			placeRagdoll();
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "slow_motion")) {
-			org.godot.Godot engine = (org.godot.Godot) call("get_node", "/root/Engine");
+		if ((boolean) ev.isActionPressed("slow_motion")) {
+			org.godot.node.Node engine = getNode("/root/Engine");
 			if (engine != null) engine.setProperty("time_scale", 0.25);
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_released", "slow_motion")) {
-			org.godot.Godot engine = (org.godot.Godot) call("get_node", "/root/Engine");
+		if ((boolean) ev.isActionReleased("slow_motion")) {
+			org.godot.node.Node engine = getNode("/root/Engine");
 			if (engine != null) engine.setProperty("time_scale", 1.0);
 			return true;
 		}
@@ -86,9 +89,9 @@ public class RagdollDemo extends Node3D {
 		if (camera == null) return;
 
 		Vector3 origin = (Vector3) camera.getProperty("global_position");
-		org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
-		Vector2 mousePos = viewport != null ? (Vector2) viewport.call("get_mouse_position") : null;
-		Vector3 target = mousePos != null ? (Vector3) camera.call("project_position", mousePos, 100) : null;
+		org.godot.node.Viewport viewport = getViewport();
+		Vector2 mousePos = viewport != null ? (Vector2) viewport.getMousePosition() : null;
+		Vector3 target = mousePos != null ? (Vector3) camera.projectPosition(mousePos, 100) : null;
 
 		if (origin == null || target == null) return;
 
@@ -107,10 +110,10 @@ public class RagdollDemo extends Node3D {
 		Object hitPos = resDict.call("get", "position");
 		if (hitPos == null) return;
 
-		Object ragdollScene = call("load", "res://characters/mannequiny_ragdoll.tscn");
+		org.godot.node.PackedScene ragdollScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://characters/mannequiny_ragdoll.tscn");
 		if (ragdollScene == null) return;
 
-		org.godot.Godot ragdoll = (org.godot.Godot) ((org.godot.Godot) ragdollScene).call("instantiate");
+		org.godot.Godot ragdoll = ragdollScene.instantiate();
 		if (ragdoll == null) return;
 
 		Vector3 hitVector = (Vector3) hitPos;
@@ -130,7 +133,7 @@ public class RagdollDemo extends Node3D {
 		);
 		ragdoll.setProperty("initial_velocity", initVel);
 
-		call("add_child", ragdoll);
+		addChild((org.godot.node.Node) ragdoll);
 	}
 
 	private static double clamp(double v, double min, double max) { return Math.max(min, Math.min(max, v)); }

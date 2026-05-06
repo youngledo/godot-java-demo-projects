@@ -5,14 +5,15 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "Navmesh", parent = "Node3D")
 public class Navmesh extends Node3D {
 
 	private double camRotation = 0.0;
-	private org.godot.Godot camera;
-	private org.godot.Godot robot;
-	private org.godot.Godot cameraBase;
+	private org.godot.node.Camera3D camera;
+	private org.godot.node.Node robot;
+	private org.godot.node.Camera3D cameraBase;
 	private boolean initialized = false;
 
 	@Override
@@ -20,15 +21,15 @@ public class Navmesh extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		camera = (org.godot.Godot) call("get_node", "CameraBase/Camera3D");
-		robot = (org.godot.Godot) call("get_node", "RobotBase");
-		cameraBase = (org.godot.Godot) call("get_node", "CameraBase");
+		camera = (org.godot.node.Camera3D) getNode("CameraBase/Camera3D");
+		robot = getNode("RobotBase");
+		cameraBase = (org.godot.node.Camera3D) getNode("CameraBase");
 	}
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
 		if ("InputEventMouseButton".equals(className)) {
 			long buttonIndex = (long) ev.getProperty("button_index");
@@ -38,8 +39,8 @@ public class Navmesh extends Node3D {
 				if (camera == null || robot == null) return false;
 
 				Vector2 mousePos = (Vector2) ev.getProperty("position");
-				Vector3 rayOrigin = (Vector3) camera.call("project_ray_origin", mousePos);
-				Vector3 rayDir = (Vector3) camera.call("project_ray_normal", mousePos);
+				Vector3 rayOrigin = (Vector3) camera.projectRayOrigin(mousePos);
+				Vector3 rayDir = (Vector3) camera.projectRayNormal(mousePos);
 				if (rayOrigin == null || rayDir == null) return false;
 
 				// Calculate ray end
@@ -54,7 +55,7 @@ public class Navmesh extends Node3D {
 				org.godot.Godot world3d = (org.godot.Godot) call("get_world_3d");
 				if (world3d == null) return false;
 				Object navMap = world3d.getProperty("navigation_map");
-				org.godot.Godot navServer = (org.godot.Godot) call("get_node", "/root/NavigationServer3D");
+				org.godot.node.Node navServer = getNode("/root/NavigationServer3D");
 
 				// Use NavigationServer3D to find closest point
 				// Simplified: use ray cast result directly
@@ -84,7 +85,7 @@ public class Navmesh extends Node3D {
 				if (relative != null) {
 					camRotation -= relative.getX() * 0.005;
 					if (cameraBase != null) {
-						cameraBase.call("set_rotation", new Vector3(0, camRotation, 0));
+						cameraBase.setRotation(new Vector3(0, camRotation, 0));
 					}
 				}
 				return true;

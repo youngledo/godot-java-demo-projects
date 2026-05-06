@@ -20,7 +20,7 @@ public class IKSimpleBullet extends RigidBody3D {
     public void _physicsProcess(double delta) {
         timer += delta;
         if (timer > DESPAWN_TIME) {
-            call("queue_free");
+            queueFree();
             timer = 0;
         }
     }

@@ -22,71 +22,71 @@ public class MPPongLobby extends Control {
 
     @Override
     public void _ready() {
-        address = (Godot) call("get_node", "Address");
-        hostButton = (Godot) call("get_node", "HostButton");
-        joinButton = (Godot) call("get_node", "JoinButton");
-        statusOk = (Godot) call("get_node", "StatusOk");
-        statusFail = (Godot) call("get_node", "StatusFail");
-        portForwardLabel = (Godot) call("get_node", "PortForward");
-        findPublicIpButton = (Godot) call("get_node", "FindPublicIP");
+        address = (Godot) getNode("Address");
+        hostButton = (Godot) getNode("HostButton");
+        joinButton = (Godot) getNode("JoinButton");
+        statusOk = (Godot) getNode("StatusOk");
+        statusFail = (Godot) getNode("StatusFail");
+        portForwardLabel = (Godot) getNode("PortForward");
+        findPublicIpButton = (Godot) getNode("FindPublicIP");
 
-        Godot mp = (Godot) call("get_multiplayer");
-        mp.call("connect", "peer_connected", new Callable(this, "_player_connected"), 0);
-        mp.call("connect", "peer_disconnected", new Callable(this, "_player_disconnected"), 0);
-        mp.call("connect", "connected_to_server", new Callable(this, "_connected_ok"), 0);
-        mp.call("connect", "connection_failed", new Callable(this, "_connected_fail"), 0);
-        mp.call("connect", "server_disconnected", new Callable(this, "_server_disconnected"), 0);
+        Godot mp = (Godot) getMultiplayer();
+        mp.connect("peer_connected", new Callable(this, "_player_connected"), 0);
+        mp.connect("peer_disconnected", new Callable(this, "_player_disconnected"), 0);
+        mp.connect("connected_to_server", new Callable(this, "_connected_ok"), 0);
+        mp.connect("connection_failed", new Callable(this, "_connected_fail"), 0);
+        mp.connect("server_disconnected", new Callable(this, "_server_disconnected"), 0);
     }
 
     @GodotMethod
-    public void _player_connected(long id) {
+    public void PlayerConnected(long id) {
         Godot pongScene = (Godot) call("load", "res://pong.tscn");
         Godot pong = (Godot) pongScene.call("instantiate");
-        pong.call("connect", "game_finished", new Callable(this, "_end_game"), 2); // CONNECT_DEFERRED
+        pong.connect("game_finished", new Callable(this, "_end_game"), 2); // CONNECT_DEFERRED
 
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         Godot root = (Godot) tree.call("get_root");
         root.call("add_child", pong, false, 0);
-        call("hide");
+        hide();
     }
 
     @GodotMethod
-    public void _player_disconnected(long id) {
+    public void PlayerDisconnected(long id) {
         if ((boolean) call("multiplayer.is_server")) {
-            _end_game("Client disconnected.");
+            EndGame("Client disconnected.");
         } else {
-            _end_game("Server disconnected.");
+            EndGame("Server disconnected.");
         }
     }
 
     @GodotMethod
-    public void _connected_ok() {
+    public void ConnectedOk() {
         // Not needed for this project
     }
 
     @GodotMethod
-    public void _connected_fail() {
+    public void ConnectedFail() {
         setStatus("Couldn't connect.", false);
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         hostButton.setProperty("disabled", false);
         joinButton.setProperty("disabled", false);
     }
 
     @GodotMethod
-    public void _server_disconnected() {
-        _end_game("Server disconnected.");
+    public void ServerDisconnected() {
+        EndGame("Server disconnected.");
     }
 
     @GodotMethod
-    public void _end_game(String withError) {
+    public void EndGame(String withError) {
         if ((boolean) call("has_node", "/root/Pong")) {
-            Godot pong = (Godot) call("get_node", "/root/Pong");
+            Godot pong = (Godot) getNode("/root/Pong");
             pong.call("free");
-            call("show");
+            show();
         }
 
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         hostButton.setProperty("disabled", false);
         joinButton.setProperty("disabled", false);
@@ -105,7 +105,7 @@ public class MPPongLobby extends Control {
     }
 
     @GodotMethod
-    public void _on_host_pressed() {
+    public void OnHostPressed() {
         peer = (Godot) call("ENetMultiplayerPeer.new");
         long err = (long) peer.call("create_server", DEFAULT_PORT, 1);
         if (err != 0) {
@@ -115,13 +115,13 @@ public class MPPongLobby extends Control {
         Godot host = (Godot) peer.call("get_host");
         host.call("compress", 0); // ENetConnection.COMPRESS_RANGE_CODER
 
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", peer);
         hostButton.setProperty("disabled", true);
         joinButton.setProperty("disabled", true);
         setStatus("Waiting for player...", true);
 
-        Godot window = (Godot) call("get_window");
+        Godot window = (Godot) getWindow();
         String name = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", name + ": Server");
 
@@ -130,7 +130,7 @@ public class MPPongLobby extends Control {
     }
 
     @GodotMethod
-    public void _on_join_pressed() {
+    public void OnJoinPressed() {
         String ip = (String) address.call("get_text");
         if (!(boolean) address.call("is_valid_ip_address")) {
             setStatus("IP address is invalid.", false);
@@ -141,17 +141,17 @@ public class MPPongLobby extends Control {
         peer.call("create_client", ip, DEFAULT_PORT);
         Godot host = (Godot) peer.call("get_host");
         host.call("compress", 0); // ENetConnection.COMPRESS_RANGE_CODER
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", peer);
 
         setStatus("Connecting...", true);
-        Godot window = (Godot) call("get_window");
+        Godot window = (Godot) getWindow();
         String name = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", name + ": Client");
     }
 
     @GodotMethod
-    public void _on_find_public_ip_pressed() {
+    public void OnFindPublicIpPressed() {
         call("OS.shell_open", "https://icanhazip.com/");
     }
 }

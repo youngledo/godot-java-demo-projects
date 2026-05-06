@@ -2,6 +2,9 @@ package demos.twod.particles;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Label;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "ParticleController", parent = "Label")
 public class ParticleController extends Label {
@@ -13,25 +16,25 @@ public class ParticleController extends Label {
 		String method = (String) call("RenderingServer.get_current_rendering_method");
 		if ("gl_compatibility".equals(method)) {
 			isCompatibility = true;
-			call("set_text", "Space: Pause/Resume\nG: Toggle glow\n\n\n");
+			setText("Space: Pause/Resume\nG: Toggle glow\n\n\n");
 		}
 	}
 
 	@Override
 	public boolean _input(Object inputEvent) {
 		// Toggle pause
-		boolean togglePause = (boolean) call("Input.is_action_just_pressed", "toggle_pause");
+		boolean togglePause = (boolean) (boolean) Input.singleton().isActionJustPressed( "toggle_pause");
 		if (togglePause) {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-			boolean paused = (boolean) tree.call("is_paused");
-			tree.call("set_pause", !paused);
+			org.godot.node.SceneTree tree = getTree();
+			boolean paused = (boolean) tree.isPaused();
+			tree.setPause(!paused);
 			return true;
 		}
 
 		// Toggle glow
-		boolean toggleGlow = (boolean) call("Input.is_action_just_pressed", "toggle_glow");
+		boolean toggleGlow = (boolean) (boolean) Input.singleton().isActionJustPressed( "toggle_glow");
 		if (toggleGlow) {
-			org.godot.Godot worldEnv = (org.godot.Godot) call("get_node", "../..");
+			org.godot.node.Node worldEnv = getNode("../..");
 			if (worldEnv != null) {
 				Object env = worldEnv.getProperty("environment");
 				if (env != null) {

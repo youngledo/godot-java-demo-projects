@@ -4,6 +4,7 @@ import java.util.Random;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "DSWallColoring", parent = "Node3D")
 public class DSWallColoring extends Node3D {
@@ -13,7 +14,7 @@ public class DSWallColoring extends Node3D {
     @Override
     public void _ready() {
         // Get all nodes in the "walls" group and set random colors
-        Object tree = call("get_tree");
+        Object tree = getTree();
         if (tree == null) return;
 
         Object walls = ((org.godot.Godot) tree).call("get_nodes_in_group", "walls");

@@ -3,6 +3,7 @@ package demos.twod.role_playing_game;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "RPDialogueUI", parent = "Control")
 public class RPDialogueUI extends Control {
@@ -18,38 +19,38 @@ public class RPDialogueUI extends Control {
         setProperty("visible", false);
 
         // Connect Button signal
-        org.godot.Godot button = (org.godot.Godot) call("get_node", "Button");
+        org.godot.node.Button button = (org.godot.node.Button) getNode("Button");
         if (button != null) {
-            button.call("connect", "button_up", new org.godot.core.Callable(this, "_on_Button_button_up"));
+            button.connect("button_up", new org.godot.core.Callable(this, "_on_Button_button_up"), 0);
         }
     }
 
-    public void show_dialogue(org.godot.Godot player, org.godot.Godot dialogue) {
+    public void showDialogue(org.godot.Godot player, org.godot.Godot dialogue) {
         setProperty("visible", true);
 
-        org.godot.Godot button = (org.godot.Godot) call("get_node", "Button");
-        if (button != null) button.call("grab_focus");
+        org.godot.node.Button button = (org.godot.node.Button) getNode("Button");
+        if (button != null) button.grabFocus();
 
         dialogueNode = dialogue;
         playerPawn = player;
 
         // Connect signals
-        dialogue.call("connect", "dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"));
-        dialogue.call("connect", "dialogue_finished", new org.godot.core.Callable(this, "hide"));
+        dialogue.connect("dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"), 0);
+        dialogue.connect("dialogue_finished", new org.godot.core.Callable(this, "hide"), 0);
         player.call("set_active", false);
 
         dialogue.call("start_dialogue");
         updateDialogueText();
     }
 
-    public void _on_Button_button_up() {
+    public void OnButtonButtonUp() {
         if (dialogueNode == null) return;
         dialogueNode.call("next_dialogue");
         updateDialogueText();
     }
 
     @GodotMethod
-    public void on_dialogue_finished() {
+    public void onDialogueFinished() {
         if (dialogueNode != null) {
             dialogueNode.call("disconnect", "dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"));
             dialogueNode.call("disconnect", "dialogue_finished", new org.godot.core.Callable(this, "hide"));
@@ -65,8 +66,8 @@ public class RPDialogueUI extends Control {
         Object nameObj = dialogueNode.getProperty("dialogue_name");
         Object textObj = dialogueNode.getProperty("dialogue_text");
 
-        org.godot.Godot nameLabel = (org.godot.Godot) call("get_node", "Name");
-        org.godot.Godot textLabel = (org.godot.Godot) call("get_node", "Text");
+        org.godot.node.Node nameLabel = getNode("Name");
+        org.godot.node.Node textLabel = getNode("Text");
 
         if (nameLabel != null && nameObj != null) {
             nameLabel.setProperty("text", "[center]" + nameObj.toString() + "[/center]");

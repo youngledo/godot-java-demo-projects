@@ -17,7 +17,7 @@ public class DTPlayer extends CharacterBody2D {
 	@Override
 	public void _physicsProcess(double delta) {
 		Input input = Input.singleton();
-		double walk = WALK_FORCE * input.get_axis("move_left", "move_right");
+		double walk = WALK_FORCE * input.getAxis("move_left", "move_right");
 		Vector2 vel = (Vector2) getProperty("velocity");
 		double vx = vel.getX();
 		double vy = vel.getY();
@@ -31,10 +31,10 @@ public class DTPlayer extends CharacterBody2D {
 		vy += GRAVITY * delta;
 
 		setProperty("velocity", new Vector2(vx, vy));
-		call("move_and_slide");
+		moveAndSlide();
 
-		boolean onFloor = (boolean) call("is_on_floor");
-		if (onFloor && input.is_action_just_pressed("jump", false)) {
+		boolean onFloor = (boolean) isOnFloor();
+		if (onFloor && (boolean) (boolean) input.isActionJustPressed("jump")) {
 			setProperty("velocity", new Vector2(vx, -JUMP_SPEED));
 		}
 	}

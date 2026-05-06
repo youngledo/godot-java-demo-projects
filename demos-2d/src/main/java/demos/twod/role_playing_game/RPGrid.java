@@ -17,7 +17,7 @@ public class RPGrid extends TileMapLayer {
 
         dialogueUI = (org.godot.Godot) getProperty("dialogue_ui");
 
-        Object children = call("get_children");
+        Object children = getChildren();
         if (children instanceof org.godot.Godot[]) {
             for (org.godot.Godot child : (org.godot.Godot[]) children) {
                 Object typeObj = child.getProperty("type");
@@ -25,13 +25,13 @@ public class RPGrid extends TileMapLayer {
                 Object posObj = child.getProperty("position");
                 if (posObj instanceof org.godot.math.Vector2) {
                     Object mapPos = call("local_to_map", posObj);
-                    call("set_cell", mapPos, type, new Vector2i(0, 0));
+                    setCell((org.godot.math.Vector2i) mapPos, type, new Vector2i(0, 0));
                 }
             }
         }
     }
 
-    public org.godot.math.Vector2 request_move(org.godot.Godot pawn, org.godot.math.Vector2i direction) {
+    public org.godot.math.Vector2 requestMove(org.godot.Godot pawn, org.godot.math.Vector2i direction) {
         Object pawnPosObj = pawn.getProperty("position");
         if (!(pawnPosObj instanceof org.godot.math.Vector2)) return org.godot.math.Vector2.ZERO;
         org.godot.math.Vector2 pawnPos = (org.godot.math.Vector2) pawnPosObj;
@@ -47,8 +47,8 @@ public class RPGrid extends TileMapLayer {
         int cellTileId = cellTileIdObj instanceof Number ? ((Number) cellTileIdObj).intValue() : -1;
 
         if (cellTileId == -1) {
-            call("set_cell", targetCell, RPPawn.CELL_TYPE_ACTOR, new Vector2i(0, 0));
-            call("set_cell", startCell, -1, new Vector2i(0, 0));
+            setCell(targetCell, RPPawn.CELL_TYPE_ACTOR, new Vector2i(0, 0));
+            setCell(startCell, -1, new Vector2i(0, 0));
             Object result = call("map_to_local", targetCell);
             return result instanceof org.godot.math.Vector2 ? (org.godot.math.Vector2) result : org.godot.math.Vector2.ZERO;
         }
@@ -56,10 +56,10 @@ public class RPGrid extends TileMapLayer {
         if (cellTileId == RPPawn.CELL_TYPE_OBJECT || cellTileId == RPPawn.CELL_TYPE_ACTOR) {
             org.godot.Godot targetPawn = getCellPawn(targetCell, cellTileId);
             if (targetPawn != null) {
-                boolean hasDialogue = (boolean) targetPawn.call("has_node", "DialoguePlayer");
+                boolean hasDialogue = (boolean) ((org.godot.node.Node) targetPawn).hasNode("DialoguePlayer");
                 if (!hasDialogue) return org.godot.math.Vector2.ZERO;
 
-                org.godot.Godot dialoguePlayer = (org.godot.Godot) targetPawn.call("get_node", "DialoguePlayer");
+                org.godot.Godot dialoguePlayer = (org.godot.Godot) ((org.godot.node.Node) targetPawn).getNode("DialoguePlayer");
                 if (dialogueUI != null && dialoguePlayer != null) {
                     dialogueUI.call("show_dialogue", pawn, dialoguePlayer);
                 }
@@ -70,7 +70,7 @@ public class RPGrid extends TileMapLayer {
     }
 
     private org.godot.Godot getCellPawn(Object cell, int type) {
-        Object children = call("get_children");
+        Object children = getChildren();
         if (!(children instanceof org.godot.Godot[])) return null;
 
         for (org.godot.Godot node : (org.godot.Godot[]) children) {

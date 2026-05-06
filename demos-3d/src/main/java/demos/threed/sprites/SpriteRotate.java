@@ -13,6 +13,6 @@ public class SpriteRotate extends Sprite3D {
 
 	@Override
 	public void _process(double delta) {
-		call("rotate_y", Math.toRadians(speedDeg * delta));
+		rotateY(Math.toRadians(speedDeg * delta));
 	}
 }

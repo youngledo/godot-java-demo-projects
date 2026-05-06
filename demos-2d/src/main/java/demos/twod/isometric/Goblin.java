@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "Goblin", parent = "CharacterBody2D")
 public class Goblin extends CharacterBody2D {
@@ -22,14 +23,14 @@ public class Goblin extends CharacterBody2D {
 		{"back_walk", "false"}, {"45back_right_walk", "false"},
 	};
 
-	private org.godot.Godot sprite;
+	private org.godot.node.Sprite2D sprite;
 	private double spriteScaleX = 1.0;
 	private double lastDirX = 1.0;
 	private double lastDirY = 0.0;
 
 	@Override
 	public void _ready() {
-		sprite = (org.godot.Godot) call("get_node", "Sprite2D");
+		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
 		if (sprite != null) {
 			Vector2 scale = (Vector2) sprite.getProperty("scale");
 			spriteScaleX = scale.getX();
@@ -39,8 +40,8 @@ public class Goblin extends CharacterBody2D {
 	@Override
 	public void _physicsProcess(double delta) {
 		Input input = Input.singleton();
-		double mx = input.get_axis("move_left", "move_right");
-		double my = input.get_axis("move_up", "move_down") / 2.0; // isometric correction
+		double mx = input.getAxis("move_left", "move_right");
+		double my = input.getAxis("move_up", "move_down") / 2.0; // isometric correction
 		double len = Math.sqrt(mx * mx + my * my);
 		if (len > 0) {
 			mx /= len;
@@ -49,7 +50,7 @@ public class Goblin extends CharacterBody2D {
 
 		Vector2 motion = new Vector2(mx * MOTION_SPEED, my * MOTION_SPEED);
 		setProperty("velocity", motion);
-		call("move_and_slide");
+		moveAndSlide();
 
 		Vector2 vel = (Vector2) getProperty("velocity");
 		double vx = vel.getX();

@@ -3,6 +3,7 @@ package demos.misc.custom_logging;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "CustomLoggingMain", parent = "Control")
 public class CLMain extends Control {
@@ -30,7 +31,7 @@ public class CLMain extends Control {
         System.out.print("Normal message 1 (raw). ");
         System.out.println("Normal message 2 (raw).\n--------");
 
-        org.godot.Godot flushLabel = (org.godot.Godot) call("get_node", "FlushStdoutOnPrint");
+        org.godot.node.Node flushLabel = getNode("FlushStdoutOnPrint");
         if (flushLabel != null) {
             org.godot.Godot projectSettings = (org.godot.Godot) call("ProjectSettings");
             // Check flush_stdout_on_print setting
@@ -46,37 +47,37 @@ public class CLMain extends Control {
     }
 
     @GodotMethod
-    public void _on_print_message_pressed() {
+    public void OnPrintMessagePressed() {
         messageCounter++;
         System.out.println("Printing message #" + messageCounter + ".");
     }
 
     @GodotMethod
-    public void _on_print_message_raw_pressed() {
+    public void OnPrintMessageRawPressed() {
         messageRawCounter++;
         System.out.print("Printing message #" + messageRawCounter + " (raw). ");
     }
 
     @GodotMethod
-    public void _on_print_message_stderr_pressed() {
+    public void OnPrintMessageStderrPressed() {
         messageStderrCounter++;
         System.err.println("Printing message #" + messageStderrCounter + " (stderr).");
     }
 
     @GodotMethod
-    public void _on_print_warning_pressed() {
+    public void OnPrintWarningPressed() {
         warningCounter++;
         call("push_warning", "Printing warning #" + warningCounter + ".");
     }
 
     @GodotMethod
-    public void _on_print_error_pressed() {
+    public void OnPrintErrorPressed() {
         errorCounter++;
         call("push_error", "Printing error #" + errorCounter + ".");
     }
 
     @GodotMethod
-    public void _on_open_logs_folder_pressed() {
+    public void OnOpenLogsFolderPressed() {
         org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
         Object logPath = call("ProjectSettings.get_setting_with_override",
             "debug/file_logging/log_path");
@@ -87,7 +88,7 @@ public class CLMain extends Control {
     }
 
     @GodotMethod
-    public void _on_crash_engine_pressed() {
+    public void OnCrashEnginePressed() {
         org.godot.singleton.OS.singleton().call("crash",
             "Crashing the engine on user request (the Crash Engine button was pressed). Do not report this as a bug.");
     }

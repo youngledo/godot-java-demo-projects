@@ -2,6 +2,7 @@ package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "XRHandFallbackModifier3D", parent = "SkeletonModifier3D")
 public class XRHandFallbackModifier3D extends org.godot.Godot {
@@ -25,7 +26,7 @@ public class XRHandFallbackModifier3D extends org.godot.Godot {
 
     private void processModification() {
         // Get our skeleton.
-        org.godot.Godot skeleton = (org.godot.Godot) call("get_skeleton");
+        org.godot.node.Skeleton3D skeleton = (org.godot.node.Skeleton3D) call("get_skeleton");
         if (skeleton == null) return;
 
         // Find our parent XRNode3D.
@@ -67,14 +68,14 @@ public class XRHandFallbackModifier3D extends org.godot.Godot {
         }
 
         // Now position bones.
-        int boneCount = (int) skeleton.call("get_bone_count");
+        int boneCount = (int) skeleton.getBoneCount();
         double deg45rad = Math.toRadians(45.0);
         double deg20rad = Math.toRadians(20.0);
         double deg90rad = Math.toRadians(90.0);
 
         for (int i = 0; i < boneCount; i++) {
-            org.godot.math.Transform3D t = (org.godot.math.Transform3D) skeleton.call("get_bone_rest", i);
-            String boneName = (String) skeleton.call("get_bone_name", i);
+            org.godot.math.Transform3D t = (org.godot.math.Transform3D) skeleton.getBoneRest(i);
+            String boneName = (String) skeleton.getBoneName(i);
 
             if ("LeftHand".equals(boneName)) {
                 org.godot.math.Vector3 origin = t.getOrigin();
@@ -97,7 +98,7 @@ public class XRHandFallbackModifier3D extends org.godot.Godot {
                 t = t.multiply(rot);
             }
 
-            skeleton.call("set_bone_pose", i, t);
+            skeleton.setBonePose(i, t);
         }
     }
 

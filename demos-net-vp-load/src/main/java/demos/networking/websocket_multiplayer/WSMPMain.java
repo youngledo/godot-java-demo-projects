@@ -21,23 +21,23 @@ public class WSMPMain extends Control {
 
     @Override
     public void _ready() {
-        hostBtn = (Godot) call("get_node", "Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Host");
-        connectBtn = (Godot) call("get_node", "Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Connect");
-        disconnectBtn = (Godot) call("get_node", "Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Disconnect");
-        nameEdit = (Godot) call("get_node", "Panel/VBoxContainer/HBoxContainer/NameEdit");
-        hostEdit = (Godot) call("get_node", "Panel/VBoxContainer/HBoxContainer2/Hostname");
-        game = (Godot) call("get_node", "Panel/VBoxContainer/Game");
+        hostBtn = (Godot) getNode("Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Host");
+        connectBtn = (Godot) getNode("Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Connect");
+        disconnectBtn = (Godot) getNode("Panel/VBoxContainer/HBoxContainer2/HBoxContainer/Disconnect");
+        nameEdit = (Godot) getNode("Panel/VBoxContainer/HBoxContainer/NameEdit");
+        hostEdit = (Godot) getNode("Panel/VBoxContainer/HBoxContainer2/Hostname");
+        game = (Godot) getNode("Panel/VBoxContainer/Game");
 
-        peer = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketMultiplayerPeer");
+        peer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketMultiplayerPeer");
 
-        Godot mp = (Godot) call("get_multiplayer");
-        mp.call("connect", "peer_connected", new Callable(this, "_peer_connected"), 0);
-        mp.call("connect", "peer_disconnected", new Callable(this, "_peer_disconnected"), 0);
-        mp.call("connect", "server_disconnected", new Callable(this, "_close_network"), 0);
-        mp.call("connect", "connection_failed", new Callable(this, "_close_network"), 0);
-        mp.call("connect", "connected_to_server", new Callable(this, "_connected"), 0);
+        Godot mp = (Godot) getMultiplayer();
+        mp.connect("peer_connected", new Callable(this, "_peer_connected"), 0);
+        mp.connect("peer_disconnected", new Callable(this, "_peer_disconnected"), 0);
+        mp.connect("server_disconnected", new Callable(this, "_close_network"), 0);
+        mp.connect("connection_failed", new Callable(this, "_close_network"), 0);
+        mp.connect("connected_to_server", new Callable(this, "_connected"), 0);
 
-        Godot acceptDialog = (Godot) call("get_node", "AcceptDialog");
+        Godot acceptDialog = (Godot) getNode("AcceptDialog");
         Godot label = (Godot) acceptDialog.call("get_label");
         label.setProperty("horizontal_alignment", 1);
         label.setProperty("vertical_alignment", 1);
@@ -68,13 +68,13 @@ public class WSMPMain extends Control {
     }
 
     @GodotMethod
-    public void _close_network() {
+    public void CloseNetwork() {
         stopGame();
-        Godot acceptDialog = (Godot) call("get_node", "AcceptDialog");
+        Godot acceptDialog = (Godot) getNode("AcceptDialog");
         acceptDialog.call("popup_centered");
         Godot okBtn = (Godot) acceptDialog.call("get_ok_button");
         okBtn.call("grab_focus");
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         peer.call("close");
     }
@@ -85,18 +85,18 @@ public class WSMPMain extends Control {
     }
 
     @GodotMethod
-    public void _peer_connected(long id) {
+    public void PeerConnected(long id) {
         game.call("on_peer_add", (int) id);
     }
 
     @GodotMethod
-    public void _peer_disconnected(long id) {
+    public void PeerDisconnected(long id) {
         game.call("on_peer_del", (int) id);
     }
 
     @GodotMethod
-    public void _on_Host_pressed() {
-        Godot mp = (Godot) call("get_multiplayer");
+    public void OnHostPressed() {
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         peer.call("create_server", DEF_PORT);
         mp.setProperty("multiplayer_peer", peer);
@@ -105,13 +105,13 @@ public class WSMPMain extends Control {
     }
 
     @GodotMethod
-    public void _on_Disconnect_pressed() {
-        _close_network();
+    public void OnDisconnectPressed() {
+        CloseNetwork();
     }
 
     @GodotMethod
-    public void _on_Connect_pressed() {
-        Godot mp = (Godot) call("get_multiplayer");
+    public void OnConnectPressed() {
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         String hostText = (String) hostEdit.getProperty("text");
         peer.call("create_client", "ws://" + hostText + ":" + DEF_PORT);

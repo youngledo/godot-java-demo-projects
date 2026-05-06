@@ -6,23 +6,25 @@ import org.godot.math.Vector2;
 import org.godot.math.Vector2i;
 import org.godot.node.Control;
 import org.godot.math.Rect2;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "MWMainScene", parent = "Control")
 public class MainScene extends Control {
 
-    private org.godot.Godot window;
-    private org.godot.Godot draggableWindow;
-    private org.godot.Godot fileDialog;
-    private org.godot.Godot fileDialogOutput;
-    private org.godot.Godot acceptDialog;
-    private org.godot.Godot acceptDialogOutput;
-    private org.godot.Godot confirmationDialog;
-    private org.godot.Godot confirmationDialogOutput;
-    private org.godot.Godot popup;
-    private org.godot.Godot popupMenu;
-    private org.godot.Godot popupMenuOutput;
-    private org.godot.Godot popupPanel;
-    private org.godot.Godot statusIndicator;
+    private org.godot.node.Control window;
+    private org.godot.node.Control draggableWindow;
+    private org.godot.node.CanvasItem fileDialog;
+    private org.godot.node.CanvasItem fileDialogOutput;
+    private org.godot.node.Node acceptDialog;
+    private org.godot.node.Node acceptDialogOutput;
+    private org.godot.node.CanvasItem confirmationDialog;
+    private org.godot.node.CanvasItem confirmationDialogOutput;
+    private org.godot.node.Node popup;
+    private org.godot.node.Node popupMenu;
+    private org.godot.node.Node popupMenuOutput;
+    private org.godot.node.Node popupPanel;
+    private org.godot.node.Node statusIndicator;
     private boolean initialized = false;
 
     @Override
@@ -30,121 +32,121 @@ public class MainScene extends Control {
         if (initialized) return;
         initialized = true;
 
-        window = (org.godot.Godot) call("get_node", "Window");
-        draggableWindow = (org.godot.Godot) call("get_node", "DraggableWindow");
-        fileDialog = (org.godot.Godot) call("get_node", "FileDialog");
-        fileDialogOutput = (org.godot.Godot) call("get_node", "HBoxContainer/VBoxContainer2/FileDialogOutput");
-        acceptDialog = (org.godot.Godot) call("get_node", "AcceptDialog");
-        acceptDialogOutput = (org.godot.Godot) call("get_node", "HBoxContainer/VBoxContainer2/AcceptOutput");
-        confirmationDialog = (org.godot.Godot) call("get_node", "ConfirmationDialog");
-        confirmationDialogOutput = (org.godot.Godot) call("get_node", "HBoxContainer/VBoxContainer2/ConfirmationOutput");
-        popup = (org.godot.Godot) call("get_node", "Popup");
-        popupMenu = (org.godot.Godot) call("get_node", "PopupMenu");
-        popupMenuOutput = (org.godot.Godot) call("get_node", "HBoxContainer/VBoxContainer3/PopupMenuOutput");
-        popupPanel = (org.godot.Godot) call("get_node", "PopupPanel");
-        statusIndicator = (org.godot.Godot) call("get_node", "StatusIndicator");
+        window = (org.godot.node.Control) getNode("Window");
+        draggableWindow = (org.godot.node.Control) getNode("DraggableWindow");
+        fileDialog = (org.godot.node.CanvasItem) getNode("FileDialog");
+        fileDialogOutput = (org.godot.node.CanvasItem) getNode("HBoxContainer/VBoxContainer2/FileDialogOutput");
+        acceptDialog = getNode("AcceptDialog");
+        acceptDialogOutput = getNode("HBoxContainer/VBoxContainer2/AcceptOutput");
+        confirmationDialog = (org.godot.node.CanvasItem) getNode("ConfirmationDialog");
+        confirmationDialogOutput = (org.godot.node.CanvasItem) getNode("HBoxContainer/VBoxContainer2/ConfirmationOutput");
+        popup = getNode("Popup");
+        popupMenu = getNode("PopupMenu");
+        popupMenuOutput = getNode("HBoxContainer/VBoxContainer3/PopupMenuOutput");
+        popupPanel = getNode("PopupPanel");
+        statusIndicator = getNode("StatusIndicator");
     }
 
     @GodotMethod
-    public void _on_embed_subwindows_toggled(boolean toggledOn) {
+    public void OnEmbedSubwindowsToggled(boolean toggledOn) {
         java.util.List<org.godot.Godot> hiddenWindows = new java.util.ArrayList<>();
-        for (Object child : call("get_children") instanceof Object[] ? (Object[]) call("get_children") : new Object[0]) {
+        for (Object child : getChildren() instanceof Object[] ? (Object[]) getChildren() : new Object[0]) {
             if (child instanceof org.godot.Godot) {
-                org.godot.Godot c = (org.godot.Godot) child;
+                org.godot.node.CanvasItem c = (org.godot.node.CanvasItem) child;
                 String className = (String) c.call("get_class");
-                if ("Window".equals(className) && (boolean) c.call("is_visible")) {
-                    c.call("hide");
+                if ("Window".equals(className) && (boolean) c.isVisible()) {
+                    c.hide();
                     hiddenWindows.add(c);
                 }
             }
         }
         embedSubwindows(toggledOn);
         for (org.godot.Godot w : hiddenWindows) {
-            w.call("show");
+            ((org.godot.node.CanvasItem) w).show();
         }
     }
 
     private void embedSubwindows(boolean state) {
-        org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport viewport = getViewport();
         if (viewport != null) {
             viewport.setProperty("gui_embed_subwindows", state);
         }
     }
 
     @GodotMethod
-    public void _on_window_button_pressed() {
+    public void OnWindowButtonPressed() {
         if (window != null) {
-            window.call("show");
-            window.call("grab_focus");
+            window.show();
+            window.grabFocus();
         }
     }
 
     @GodotMethod
-    public void _on_transient_window_toggled(boolean toggledOn) {
+    public void OnTransientWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("transient", toggledOn);
     }
 
     @GodotMethod
-    public void _on_exclusive_window_toggled(boolean toggledOn) {
+    public void OnExclusiveWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("exclusive", toggledOn);
     }
 
     @GodotMethod
-    public void _on_unresizable_window_toggled(boolean toggledOn) {
+    public void OnUnresizableWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("unresizable", toggledOn);
     }
 
     @GodotMethod
-    public void _on_borderless_window_toggled(boolean toggledOn) {
+    public void OnBorderlessWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("borderless", toggledOn);
     }
 
     @GodotMethod
-    public void _on_always_on_top_window_toggled(boolean toggledOn) {
+    public void OnAlwaysOnTopWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("always_on_top", toggledOn);
     }
 
     @GodotMethod
-    public void _on_transparent_window_toggled(boolean toggledOn) {
+    public void OnTransparentWindowToggled(boolean toggledOn) {
         if (window != null) window.setProperty("transparent", toggledOn);
     }
 
     @GodotMethod
-    public void _on_window_title_edit_text_changed(String newText) {
+    public void OnWindowTitleEditTextChanged(String newText) {
         if (window != null) window.setProperty("title", newText);
     }
 
     @GodotMethod
-    public void _on_draggable_window_button_pressed() {
+    public void OnDraggableWindowButtonPressed() {
         if (draggableWindow != null) {
-            draggableWindow.call("show");
-            draggableWindow.call("grab_focus");
+            draggableWindow.show();
+            draggableWindow.grabFocus();
         }
     }
 
     @GodotMethod
-    public void _on_draggable_window_close_pressed() {
-        if (draggableWindow != null) draggableWindow.call("hide");
+    public void OnDraggableWindowClosePressed() {
+        if (draggableWindow != null) draggableWindow.hide();
     }
 
     @GodotMethod
-    public void _on_bg_draggable_window_toggled(boolean toggledOn) {
+    public void OnBgDraggableWindowToggled(boolean toggledOn) {
         if (draggableWindow != null) {
-            org.godot.Godot bg = (org.godot.Godot) draggableWindow.call("get_node", "BG");
+            org.godot.Godot bg = (org.godot.Godot) draggableWindow.getNode("BG");
             if (bg != null) bg.setProperty("visible", toggledOn);
         }
     }
 
     @GodotMethod
-    public void _on_passthrough_polygon_item_selected(long index) {
+    public void OnPassthroughPolygonItemSelected(long index) {
         if (draggableWindow == null) return;
         if (index == 0) {
             draggableWindow.setProperty("mouse_passthrough_polygon", new Object[0]);
         } else if (index == 1) {
-            org.godot.Godot gen = (org.godot.Godot) draggableWindow.call("get_node", "PassthroughGenerator");
+            org.godot.Godot gen = (org.godot.Godot) draggableWindow.getNode("PassthroughGenerator");
             if (gen != null) gen.call("generate_polygon");
         } else if (index == 2) {
-            draggableWindow.setProperty("mouse_passthrough_polygon", new org.godot.math.Vector2[]{
+            draggableWindow.setProperty("mouse_passthrough_polygon", new org.godot.math.Vector2[] {
                 new org.godot.math.Vector2(16, 0), new org.godot.math.Vector2(16, 128),
                 new org.godot.math.Vector2(116, 128), new org.godot.math.Vector2(116, 0)
             });
@@ -152,27 +154,27 @@ public class MainScene extends Control {
     }
 
     @GodotMethod
-    public void _on_file_dialog_button_pressed() {
-        if (fileDialog != null) fileDialog.call("show");
+    public void OnFileDialogButtonPressed() {
+        if (fileDialog != null) fileDialog.show();
     }
 
     @GodotMethod
-    public void _on_file_dialog_dir_selected(String dir) {
+    public void OnFileDialogDirSelected(String dir) {
         if (fileDialogOutput != null) fileDialogOutput.setProperty("text", "Directory Path: " + dir);
     }
 
     @GodotMethod
-    public void _on_file_dialog_file_selected(String path) {
+    public void OnFileDialogFileSelected(String path) {
         if (fileDialogOutput != null) fileDialogOutput.setProperty("text", "File Path: " + path);
     }
 
     @GodotMethod
-    public void _on_file_dialog_files_selected(Object paths) {
+    public void OnFileDialogFilesSelected(Object paths) {
         if (fileDialogOutput != null) fileDialogOutput.setProperty("text", "Chosen Paths: " + String.valueOf(paths));
     }
 
     @GodotMethod
-    public void _on_file_dialog_options_item_selected(long index) {
+    public void OnFileDialogOptionsItemSelected(long index) {
         if (fileDialog == null) return;
         int[] modes = {0, 1, 2, 3, 4}; // FILE_MODE_OPEN_FILE through FILE_MODE_SAVE_FILE
         if (index >= 0 && index < modes.length) {
@@ -181,56 +183,56 @@ public class MainScene extends Control {
     }
 
     @GodotMethod
-    public void _on_native_dialog_toggled(boolean toggledOn) {
+    public void OnNativeDialogToggled(boolean toggledOn) {
         if (fileDialog != null) fileDialog.setProperty("use_native_dialog", toggledOn);
     }
 
     @GodotMethod
-    public void _on_accept_button_text_submitted(String newText) {
+    public void OnAcceptButtonTextSubmitted(String newText) {
         if (!newText.isEmpty() && acceptDialog != null) {
             acceptDialog.call("add_button", newText, false, newText);
         }
     }
 
     @GodotMethod
-    public void _on_accept_dialog_canceled() {
+    public void OnAcceptDialogCanceled() {
         if (acceptDialogOutput != null) acceptDialogOutput.setProperty("text", "Cancelled");
     }
 
     @GodotMethod
-    public void _on_accept_dialog_confirmed() {
+    public void OnAcceptDialogConfirmed() {
         if (acceptDialogOutput != null) acceptDialogOutput.setProperty("text", "Accepted");
     }
 
     @GodotMethod
-    public void _on_accept_dialog_custom_action(String action) {
+    public void OnAcceptDialogCustomAction(String action) {
         if (acceptDialogOutput != null) acceptDialogOutput.setProperty("text", "Custom Action: " + action);
         if (acceptDialog != null) acceptDialog.call("hide");
     }
 
     @GodotMethod
-    public void _on_accept_button_pressed() {
+    public void OnAcceptButtonPressed() {
         if (acceptDialog != null) acceptDialog.call("show");
     }
 
     @GodotMethod
-    public void _on_confirmation_button_pressed() {
-        if (confirmationDialog != null) confirmationDialog.call("show");
+    public void OnConfirmationButtonPressed() {
+        if (confirmationDialog != null) confirmationDialog.show();
     }
 
     @GodotMethod
-    public void _on_confirmation_dialog_canceled() {
+    public void OnConfirmationDialogCanceled() {
         if (confirmationDialogOutput != null) confirmationDialogOutput.setProperty("text", "Cancelled");
     }
 
     @GodotMethod
-    public void _on_confirmation_dialog_confirmed() {
+    public void OnConfirmationDialogConfirmed() {
         if (confirmationDialogOutput != null) confirmationDialogOutput.setProperty("text", "Accepted");
     }
 
     private void showPopup(org.godot.Godot p) {
         org.godot.math.Vector2i mousePosition;
-        org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport viewport = getViewport();
         boolean embed = (boolean) viewport.call("gui_embed_subwindows");
         if (embed) {
             mousePosition = (org.godot.math.Vector2i) call("get_global_mouse_position");
@@ -251,27 +253,27 @@ public class MainScene extends Control {
     }
 
     @GodotMethod
-    public void _on_popup_button_pressed() {
+    public void OnPopupButtonPressed() {
         if (popup != null) showPopup(popup);
     }
 
     @GodotMethod
-    public void _on_popup_menu_button_pressed() {
+    public void OnPopupMenuButtonPressed() {
         if (popupMenu != null) showPopup(popupMenu);
     }
 
     @GodotMethod
-    public void _on_popup_panel_button_pressed() {
+    public void OnPopupPanelButtonPressed() {
         if (popupPanel != null) showPopup(popupPanel);
     }
 
     @GodotMethod
-    public void _on_popup_menu_option_pressed(String option) {
+    public void OnPopupMenuOptionPressed(String option) {
         if (popupMenuOutput != null) popupMenuOutput.setProperty("text", option + " was pressed.");
     }
 
     @GodotMethod
-    public void _on_status_indicator_visible_toggled(boolean toggledOn) {
+    public void OnStatusIndicatorVisibleToggled(boolean toggledOn) {
         if (statusIndicator != null) statusIndicator.setProperty("visible", toggledOn);
     }
 }

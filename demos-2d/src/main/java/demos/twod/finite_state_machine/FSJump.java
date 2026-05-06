@@ -32,10 +32,10 @@ public class FSJump extends FSMotion {
         horizontalVelocity = (inputDir.x != 0 || inputDir.y != 0) ? enterVelocity : Vector2.ZERO;
         verticalSpeed = 600.0;
 
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot animPlayer = (org.godot.Godot) owner.call("get_node", "AnimationPlayer");
-            if (animPlayer != null) animPlayer.call("play", IDLE);
+            org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) owner.getNode("AnimationPlayer");
+            if (animPlayer != null) animPlayer.play(IDLE);
         }
     }
 
@@ -47,7 +47,7 @@ public class FSJump extends FSMotion {
         animateJumpHeight(delta);
 
         if (height <= 0) {
-            org.godot.Godot sm = (org.godot.Godot) call("get_parent");
+            org.godot.Godot sm = getParent();
             if (sm != null) sm.call("change_state", PREVIOUS);
         }
     }
@@ -64,7 +64,7 @@ public class FSJump extends FSMotion {
         Vector2 steering = targetVelocity.sub(horizontalVelocity).normalized().mul(AIR_STEERING_POWER);
         horizontalVelocity = horizontalVelocity.add(steering);
 
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
             owner.setProperty("velocity", horizontalVelocity);
             owner.call("move_and_slide");
@@ -76,9 +76,9 @@ public class FSJump extends FSMotion {
         height += verticalSpeed * delta;
         height = Math.max(0, height);
 
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot bodyPivot = (org.godot.Godot) owner.call("get_node", "BodyPivot");
+            org.godot.node.Node bodyPivot = (org.godot.node.Node) owner.getNode("BodyPivot");
             if (bodyPivot != null) {
                 Object pos = bodyPivot.getProperty("position");
                 Vector2 p = pos instanceof Vector2 ? (Vector2) pos : Vector2.ZERO;

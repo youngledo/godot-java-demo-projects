@@ -2,11 +2,12 @@ package demos.misc.os_test;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Panel;
+import org.godot.node.Node;
 
 @GodotClass(name = "OSTest", parent = "Panel")
 public class OSTest extends Panel {
 
-    private org.godot.Godot rtl;
+    private org.godot.node.Node rtl;
     private int lineCount = 0;
     private boolean initialized = false;
 
@@ -15,7 +16,7 @@ public class OSTest extends Panel {
         if (initialized) return;
         initialized = true;
 
-        rtl = (org.godot.Godot) call("get_node", "HBoxContainer/Features");
+        rtl = getNode("HBoxContainer/Features");
         if (rtl != null) rtl.call("grab_focus");
 
         addHeader("Audio");
@@ -69,8 +70,8 @@ public class OSTest extends Panel {
         addLine("Static memory peak usage", call("OS.get_static_memory_peak_usage"));
 
         addHeader("Environment");
-        addLine("Value of `PATH`", org.godot.singleton.OS.singleton().call("get_environment", "PATH"));
-        addLine("Value of `path`", org.godot.singleton.OS.singleton().call("get_environment", "path"));
+        addLine("Value of `PATH`", org.godot.singleton.OS.singleton().getEnvironment("PATH"));
+        addLine("Value of `path`", org.godot.singleton.OS.singleton().getEnvironment("path"));
 
         addHeader("Hardware");
         addLine("Model name", call("OS.get_model_name"));

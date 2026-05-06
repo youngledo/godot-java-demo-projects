@@ -18,7 +18,7 @@ public class UrlOpener extends RichTextLabel {
     }
 
     @GodotMethod
-    public void _on_meta_clicked(Object meta) {
-        org.godot.singleton.OS.singleton().call("shell_open", String.valueOf(meta));
+    public void OnMetaClicked(Object meta) {
+        org.godot.singleton.OS.singleton().shellOpen(String.valueOf(meta));
     }
 }

@@ -14,8 +14,8 @@ public class Piano extends Control {
     private static final int START_KEY = 21;
     private static final int END_KEY = 108;
 
-    private org.godot.Godot whiteKeys;
-    private org.godot.Godot blackKeys;
+    private org.godot.node.Node whiteKeys;
+    private org.godot.node.Node blackKeys;
 
     // Maps pitch index to PianoKey node.
     private final java.util.Map<Integer, org.godot.Godot> pianoKeyDict = new java.util.HashMap<>();
@@ -27,8 +27,8 @@ public class Piano extends Control {
         if (initialized) return;
         initialized = true;
 
-        whiteKeys = (org.godot.Godot) call("get_node", "WhiteKeys");
-        blackKeys = (org.godot.Godot) call("get_node", "BlackKeys");
+        whiteKeys = getNode("WhiteKeys");
+        blackKeys = getNode("BlackKeys");
 
         // Validate start key isn't a sharp note.
         assert !isNoteIndexSharp(pitchIndexToNoteIndex(START_KEY))
@@ -38,8 +38,8 @@ public class Piano extends Control {
             pianoKeyDict.put(i, createPianoKey(i));
         }
 
-        int whiteCount = whiteKeys != null ? ((Number) whiteKeys.call("get_child_count")).intValue() : 0;
-        int blackCount = blackKeys != null ? ((Number) blackKeys.call("get_child_count")).intValue() : 0;
+        int whiteCount = whiteKeys != null ? ((Number) whiteKeys.getChildCount()).intValue() : 0;
+        int blackCount = blackKeys != null ? ((Number) blackKeys.getChildCount()).intValue() : 0;
         if (whiteCount != blackCount) {
             addPlaceholderKey(blackKeys);
         }
@@ -59,17 +59,17 @@ public class Piano extends Control {
         org.godot.singleton.OS.singleton().call("close_midi_inputs");
         // Free dynamically created piano key nodes
         if (whiteKeys != null) {
-            int childCount = ((Number) whiteKeys.call("get_child_count")).intValue();
+            int childCount = ((Number) whiteKeys.getChildCount()).intValue();
             for (int i = childCount - 1; i >= 0; i--) {
-                org.godot.Godot child = (org.godot.Godot) whiteKeys.call("get_child", i);
-                if (child != null) child.call("queue_free");
+                org.godot.node.Node child = (org.godot.node.Node) whiteKeys.getChild(i);
+                if (child != null) child.queueFree();
             }
         }
         if (blackKeys != null) {
-            int childCount = ((Number) blackKeys.call("get_child_count")).intValue();
+            int childCount = ((Number) blackKeys.getChildCount()).intValue();
             for (int i = childCount - 1; i >= 0; i--) {
-                org.godot.Godot child = (org.godot.Godot) blackKeys.call("get_child", i);
-                if (child != null) child.call("queue_free");
+                org.godot.node.Node child = (org.godot.node.Node) blackKeys.getChild(i);
+                if (child != null) child.queueFree();
             }
         }
         pianoKeyDict.clear();
@@ -80,7 +80,7 @@ public class Piano extends Control {
     @Override
     public boolean _input(Object inputEvent) {
         if (!(inputEvent instanceof org.godot.Godot)) return false;
-        org.godot.Godot event = (org.godot.Godot) inputEvent;
+        org.godot.node.Node event = (org.godot.node.Node) inputEvent;
 
         String className = (String) event.call("get_class");
         if (!"InputEventMIDI".equals(className)) {
@@ -106,13 +106,13 @@ public class Piano extends Control {
         return false;
     }
 
-    private void addPlaceholderKey(org.godot.Godot container) {
+    private void addPlaceholderKey(org.godot.node.Node container) {
         if (container == null) return;
         org.godot.Godot placeholder = Control.create();
         placeholder.setProperty("size_flags_horizontal", 3L); // SIZE_EXPAND_FILL
-        placeholder.call("set", "mouse_filter", 2L); // MOUSE_FILTER_IGNORE
+        placeholder.setProperty("mouse_filter", 2L); // MOUSE_FILTER_IGNORE
         placeholder.setProperty("name", "Placeholder");
-        container.call("add_child", placeholder);
+        container.addChild((org.godot.node.Node) placeholder);
     }
 
     private org.godot.Godot createPianoKey(int pitchIndex) {
@@ -121,14 +121,14 @@ public class Piano extends Control {
 
         if (isNoteIndexSharp(noteIndex)) {
             // Black key
-            org.godot.Godot blackKeyScene = (org.godot.Godot) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/black_piano_key.tscn", "", 1);
-            pianoKey = (org.godot.Godot) blackKeyScene.call("instantiate");
-            if (blackKeys != null) blackKeys.call("add_child", pianoKey);
+            org.godot.node.PackedScene blackKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/black_piano_key.tscn", "", 1);
+            pianoKey = blackKeyScene.instantiate();
+            if (blackKeys != null) blackKeys.addChild((org.godot.node.Node) pianoKey);
         } else {
             // White key
-            org.godot.Godot whiteKeyScene = (org.godot.Godot) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/white_piano_key.tscn", "", 1);
-            pianoKey = (org.godot.Godot) whiteKeyScene.call("instantiate");
-            if (whiteKeys != null) whiteKeys.call("add_child", pianoKey);
+            org.godot.node.PackedScene whiteKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/white_piano_key.tscn", "", 1);
+            pianoKey = whiteKeyScene.instantiate();
+            if (whiteKeys != null) whiteKeys.addChild((org.godot.node.Node) pianoKey);
             if (isNoteIndexLackingSharp(noteIndex)) {
                 addPlaceholderKey(blackKeys);
             }

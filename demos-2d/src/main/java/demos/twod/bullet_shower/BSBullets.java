@@ -4,6 +4,8 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Color;
 import org.godot.math.Vector2;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "BSBullets", parent = "Node2D")
 public class BSBullets extends Node2D {
@@ -25,9 +27,9 @@ public class BSBullets extends Node2D {
 		if (initialized) return;
 		initialized = true;
 
-		org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+		org.godot.node.Viewport viewport = getViewport();
 		if (viewport != null) {
-			Object rect = viewport.call("get_visible_rect");
+			Object rect = viewport.getVisibleRect();
 			if (rect != null) {
 				Vector2 size = (Vector2) ((org.godot.Godot) rect).getProperty("size");
 				if (size != null) {
@@ -46,7 +48,7 @@ public class BSBullets extends Node2D {
 
 	@Override
 	public void _process(double delta) {
-		call("queue_redraw");
+		queueRedraw();
 	}
 
 	@Override

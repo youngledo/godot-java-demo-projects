@@ -2,24 +2,26 @@ package demos.twod.lights_and_shadows;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "LightShadows2D", parent = "Node2D")
 public class LightShadows2D extends Node2D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
 
-		if ((boolean) ev.call("is_action_pressed", "toggle_directional_light")) {
-			org.godot.Godot dirLight = (org.godot.Godot) call("get_node", "DirectionalLight2D");
+		if ((boolean) ev.isActionPressed("toggle_directional_light")) {
+			org.godot.node.Node dirLight = getNode("DirectionalLight2D");
 			if (dirLight != null) dirLight.setProperty("visible", !(boolean) dirLight.getProperty("visible"));
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "toggle_point_lights")) {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+		if ((boolean) ev.isActionPressed("toggle_point_lights")) {
+			org.godot.node.SceneTree tree = getTree();
 			if (tree != null) {
-				Object[] lights = (Object[]) tree.call("get_nodes_in_group", "point_light");
+				Object[] lights = (Object[]) tree.getNodesInGroup("point_light");
 				if (lights != null && lights.length > 0) {
 					boolean visible = (boolean) ((org.godot.Godot) lights[0]).getProperty("visible");
 					for (Object l : lights) {
@@ -30,8 +32,8 @@ public class LightShadows2D extends Node2D {
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "cycle_directional_light_shadows_quality")) {
-			org.godot.Godot dirLight = (org.godot.Godot) call("get_node", "DirectionalLight2D");
+		if ((boolean) ev.isActionPressed("cycle_directional_light_shadows_quality")) {
+			org.godot.node.Node dirLight = getNode("DirectionalLight2D");
 			if (dirLight != null) {
 				long filter = (long) dirLight.getProperty("shadow_filter");
 				dirLight.setProperty("shadow_filter", (filter + 1) % 3);
@@ -39,10 +41,10 @@ public class LightShadows2D extends Node2D {
 			return true;
 		}
 
-		if ((boolean) ev.call("is_action_pressed", "cycle_point_light_shadows_quality")) {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+		if ((boolean) ev.isActionPressed("cycle_point_light_shadows_quality")) {
+			org.godot.node.SceneTree tree = getTree();
 			if (tree != null) {
-				Object[] lights = (Object[]) tree.call("get_nodes_in_group", "point_light");
+				Object[] lights = (Object[]) tree.getNodesInGroup("point_light");
 				if (lights != null) {
 					for (Object l : lights) {
 						org.godot.Godot light = (org.godot.Godot) l;

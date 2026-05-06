@@ -15,7 +15,7 @@ public class STCScoreLabel extends Label {
 	}
 
 	@GodotMethod
-	public void _on_mob_squashed() {
+	public void OnMobSquashed() {
 		score++;
 		setProperty("text", "Score: " + score);
 	}

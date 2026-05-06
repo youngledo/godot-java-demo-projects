@@ -3,16 +3,18 @@ package demos.twod.navigation;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "NavCharacter", parent = "CharacterBody2D")
 public class NavCharacter extends CharacterBody2D {
 
 	private static final double MOVEMENT_SPEED = 200.0;
-	private org.godot.Godot navigationAgent;
+	private org.godot.node.Node navigationAgent;
 
 	@Override
 	public void _ready() {
-		navigationAgent = (org.godot.Godot) call("get_node", "NavigationAgent2D");
+		navigationAgent = getNode("NavigationAgent2D");
 		if (navigationAgent != null) {
 			navigationAgent.call("set_path_desired_distance", 2.0);
 			navigationAgent.call("set_target_desired_distance", 2.0);
@@ -22,7 +24,7 @@ public class NavCharacter extends CharacterBody2D {
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		boolean pressed = (boolean) call("Input.is_action_just_pressed", "click");
+		boolean pressed = (boolean) (boolean) Input.singleton().isActionJustPressed( "click");
 		if (pressed) {
 			Vector2 mousePos = (Vector2) call("get_global_mouse_position");
 			if (navigationAgent != null) {
@@ -52,6 +54,6 @@ public class NavCharacter extends CharacterBody2D {
 			dy /= len;
 		}
 		setProperty("velocity", new Vector2(dx * MOVEMENT_SPEED, dy * MOVEMENT_SPEED));
-		call("move_and_slide");
+		moveAndSlide();
 	}
 }

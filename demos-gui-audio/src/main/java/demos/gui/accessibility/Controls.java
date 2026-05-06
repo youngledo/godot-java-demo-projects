@@ -7,6 +7,7 @@ package demos.gui.accessibility;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "Controls", parent = "Control")
 public class Controls extends Control {
@@ -18,18 +19,18 @@ public class Controls extends Control {
         if (initialized) return;
         initialized = true;
 
-        org.godot.Godot lineEditName = (org.godot.Godot) call("get_node", "LineEditName");
-        if (lineEditName != null && (boolean) lineEditName.call("is_inside_tree")) {
-            lineEditName.call("grab_focus");
+        org.godot.node.Control lineEditName = (org.godot.node.Control) getNode("LineEditName");
+        if (lineEditName != null && (boolean) lineEditName.isInsideTree()) {
+            lineEditName.grabFocus();
         }
     }
 
     @org.godot.annotation.GodotMethod
-    public void _on_button_set_pressed() {
-        if (!is_inside_tree()) return;
+    public void OnButtonSetPressed() {
+        if (!isInsideTree()) return;;
 
-        org.godot.Godot liveReg = (org.godot.Godot) call("get_node", "LineEditLiveReg");
-        org.godot.Godot labelRegion = (org.godot.Godot) call("get_node", "Panel/LabelRegion");
+        org.godot.node.Node liveReg = getNode("LineEditLiveReg");
+        org.godot.node.Node labelRegion = getNode("Panel/LabelRegion");
         if (liveReg != null && labelRegion != null) {
             String text = (String) liveReg.getProperty("text");
             labelRegion.setProperty("text", text);

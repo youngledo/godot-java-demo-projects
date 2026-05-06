@@ -5,6 +5,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.Marker3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "NavRobot", parent = "Marker3D")
 public class NavRobot extends Marker3D {
@@ -14,7 +15,7 @@ public class NavRobot extends Marker3D {
 	@Export
 	public boolean showPath = true;
 
-	private org.godot.Godot navAgent;
+	private org.godot.node.Node navAgent;
 	private org.godot.Godot navPathLine;
 	private boolean initialized = false;
 
@@ -23,7 +24,7 @@ public class NavRobot extends Marker3D {
 		if (initialized) return;
 		initialized = true;
 
-		navAgent = (org.godot.Godot) call("get_node", "NavigationAgent3D");
+		navAgent = getNode("NavigationAgent3D");
 
 		// Create a Line3D equivalent - we'll use a simple approach
 		// The original creates a Line3D (MeshInstance3D subclass) programmatically
@@ -51,10 +52,10 @@ public class NavRobot extends Marker3D {
 		double speed = delta * characterSpeed;
 
 		if (dist <= speed) {
-			call("set_global_position", nextPosition);
+			setGlobalPosition(nextPosition);
 		} else {
 			double ratio = speed / dist;
-			call("set_global_position", new Vector3(
+			setGlobalPosition(new Vector3(
 				globalPos.getX() + offset.getX() * ratio,
 				globalPos.getY() + offset.getY() * ratio,
 				globalPos.getZ() + offset.getZ() * ratio
@@ -66,7 +67,7 @@ public class NavRobot extends Marker3D {
 		double flatLen = Math.sqrt(flatOffset.getX() * flatOffset.getX() + flatOffset.getZ() * flatOffset.getZ());
 		if (flatLen > 0.001) {
 			Vector3 globalPos2 = (Vector3) call("get_global_position");
-			call("look_at", new Vector3(globalPos2.getX() + flatOffset.getX(), globalPos2.getY(), globalPos2.getZ() + flatOffset.getZ()), new Vector3(0, 1, 0));
+			lookAt(new Vector3(globalPos2.getX() + flatOffset.getX(), globalPos2.getY(), globalPos2.getZ() + flatOffset.getZ()), new Vector3(0, 1, 0));
 		}
 	}
 

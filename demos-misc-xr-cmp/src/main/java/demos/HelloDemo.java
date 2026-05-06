@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "HelloDemo", parent = "Node2D")
 public class HelloDemo extends Node2D {

@@ -12,7 +12,7 @@ public class SpritePolygonPassthrough extends Node {
     public org.godot.Godot sprite;
 
     @GodotMethod
-    public void generate_polygon() {
+    public void generatePolygon() {
         if (sprite == null) return;
 
         Object textureObj = sprite.getProperty("texture");
@@ -85,7 +85,7 @@ public class SpritePolygonPassthrough extends Node {
             }
         }
 
-        org.godot.Godot win = (org.godot.Godot) call("get_window");
+        org.godot.Godot win = getWindow();
         if (win != null) {
             win.setProperty("mouse_passthrough_polygon", polygon.toArray(new org.godot.math.Vector2[0]));
         }

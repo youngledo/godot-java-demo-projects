@@ -6,6 +6,8 @@ import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.math.Basis;
 import org.godot.math.Transform3D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "PLPlayer", parent = "CharacterBody3D")
 public class PLPlayer extends CharacterBody3D {
@@ -32,8 +34,8 @@ public class PLPlayer extends CharacterBody3D {
 
 	private Vector3 initialPosition;
 	private Vector3 gravity;
-	private org.godot.Godot camera;
-	private org.godot.Godot animationTree;
+	private org.godot.node.Node3D camera;
+	private org.godot.node.Node animationTree;
 	private org.godot.singleton.Input input;
 	private boolean initialized = false;
 
@@ -47,11 +49,11 @@ public class PLPlayer extends CharacterBody3D {
 
 		initialPosition = (Vector3) getProperty("position");
 
-		org.godot.Godot target = (org.godot.Godot) call("get_node", "Target");
+		org.godot.node.Node target = getNode("Target");
 		if (target != null) {
-			camera = (org.godot.Godot) target.call("get_node", "Camera3D");
+			camera = (org.godot.node.Node3D) target.getNode("Camera3D");
 		}
-		animationTree = (org.godot.Godot) call("get_node", "AnimationTree");
+		animationTree = getNode("AnimationTree");
 	}
 
 	@Override
@@ -62,13 +64,13 @@ public class PLPlayer extends CharacterBody3D {
 		if (pos != null && pos.y < -12) {
 			setProperty("position", initialPosition);
 			setProperty("velocity", Vector3.ZERO);
-			call("reset_physics_interpolation");
+			resetPhysicsInterpolation();
 		}
 
-		if ((boolean) input.call("is_action_pressed", "reset_position", false)) {
+		if ((boolean) input.isActionPressed("reset_position")) {
 			setProperty("position", initialPosition);
 			setProperty("velocity", Vector3.ZERO);
-			call("reset_physics_interpolation");
+			resetPhysicsInterpolation();
 		}
 
 		updateCoinLabels();
@@ -85,8 +87,8 @@ public class PLPlayer extends CharacterBody3D {
 
 		Vector3 movementDirection = calculateMovementDirection();
 
-		boolean jumpAttempt = (boolean) input.call("is_action_pressed", "jump", false);
-		boolean onFloor = (boolean) call("is_on_floor");
+		boolean jumpAttempt = (boolean) input.isActionPressed("jump");
+		boolean onFloor = (boolean) isOnFloor();
 
 		if (onFloor) {
 			double dot = horizontalDirection.dot(movementDirection);
@@ -114,7 +116,7 @@ public class PLPlayer extends CharacterBody3D {
 			if (!jumping && jumpAttempt) {
 				verticalVelocity = JUMP_VELOCITY;
 				jumping = true;
-				org.godot.Godot soundJump = (org.godot.Godot) call("get_node", "SoundJump");
+				org.godot.node.Node soundJump = getNode("SoundJump");
 				if (soundJump != null) soundJump.call("play");
 			}
 		} else {
@@ -125,7 +127,7 @@ public class PLPlayer extends CharacterBody3D {
 					horizontalVelocity = horizontalVelocity.normalized().mul(MAX_SPEED);
 				}
 			}
-			if ((boolean) input.call("is_action_just_released", "jump", false) && velocity.y > 0.0) {
+			if ((boolean) input.isActionJustReleased("jump") && velocity.y > 0.0) {
 				verticalVelocity *= 0.7;
 			}
 		}
@@ -135,7 +137,7 @@ public class PLPlayer extends CharacterBody3D {
 		velocity = horizontalVelocity.add(new Vector3(0, verticalVelocity, 0));
 		if (onFloor) movementDir = velocity;
 		setProperty("velocity", velocity);
-		call("move_and_slide");
+		moveAndSlide();
 
 		handleShooting();
 		updateAnimationTree(anim, horizontalSpeed, velocity);
@@ -144,13 +146,13 @@ public class PLPlayer extends CharacterBody3D {
 	}
 
 	private void updateCoinLabels() {
-		org.godot.Godot coinCount = (org.godot.Godot) call("get_node", "Player/Skeleton/CoinCount");
+		org.godot.node.Node coinCount = getNode("Player/Skeleton/CoinCount");
 		if (coinCount == null) return;
 		String coinStr = String.valueOf(coins);
 		coinCount.setProperty("text", coinStr);
 		String[] parallaxNames = {"Parallax", "Parallax2", "Parallax3", "Parallax4"};
 		for (String name : parallaxNames) {
-			org.godot.Godot p = (org.godot.Godot) coinCount.call("get_node", name);
+			org.godot.Godot p = (org.godot.Godot) coinCount.getNode(name);
 			if (p != null) p.setProperty("text", coinStr);
 		}
 	}
@@ -159,13 +161,13 @@ public class PLPlayer extends CharacterBody3D {
 		Vector3 movementDirection = new Vector3();
 		if (camera == null || input == null) return movementDirection;
 
-		Object camBasisObj = camera.call("get_global_transform");
+		Object camBasisObj = camera.getGlobalTransform();
 		if (!(camBasisObj instanceof Transform3D)) return movementDirection;
 
 		Transform3D camXform = (Transform3D) camBasisObj;
 		Basis camBasis = camXform.getBasis();
 
-		Object moveVecObj = input.call("get_vector", "move_left", "move_right", "move_forward", "move_back");
+		Object moveVecObj = input.getVector("move_left", "move_right", "move_forward", "move_back");
 		if (moveVecObj instanceof Vector2) {
 			Vector2 moveVec2 = (Vector2) moveVecObj;
 			Vector3 moveVec3 = new Vector3(moveVec2.x, 0, moveVec2.y);
@@ -177,7 +179,7 @@ public class PLPlayer extends CharacterBody3D {
 	}
 
 	private void updateSkeletonFacing(Vector3 movementDirection, double horizontalSpeed, double delta) {
-		org.godot.Godot skeleton = (org.godot.Godot) call("get_node", "Player/Skeleton");
+		org.godot.node.Node skeleton = getNode("Player/Skeleton");
 		if (skeleton == null) return;
 
 		Object meshXformObj = skeleton.call("get_transform");
@@ -214,48 +216,48 @@ public class PLPlayer extends CharacterBody3D {
 
 		shootBlend = SHOOT_TIME;
 
-		Object bulletSceneObj = call("load", "res://player/bullet/bullet.tscn");
+		org.godot.node.PackedScene bulletSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://player/bullet/bullet.tscn");
 		if (bulletSceneObj == null) return;
 
-		org.godot.Godot bullet = (org.godot.Godot) ((org.godot.Godot) bulletSceneObj).call("instantiate");
-		org.godot.Godot bulletNode = (org.godot.Godot) call("get_node", "Player/Skeleton/Bullet");
+		org.godot.node.RigidBody3D bullet = (org.godot.node.RigidBody3D) (org.godot.Godot) bulletSceneObj.instantiate();
+		org.godot.node.Node bulletNode = getNode("Player/Skeleton/Bullet");
 		if (bulletNode == null || bullet == null) return;
 
 		Object btObj = bulletNode.call("get_global_transform");
 		if (btObj instanceof Transform3D) {
 			Transform3D bt = (Transform3D) btObj;
-			bullet.call("set_transform", bt);
+			bullet.setTransform(bt);
 
-			org.godot.Godot parent = (org.godot.Godot) call("get_parent");
-			if (parent != null) parent.call("add_child", bullet);
+			org.godot.node.Node parent = (org.godot.node.Node) getParent();
+			if (parent != null) parent.addChild((org.godot.node.Node) bullet);
 
 			Basis btBasis = bt.getBasis();
 			Vector3 bulletDir = new Vector3(btBasis.zx, btBasis.zy, btBasis.zz).normalized();
-			bullet.call("set_linear_velocity", bulletDir.mul(BULLET_SPEED));
-			bullet.call("add_collision_exception_with", this);
+			bullet.setLinearVelocity(bulletDir.mul(BULLET_SPEED));
+			bullet.addCollisionExceptionWith(this);
 		}
 
-		org.godot.Godot soundShoot = (org.godot.Godot) call("get_node", "SoundShoot");
+		org.godot.node.Node soundShoot = getNode("SoundShoot");
 		if (soundShoot != null) soundShoot.call("play");
 	}
 
 	private boolean checkShootPressed() {
 		if (input == null) return false;
-		return (boolean) input.call("is_action_pressed", "shoot", false);
+		return (boolean) input.isActionPressed("shoot");
 	}
 
 	private void updateAnimationTree(int anim, double horizontalSpeed, Vector3 velocity) {
 		if (animationTree == null) return;
 
-		boolean onFloor = (boolean) call("is_on_floor");
+		boolean onFloor = (boolean) isOnFloor();
 		if (onFloor) {
-			animationTree.call("set", "parameters/run/blend_amount", horizontalSpeed / MAX_SPEED);
-			animationTree.call("set", "parameters/speed/blend_amount", Math.min(1.0, horizontalSpeed / (MAX_SPEED * 0.5)));
+			animationTree.set("parameters/run/blend_amount", horizontalSpeed / MAX_SPEED);
+			animationTree.set("parameters/speed/blend_amount", Math.min(1.0, horizontalSpeed / (MAX_SPEED * 0.5)));
 		}
-		animationTree.call("set", "parameters/state/blend_amount", (double) anim);
+		animationTree.set("parameters/state/blend_amount", (double) anim);
 		double airDir = Math.max(0, Math.min(1, -velocity.y / 4.0 + 0.5));
-		animationTree.call("set", "parameters/air_dir/blend_amount", airDir);
-		animationTree.call("set", "parameters/gun/blend_amount", Math.min(shootBlend, 1.0));
+		animationTree.set("parameters/air_dir/blend_amount", airDir);
+		animationTree.set("parameters/gun/blend_amount", Math.min(shootBlend, 1.0));
 	}
 
 	private Vector3 adjustFacing(Vector3 facing, Vector3 target, double step, double adjustRate, Vector3 currentGn) {

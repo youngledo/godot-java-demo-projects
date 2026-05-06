@@ -5,6 +5,7 @@ import org.godot.node.Node3D;
 import org.godot.math.Vector3;
 import org.godot.math.Basis;
 import org.godot.math.Transform3D;
+import org.godot.node.Node;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +16,9 @@ public class IKFabrik extends Node3D {
     private static final double CHAIN_TOLERANCE = 0.01;
     private static final int CHAIN_MAX_ITER = 10;
 
-    private org.godot.Godot skeleton;
-    private org.godot.Godot targetNode;
-    private org.godot.Godot middleJointTarget;
+    private org.godot.node.Skeleton3D skeleton;
+    private org.godot.node.Node targetNode;
+    private org.godot.node.Node middleJointTarget;
 
     private String[] bonesInChain = new String[0];
     private double[] bonesInChainLengths = new double[0];
@@ -75,21 +76,21 @@ public class IKFabrik extends Node3D {
         setupSkeletonPath();
 
         if (!(boolean) call("has_node", "Target")) {
-            org.godot.Godot newTarget = (org.godot.Godot) call("create_node", "Node3D");
-            newTarget.call("set_name", "Target");
-            call("add_child", newTarget);
-            targetNode = newTarget;
+            org.godot.node.Node newTarget = (org.godot.node.Node) call("create_node", "Node3D");
+            newTarget.setName("Target");
+            addChild((org.godot.node.Node) newTarget);
+            targetNode = (org.godot.node.Node) newTarget;
         } else {
-            targetNode = (org.godot.Godot) call("get_node", "Target");
+            targetNode = getNode("Target");
         }
 
         if (!(boolean) call("has_node", "MiddleJoint")) {
-            org.godot.Godot newMid = (org.godot.Godot) call("create_node", "Node3D");
-            newMid.call("set_name", "MiddleJoint");
-            call("add_child", newMid);
-            middleJointTarget = newMid;
+            org.godot.node.Node newMid = (org.godot.node.Node) call("create_node", "Node3D");
+            newMid.setName("MiddleJoint");
+            addChild((org.godot.node.Node) newMid);
+            middleJointTarget = (org.godot.node.Node) newMid;
         } else {
-            middleJointTarget = (org.godot.Godot) call("get_node", "MiddleJoint");
+            middleJointTarget = getNode("MiddleJoint");
         }
 
         makeBoneNodes();
@@ -120,11 +121,11 @@ public class IKFabrik extends Node3D {
         Object skelPathObj = getProperty("skeleton_path");
         if (skelPathObj == null) return;
 
-        org.godot.Godot temp = (org.godot.Godot) call("get_node", skelPathObj);
+        org.godot.node.Node temp = (org.godot.node.Node) call("get_node", skelPathObj);
         if (temp != null) {
-            Object hasMethod = temp.call("has_method", "get_bone_global_pose");
+            Object hasMethod = temp.hasMethod("get_bone_global_pose");
             if (hasMethod instanceof Boolean && (Boolean) hasMethod) {
-                skeleton = temp;
+                skeleton = (org.godot.node.Skeleton3D) temp;
                 boneIDs.clear();
                 makeBoneNodes();
             }
@@ -136,12 +137,12 @@ public class IKFabrik extends Node3D {
         for (int i = 0; i < bonesInChain.length; i++) {
             String boneName = bonesInChain[i];
             if (!(boolean) call("has_node", boneName)) {
-                org.godot.Godot newNode = (org.godot.Godot) call("create_node", "Node3D");
-                newNode.call("set_name", boneName);
-                call("add_child", newNode);
+                org.godot.node.Node newNode = (org.godot.node.Node) call("create_node", "Node3D");
+                newNode.setName(boneName);
+                addChild((org.godot.node.Node) newNode);
                 boneNodes.add(newNode);
             } else {
-                boneNodes.add((org.godot.Godot) call("get_node", boneName));
+                boneNodes.add(getNode(boneName));
             }
         }
     }
@@ -158,7 +159,7 @@ public class IKFabrik extends Node3D {
 
         if (boneIDs.isEmpty()) {
             for (int i = 0; i < bonesInChain.length; i++) {
-                Object idxObj = skeleton.call("find_bone", bonesInChain[i]);
+                Object idxObj = skeleton.findBone(bonesInChain[i]);
                 if (idxObj instanceof Number) {
                     boneIDs.put(bonesInChain[i], ((Number) idxObj).intValue());
                 }
@@ -170,7 +171,7 @@ public class IKFabrik extends Node3D {
                     if (i < boneNodes.size() - 1) {
                         Transform3D nextBt = getBoneTransform(i + 1, true);
                         if (nextBt != null) {
-                            Object skelOrigin = skeleton.call("get_global_position");
+                            Object skelOrigin = skeleton.getGlobalPosition();
                             Vector3 lookTarget = nextBt.getOrigin();
                             if (skelOrigin instanceof Vector3) {
                                 lookTarget = lookTarget.add((Vector3) skelOrigin);
@@ -317,7 +318,7 @@ public class IKFabrik extends Node3D {
 
     private void chainApplyRotation() {
         Vector3 skelOrigin = Vector3.ZERO;
-        Object skelPosObj = skeleton.call("get_global_position");
+        Object skelPosObj = skeleton.getGlobalPosition();
         if (skelPosObj instanceof Vector3) skelOrigin = (Vector3) skelPosObj;
 
         for (int i = 0; i < bonesInChain.length; i++) {
@@ -378,7 +379,7 @@ public class IKFabrik extends Node3D {
     }
 
     private Vector3 toSkeletonSpace(Vector3 worldPos, Vector3 skelOrigin) {
-        Object skelGlobalObj = skeleton.call("get_global_transform");
+        Object skelGlobalObj = skeleton.getGlobalTransform();
         if (skelGlobalObj instanceof Transform3D) {
             Transform3D skelGlobal = (Transform3D) skelGlobalObj;
             return skelGlobal.inverse().apply(worldPos);
@@ -390,12 +391,12 @@ public class IKFabrik extends Node3D {
         Integer boneId = boneIDs.get(bonesInChain[boneIndex]);
         if (boneId == null) return null;
 
-        Object retObj = skeleton.call("get_bone_global_pose", boneId);
+        Object retObj = skeleton.getBoneGlobalPose(boneId);
         if (!(retObj instanceof Transform3D)) return null;
         Transform3D ret = (Transform3D) retObj;
 
         if (convertToWorldSpace) {
-            Object skelGlobalObj = skeleton.call("get_global_transform");
+            Object skelGlobalObj = skeleton.getGlobalTransform();
             if (skelGlobalObj instanceof Transform3D) {
                 Transform3D skelGlobal = (Transform3D) skelGlobalObj;
                 Vector3 worldOrigin = skelGlobal.apply(ret.getOrigin());
@@ -408,6 +409,6 @@ public class IKFabrik extends Node3D {
     private void setBoneTransform(int boneIndex, Transform3D trans) {
         Integer boneId = boneIDs.get(bonesInChain[boneIndex]);
         if (boneId == null) return;
-        skeleton.call("set_bone_global_pose_override", boneId, trans, 1.0, true);
+        skeleton.setBoneGlobalPoseOverride(boneId, trans, 1.0, true);
     }
 }

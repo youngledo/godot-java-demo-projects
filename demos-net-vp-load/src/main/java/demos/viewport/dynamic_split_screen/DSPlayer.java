@@ -36,7 +36,7 @@ public class DSPlayer extends CharacterBody3D {
         );
 
         // get_vector returns a single value for the horizontal axis when called this way
-        // In GDScript it's get_vector(left, right, up, down) which returns Vector2
+        // In GDScript it's getVector(left, right, up, down) which returns Vector2
         // We need to call it properly
         Object moveDirObj = input.call("get_vector",
             "move_left_player" + idStr,
@@ -65,6 +65,6 @@ public class DSPlayer extends CharacterBody3D {
         vel = new Vector3(vel.getX() * 0.9, vel.getY(), vel.getZ() * 0.9);
 
         setProperty("velocity", vel);
-        call("move_and_slide");
+        moveAndSlide();
     }
 }

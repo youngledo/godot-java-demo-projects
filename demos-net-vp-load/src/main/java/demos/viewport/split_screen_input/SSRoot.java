@@ -35,7 +35,7 @@ public class SSRoot extends Node {
         if (initialized) return;
         initialized = true;
 
-        playArea = (SubViewport) call("get_node", "PlayArea");
+        playArea = (SubViewport) getNode("PlayArea");
         if (playArea == null) return;
 
         Object world2d = playArea.getProperty("world_2d");
@@ -44,7 +44,7 @@ public class SSRoot extends Node {
         String[] splitNames = {"SplitScreen1", "SplitScreen2", "SplitScreen3", "SplitScreen4"};
         int index = 0;
         for (String name : splitNames) {
-            Object child = call("get_node", name);
+            Object child = getNode(name);
             if (child instanceof SSSplitScreen) {
                 SSSplitScreen splitChild = (SSSplitScreen) child;
                 Vector2 position = new Vector2(

@@ -15,13 +15,13 @@ public class WSMinimalServer extends Node {
 
     @Override
     public void _ready() {
-        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("TCPServer");
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketPeer");
+        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "TCPServer");
+        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
 
         long err = (long) tcpServer.call("listen", PORT);
         if (err != 0) {
             logMessage("Unable to start server.");
-            call("set_process", false);
+            setProcess(false);
         }
     }
 
@@ -51,14 +51,14 @@ public class WSMinimalServer extends Node {
     }
 
     @GodotMethod
-    public void _on_button_pong_pressed() {
+    public void OnButtonPongPressed() {
         socket.call("send_text", "Pong");
     }
 
     private void logMessage(String message) {
         String time = (String) call("Time.get_time_string_from_system");
         String formatted = "[color=#aaaaaa] " + time + " |[/color] " + message + "\n";
-        Godot textServer = (Godot) call("get_node", "%TextServer");
+        Godot textServer = (Godot) getNode("%TextServer");
         textServer.call("append_text", formatted);
     }
 }

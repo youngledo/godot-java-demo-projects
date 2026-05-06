@@ -14,27 +14,27 @@ public class FSAttack extends FSState {
         initialized = true;
 
         // Connect to Sword's attack_finished signal
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot sword = (org.godot.Godot) owner.call("get_node", "BodyPivot/WeaponPivot/Offset/Sword");
+            org.godot.Godot sword = (org.godot.Godot) owner.getNode("BodyPivot/WeaponPivot/Offset/Sword");
             if (sword != null) {
-                sword.call("connect", "attack_finished", new org.godot.core.Callable(this, "on_Sword_attack_finished"));
+                sword.connect("attack_finished", new org.godot.core.Callable(this, "on_Sword_attack_finished"), 0);
             }
         }
     }
 
     @Override
     public void enter() {
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot animPlayer = (org.godot.Godot) owner.call("get_node", "AnimationPlayer");
-            if (animPlayer != null) animPlayer.call("play", IDLE);
+            org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) owner.getNode("AnimationPlayer");
+            if (animPlayer != null) animPlayer.play(IDLE);
         }
     }
 
     @GodotMethod
-    public void on_Sword_attack_finished() {
-        org.godot.Godot sm = (org.godot.Godot) call("get_parent");
+    public void onSwordAttackFinished() {
+        org.godot.Godot sm = getParent();
         if (sm != null) sm.call("change_state", PREVIOUS);
     }
 }

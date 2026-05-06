@@ -21,7 +21,7 @@ public class SaveLoadConfigFile extends Button {
 
         // Get the player node.
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) call("get_node", playerPath);
+        Godot player = (Godot) getNode(playerPath);
 
         // Save player data.
         config.call("set_value", "player", "position", player.getProperty("position"));
@@ -32,7 +32,7 @@ public class SaveLoadConfigFile extends Button {
         }
 
         // Save enemies.
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         Object[] enemies = (Object[]) tree.call("get_nodes_in_group", "enemy");
 
         Godot enemyArray = (Godot) call("Array.new");
@@ -40,7 +40,7 @@ public class SaveLoadConfigFile extends Button {
             if (enemyObj instanceof Godot) {
                 Godot enemy = (Godot) enemyObj;
                 Godot dict = (Godot) call("Dictionary.new");
-                dict.call("set", "position", enemy.getProperty("position"));
+                dict.setProperty("position", enemy.getProperty("position"));
                 enemyArray.call("push_back", dict);
             }
         }
@@ -49,7 +49,7 @@ public class SaveLoadConfigFile extends Button {
         config.call("save", SAVE_PATH);
 
         // Enable the load button.
-        Godot loadBtn = (Godot) call("get_node", "../LoadConfigFile");
+        Godot loadBtn = (Godot) getNode("../LoadConfigFile");
         if (loadBtn != null) loadBtn.setProperty("disabled", false);
     }
 
@@ -58,7 +58,7 @@ public class SaveLoadConfigFile extends Button {
         config.call("load", SAVE_PATH);
 
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) call("get_node", playerPath);
+        Godot player = (Godot) getNode(playerPath);
 
         // Restore player data.
         player.setProperty("position", config.call("get_value", "player", "position"));
@@ -69,23 +69,23 @@ public class SaveLoadConfigFile extends Button {
         }
 
         // Remove existing enemies.
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         tree.call("call_group", "enemy", "queue_free");
 
         // Load enemies.
         Object enemiesObj = config.call("get_value", "enemies", "enemies");
         String gamePath = (String) getProperty("game_node");
-        Godot game = (Godot) call("get_node", gamePath);
+        Godot game = (Godot) getNode(gamePath);
 
         if (enemiesObj instanceof Godot && game != null) {
             Godot enemies = (Godot) enemiesObj;
             int count = (int) enemies.call("size");
             for (int i = 0; i < count; i++) {
                 Godot enemyConfig = (Godot) enemies.call("get", i);
-                Object enemyScene = call("load", "res://enemy.tscn");
+                org.godot.node.PackedScene enemyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://enemy.tscn");
                 if (enemyScene != null) {
                     Godot enemy = (Godot) ((Godot) enemyScene).call("instantiate");
-                    enemy.setProperty("position", enemyConfig.call("get", "position"));
+                    enemy.setProperty("position", enemyConfig.getProperty("position"));
                     game.call("add_child", enemy);
                 }
             }

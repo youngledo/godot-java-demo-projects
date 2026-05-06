@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PFEnemy", parent = "CharacterBody2D")
 public class PFEnemy extends CharacterBody2D {
@@ -12,10 +13,10 @@ public class PFEnemy extends CharacterBody2D {
 
 	private int state = 0; // 0=WALKING, 1=DEAD
 	private double gravity = 980.0;
-	private org.godot.Godot sprite;
-	private org.godot.Godot animationPlayer;
-	private org.godot.Godot floorDetectorLeft;
-	private org.godot.Godot floorDetectorRight;
+	private org.godot.node.Sprite2D sprite;
+	private org.godot.node.AnimationPlayer animationPlayer;
+	private org.godot.node.Node floorDetectorLeft;
+	private org.godot.node.Node floorDetectorRight;
 	private boolean initialized = false;
 
 	@Override
@@ -23,10 +24,10 @@ public class PFEnemy extends CharacterBody2D {
 		if (initialized) return;
 		initialized = true;
 
-		sprite = (org.godot.Godot) call("get_node", "Sprite2D");
-		animationPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-		floorDetectorLeft = (org.godot.Godot) call("get_node", "FloorDetectorLeft");
-		floorDetectorRight = (org.godot.Godot) call("get_node", "FloorDetectorRight");
+		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
+		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		floorDetectorLeft = getNode("FloorDetectorLeft");
+		floorDetectorRight = getNode("FloorDetectorRight");
 	}
 
 	@Override
@@ -46,12 +47,12 @@ public class PFEnemy extends CharacterBody2D {
 			vel = new Vector2(-WALK_SPEED, vel.getY());
 		}
 
-		if ((boolean) call("is_on_wall")) {
+		if ((boolean) isOnWall()) {
 			vel = new Vector2(-vel.getX(), vel.getY());
 		}
 
 		setProperty("velocity", vel);
-		call("move_and_slide");
+		moveAndSlide();
 
 		vel = (Vector2) getProperty("velocity");
 		if (vel != null && sprite != null) {
@@ -61,7 +62,7 @@ public class PFEnemy extends CharacterBody2D {
 		String anim = getNewAnimation();
 		if (animationPlayer != null) {
 			String current = (String) animationPlayer.getProperty("current_animation");
-			if (!anim.equals(current)) animationPlayer.call("play", anim);
+			if (!anim.equals(current)) animationPlayer.play(anim);
 		}
 	}
 
@@ -75,7 +76,7 @@ public class PFEnemy extends CharacterBody2D {
 	@Override
 	public void _exitTree() {
 		if (animationPlayer != null) {
-			animationPlayer.call("stop");
+			animationPlayer.stop();
 		}
 	}
 

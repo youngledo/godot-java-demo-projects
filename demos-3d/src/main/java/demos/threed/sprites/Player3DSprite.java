@@ -5,6 +5,7 @@ import org.godot.annotation.Export;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "Player3DSprite", parent = "Node3D")
 public class Player3DSprite extends Node3D {
@@ -12,14 +13,14 @@ public class Player3DSprite extends Node3D {
 	@Export
 	public double moveSpeed = 5.0;
 
-	private org.godot.Godot sprite;
+	private org.godot.node.Node sprite;
 	private boolean initialized = false;
 
 	@Override
 	public void _ready() {
 		if (initialized) return;
 		initialized = true;
-		sprite = (org.godot.Godot) call("get_node", "AnimatedSprite3D");
+		sprite = getNode("AnimatedSprite3D");
 	}
 
 	@Override
@@ -39,7 +40,7 @@ public class Player3DSprite extends Node3D {
 
 			Vector3 velocity = new Vector3(inputX, 0, inputY);
 			Vector3 scaled = new Vector3(velocity.getX() * moveSpeed * delta, 0, velocity.getZ() * moveSpeed * delta);
-			call("translate", scaled);
+			translate(scaled);
 
 			if (Math.abs(inputX) > Math.abs(inputY)) {
 				sprite.call("play", inputX > 0 ? "walk_right" : "walk_left");

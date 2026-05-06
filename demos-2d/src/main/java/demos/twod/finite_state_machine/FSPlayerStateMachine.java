@@ -11,14 +11,14 @@ public class FSPlayerStateMachine extends FSStateMachine {
     private boolean initialized = false;
 
     @Signal
-    public void state_changed() {}
+    public void stateChanged() {}
 
     @Override
     public void _enterTree() {
         if (initialized) return;
         initialized = true;
 
-        Object children = call("get_children");
+        Object children = getChildren();
         if (children instanceof org.godot.Godot[]) {
             for (org.godot.Godot child : (org.godot.Godot[]) children) {
                 Object nameObj = child.getProperty("name");
@@ -28,11 +28,11 @@ public class FSPlayerStateMachine extends FSStateMachine {
         }
 
         // Connect to AnimationPlayer's animation_finished signal
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot animPlayer = (org.godot.Godot) owner.call("get_node", "AnimationPlayer");
+            org.godot.Godot animPlayer = (org.godot.node.Node) owner.getNode("AnimationPlayer");
             if (animPlayer != null) {
-                animPlayer.call("connect", "animation_finished", new org.godot.core.Callable(this, "_on_animation_finished"));
+                animPlayer.connect("animation_finished", new org.godot.core.Callable(this, "_on_animation_finished"), 0);
             }
         }
 
@@ -40,7 +40,7 @@ public class FSPlayerStateMachine extends FSStateMachine {
     }
 
     @GodotMethod
-    public void _on_animation_finished(String animName) {
+    public void OnAnimationFinished(String animName) {
         if (!active || currentState == null) return;
         currentState.call("_on_animation_finished", animName);
     }

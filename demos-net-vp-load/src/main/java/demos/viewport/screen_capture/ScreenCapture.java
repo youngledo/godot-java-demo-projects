@@ -22,21 +22,21 @@ public class ScreenCapture extends Control {
         if (initialized) return;
         initialized = true;
 
-        capturedImage = (TextureRect) call("get_node", "CapturedImage");
-        captureButton = (Button) call("get_node", "CaptureButton");
+        capturedImage = (TextureRect) getNode("CapturedImage");
+        captureButton = (Button) getNode("CaptureButton");
 
         // Focus button for keyboard/gamepad-friendly navigation
-        if (captureButton != null && (boolean) captureButton.call("is_inside_tree")) {
-            captureButton.call("grab_focus");
+        if (captureButton != null && (boolean) captureButton.isInsideTree()) {
+            captureButton.grabFocus();
         }
     }
 
     @GodotMethod
-    public void _on_capture_button_pressed() {
-        if (!is_inside_tree()) return;
+    public void OnCaptureButtonPressed() {
+        if (!isInsideTree()) return;
 
         // Retrieve the captured image
-        Object vp = call("get_viewport");
+        Object vp = getViewport();
         if (vp == null) return;
 
         Object texture = ((org.godot.Godot) vp).call("get_texture");

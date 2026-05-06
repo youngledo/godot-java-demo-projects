@@ -3,11 +3,14 @@ package demos.threed.voxel;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Label;
 import org.godot.math.Vector3;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "VXDebug", parent = "Label")
 public class VXDebug extends Label {
 
-    private org.godot.Godot player;
+    private org.godot.node.Node player;
     private boolean showDebug = false;
     private boolean initialized = false;
 
@@ -22,7 +25,7 @@ public class VXDebug extends Label {
     public void _process(double delta) {
         org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
         if (input != null) {
-            Object justPressed = input.call("is_action_just_pressed", "debug");
+            Object justPressed = (boolean) input.isActionJustPressed("debug");
             if (justPressed instanceof Boolean && (Boolean) justPressed) {
                 showDebug = !showDebug;
                 setProperty("visible", showDebug);
@@ -32,14 +35,14 @@ public class VXDebug extends Label {
         if (!showDebug) return;
 
         if (player == null) {
-            player = (org.godot.Godot) call("get_node", "Player");
+            player = getNode("Player");
         }
         if (player == null) return;
 
         Object posObj = player.getProperty("position");
         Vector3 pos = posObj instanceof Vector3 ? (Vector3) posObj : Vector3.ZERO;
 
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+        org.godot.node.SceneTree tree = getTree();
         long fps = 0;
         if (tree != null) {
             Object[] nodes = new Object[0];

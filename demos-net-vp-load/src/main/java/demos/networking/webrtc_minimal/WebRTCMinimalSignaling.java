@@ -18,7 +18,7 @@ public class WebRTCMinimalSignaling extends Node {
         assert peers.size() < 2;
         peers.add(path);
         if (peers.size() == 2) {
-            Godot node = (Godot) call("get_node", peers.get(0));
+            Godot node = (Godot) getNode(peers.get(0));
             Godot peerObj = (Godot) node.getProperty("peer");
             peerObj.call("create_offer");
         }
@@ -32,19 +32,19 @@ public class WebRTCMinimalSignaling extends Node {
     }
 
     @GodotMethod
-    public void send_session(String path, String type, String sdp) {
+    public void sendSession(String path, String type, String sdp) {
         String other = findOther(path);
         assert !other.isEmpty();
-        Godot node = (Godot) call("get_node", other);
+        Godot node = (Godot) getNode(other);
         Godot peerObj = (Godot) node.getProperty("peer");
         peerObj.call("set_remote_description", type, sdp);
     }
 
     @GodotMethod
-    public void send_candidate(String path, String media, int index, String sdp) {
+    public void sendCandidate(String path, String media, int index, String sdp) {
         String other = findOther(path);
         assert !other.isEmpty();
-        Godot node = (Godot) call("get_node", other);
+        Godot node = (Godot) getNode(other);
         Godot peerObj = (Godot) node.getProperty("peer");
         peerObj.call("add_ice_candidate", media, index, sdp);
     }

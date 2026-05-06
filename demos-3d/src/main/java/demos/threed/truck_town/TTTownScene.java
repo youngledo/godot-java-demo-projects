@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "TTTownScene", parent = "Node3D")
 public class TTTownScene extends Node3D {
@@ -21,8 +22,8 @@ public class TTTownScene extends Node3D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		if ((boolean) ev.call("is_action_pressed", "cycle_mood")) {
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		if ((boolean) ev.isActionPressed("cycle_mood")) {
 			mood = (mood + 1) % 4;
 			setMood(mood);
 		}
@@ -31,13 +32,13 @@ public class TTTownScene extends Node3D {
 
 	@GodotMethod
 	public void setup(Object car, Object backCallback, boolean sdfgi) {
-		org.godot.Godot carNode = (org.godot.Godot) car;
-		org.godot.Godot instancePos = (org.godot.Godot) call("get_node", "InstancePos");
+		org.godot.node.Node carNode = (org.godot.node.Node) car;
+		org.godot.node.Node instancePos = getNode("InstancePos");
 		if (instancePos != null && carNode != null) {
-			instancePos.call("add_child", carNode);
+			instancePos.addChild(carNode);
 		}
 
-		org.godot.Godot worldEnv = (org.godot.Godot) call("get_node", "WorldEnvironment");
+		org.godot.node.Node worldEnv = getNode("WorldEnvironment");
 		if (worldEnv != null) {
 			org.godot.Godot env = (org.godot.Godot) worldEnv.getProperty("environment");
 			if (env != null) {
@@ -47,8 +48,8 @@ public class TTTownScene extends Node3D {
 	}
 
 	private void setMood(int m) {
-		org.godot.Godot light = (org.godot.Godot) call("get_node", "DirectionalLight3D");
-		org.godot.Godot worldEnv = (org.godot.Godot) call("get_node", "WorldEnvironment");
+		org.godot.node.DirectionalLight3D light = (org.godot.node.DirectionalLight3D) getNode("DirectionalLight3D");
+		org.godot.node.Node worldEnv = getNode("WorldEnvironment");
 		if (light == null || worldEnv == null) return;
 
 		org.godot.Godot env = (org.godot.Godot) worldEnv.getProperty("environment");

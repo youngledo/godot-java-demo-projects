@@ -19,14 +19,14 @@ public class MPPongBall extends Area2D {
     @Override
     public void _ready() {
         Godot rect = (Godot) call("get_viewport_rect");
-        screenSize = (Vector2) rect.call("get", "size");
+        screenSize = (Vector2) rect.getProperty("size");
     }
 
     @Override
     public void _process(double delta) {
         speed += delta;
         if (!stopped) {
-            call("translate", new Vector2(speed * delta * direction.getX(), speed * delta * direction.getY()));
+            translate(new Vector2(speed * delta * direction.getX(), speed * delta * direction.getY()));
         }
 
         Vector2 ballPos = (Vector2) getProperty("position");
@@ -36,13 +36,13 @@ public class MPPongBall extends Area2D {
 
         if ((boolean) call("is_multiplayer_authority")) {
             if (ballPos.getX() < 0) {
-                Godot parent = (Godot) call("get_parent");
+                Godot parent = (Godot) getParent();
                 parent.call("rpc", "update_score", false);
                 call("rpc", "_reset_ball", false);
             }
         } else {
-            if (ballPos.getX() > screenSize.getX()) {
-                Godot parent = (Godot) call("get_parent");
+            if (ballPos.getX() > screenSize.getX() ) {
+                Godot parent = (Godot) getParent();
                 parent.call("rpc", "update_score", true);
                 call("rpc", "_reset_ball", true);
             }
@@ -69,7 +69,7 @@ public class MPPongBall extends Area2D {
     }
 
     @GodotMethod
-    public void _reset_ball(boolean forLeft) {
+    public void ResetBall(boolean forLeft) {
         setProperty("position", new Vector2(screenSize.getX() / 2, screenSize.getY() / 2));
         if (forLeft) {
             direction = new Vector2(-1.0, 0.0);

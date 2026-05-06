@@ -16,17 +16,17 @@ public class WebRTCSignalingClientUI extends Control {
 
     @Override
     public void _ready() {
-        client = (Godot) call("get_node", "Client");
-        host = (Godot) call("get_node", "VBoxContainer/Connect/Host");
-        room = (Godot) call("get_node", "VBoxContainer/Connect/RoomSecret");
-        meshCheckBox = (Godot) call("get_node", "VBoxContainer/Connect/Mesh");
+        client = (Godot) getNode("Client");
+        host = (Godot) getNode("VBoxContainer/Connect/Host");
+        room = (Godot) getNode("VBoxContainer/Connect/RoomSecret");
+        meshCheckBox = (Godot) getNode("VBoxContainer/Connect/Mesh");
 
         client.call("connect", "lobby_joined", new Callable(this, "_lobby_joined"), 0);
         client.call("connect", "lobby_sealed", new Callable(this, "_lobby_sealed"), 0);
         client.call("connect", "connected", new Callable(this, "_connected"), 0);
         client.call("connect", "disconnected", new Callable(this, "_disconnected"), 0);
 
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.call("connect", "connected_to_server", new Callable(this, "_mp_server_connected"), 0);
         mp.call("connect", "connection_failed", new Callable(this, "_mp_server_disconnect"), 0);
         mp.call("connect", "server_disconnected", new Callable(this, "_mp_server_disconnect"), 0);
@@ -41,24 +41,24 @@ public class WebRTCSignalingClientUI extends Control {
     }
 
     @GodotMethod
-    public void _mp_server_connected() {
+    public void MpServerConnected() {
         Godot rtcMp = (Godot) client.getProperty("rtc_mp");
         logMsg("[Multiplayer] Server connected (I am " + rtcMp.call("get_unique_id") + ")");
     }
 
     @GodotMethod
-    public void _mp_server_disconnect() {
+    public void MpServerDisconnect() {
         Godot rtcMp = (Godot) client.getProperty("rtc_mp");
         logMsg("[Multiplayer] Server disconnected (I am " + rtcMp.call("get_unique_id") + ")");
     }
 
     @GodotMethod
-    public void _mp_peer_connected(int id) {
+    public void MpPeerConnected(int id) {
         logMsg("[Multiplayer] Peer " + id + " connected");
     }
 
     @GodotMethod
-    public void _mp_peer_disconnected(int id) {
+    public void MpPeerDisconnected(int id) {
         logMsg("[Multiplayer] Peer " + id + " disconnected");
     }
 
@@ -73,40 +73,40 @@ public class WebRTCSignalingClientUI extends Control {
     }
 
     @GodotMethod
-    public void _lobby_joined(String lobbyStr) {
+    public void LobbyJoined(String lobbyStr) {
         logMsg("[Signaling] Joined lobby " + lobbyStr);
     }
 
     @GodotMethod
-    public void _lobby_sealed() {
+    public void LobbySealed() {
         logMsg("[Signaling] Lobby has been sealed");
     }
 
     private void logMsg(String msg) {
         System.out.println(msg);
-        Godot textEdit = (Godot) call("get_node", "VBoxContainer/TextEdit");
+        Godot textEdit = (Godot) getNode("VBoxContainer/TextEdit");
         textEdit.setProperty("text", textEdit.getProperty("text") + msg + "\n");
     }
 
     @GodotMethod
-    public void _on_peers_pressed() {
-        Godot mp = (Godot) call("get_multiplayer");
+    public void OnPeersPressed() {
+        Godot mp = (Godot) getMultiplayer();
         logMsg(String.valueOf(mp.call("get_peers")));
     }
 
     @GodotMethod
-    public void _on_ping_pressed() {
+    public void OnPingPressed() {
         double randVal = Math.random();
         call("rpc", "ping", randVal);
     }
 
     @GodotMethod
-    public void _on_seal_pressed() {
+    public void OnSealPressed() {
         client.call("seal_lobby");
     }
 
     @GodotMethod
-    public void _on_start_pressed() {
+    public void OnStartPressed() {
         String hostText = (String) host.getProperty("text");
         String roomText = (String) room.getProperty("text");
         boolean meshVal = (boolean) meshCheckBox.getProperty("button_pressed");
@@ -114,7 +114,7 @@ public class WebRTCSignalingClientUI extends Control {
     }
 
     @GodotMethod
-    public void _on_stop_pressed() {
+    public void OnStopPressed() {
         client.call("stop");
     }
 }

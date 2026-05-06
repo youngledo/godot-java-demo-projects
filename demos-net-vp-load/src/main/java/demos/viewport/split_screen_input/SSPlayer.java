@@ -20,8 +20,8 @@ public class SSPlayer extends CharacterBody2D {
 
     @Override
     public boolean _unhandledInput(Object inputEvent) {
-        if (inputEvent instanceof org.godot.Godot) {
-            org.godot.Godot evt = (org.godot.Godot) inputEvent;
+        if (inputEvent instanceof org.godot.node.InputEvent) {
+            org.godot.node.InputEvent evt = (org.godot.node.InputEvent) inputEvent;
 
             if ((boolean) evt.call("is_action_pressed", "ux_up", false) ||
                 (boolean) evt.call("is_action_released", "ux_down", false)) {
@@ -47,11 +47,11 @@ public class SSPlayer extends CharacterBody2D {
     @Override
     public void _physicsProcess(double delta) {
         Vector2 motion = new Vector2(movement.getX() * FACTOR * delta, movement.getY() * FACTOR * delta);
-        call("move_and_collide", motion);
+        moveAndCollide(motion);
     }
 
     private void markInputHandled() {
-        Object vp = call("get_viewport");
+        Object vp = getViewport();
         if (vp != null) {
             ((org.godot.Godot) vp).call("set_input_as_handled");
         }

@@ -27,13 +27,13 @@ public class WSChatWebSocketServer extends Node {
     public boolean useRefuseNewConnections = false;
 
     @Signal
-    public void client_connected() {}
+    public void clientConnected() {}
 
     @Signal
-    public void client_disconnected() {}
+    public void clientDisconnected() {}
 
     @Signal
-    public void message_received() {}
+    public void messageReceived() {}
 
     private Godot tcpServer;
     private List<PendingPeer> pendingPeers = new ArrayList<>();
@@ -54,7 +54,7 @@ public class WSChatWebSocketServer extends Node {
 
     @Override
     public void _ready() {
-        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("TCPServer");
+        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "TCPServer");
     }
 
     public long listen(int port) {
@@ -69,7 +69,7 @@ public class WSChatWebSocketServer extends Node {
 
     public int send(int peerId, String message) {
         if (peerId <= 0) {
-            for (Map.Entry<Integer, Godot> entry : peers.entrySet()) {
+            for (Map.Entry<Integer, Godot> entry : peers.entrySet() ) {
                 if (entry.getKey() == -peerId) continue;
                 entry.getValue().call("send_text", message);
             }
@@ -82,7 +82,7 @@ public class WSChatWebSocketServer extends Node {
     }
 
     private Godot createPeer() {
-        Godot ws = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketPeer");
+        Godot ws = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
         ws.setProperty("supported_protocols", supportedProtocols);
         ws.setProperty("handshake_headers", handshakeHeaders);
         return ws;
@@ -99,7 +99,7 @@ public class WSChatWebSocketServer extends Node {
         List<PendingPeer> toRemove = new ArrayList<>();
         for (PendingPeer p : pendingPeers) {
             if (!connectPending(p)) {
-                if (p.connectTime + handshakeTimeout < System.currentTimeMillis()) {
+                if (p.connectTime + handshakeTimeout < System.currentTimeMillis() ) {
                     toRemove.add(p);
                 }
                 continue;
@@ -110,13 +110,13 @@ public class WSChatWebSocketServer extends Node {
         toRemove.clear();
 
         List<Integer> peersToRemove = new ArrayList<>();
-        for (Map.Entry<Integer, Godot> entry : peers.entrySet()) {
+        for (Map.Entry<Integer, Godot> entry : peers.entrySet() ) {
             Godot p = entry.getValue();
             p.call("poll");
 
             long state = (long) p.call("get_ready_state");
             if (state != 1L) { // Not STATE_OPEN
-                call("emit_signal", "client_disconnected", entry.getKey());
+                emitSignal("client_disconnected", entry.getKey());
                 peersToRemove.add(entry.getKey());
                 continue;
             }
@@ -129,7 +129,7 @@ public class WSChatWebSocketServer extends Node {
                 } else {
                     msg = (String) call("bytes_to_var", pkt);
                 }
-                call("emit_signal", "message_received", entry.getKey(), msg);
+                emitSignal("message_received", entry.getKey(), msg);
             }
         }
         for (Integer id : peersToRemove) {
@@ -144,7 +144,7 @@ public class WSChatWebSocketServer extends Node {
             if (state == 1L) { // STATE_OPEN
                 int id = (int) (Math.random() * (Integer.MAX_VALUE - 2)) + 2;
                 peers.put(id, p.ws);
-                call("emit_signal", "client_connected", id);
+                emitSignal("client_connected", id);
                 return true;
             } else if (state != 0L) { // Not STATE_CONNECTING
                 return true;

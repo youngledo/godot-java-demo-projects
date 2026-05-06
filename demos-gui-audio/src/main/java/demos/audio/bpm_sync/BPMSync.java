@@ -3,6 +3,7 @@ package demos.audio.bpm_sync;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Panel;
+import org.godot.node.Node;
 
 /**
  * BPM sync demo - synchronizes visual beat display with audio playback
@@ -31,7 +32,7 @@ public class BPMSync extends Panel {
     public void _process(double delta) {
         if (!playing) return;
 
-        org.godot.Godot player = (org.godot.Godot) call("get_node", "Player");
+        org.godot.node.Node player = getNode("Player");
         if (player == null || !((boolean) player.call("playing"))) return;
 
         double time = 0.0;
@@ -56,7 +57,7 @@ public class BPMSync extends Panel {
         org.godot.Godot stream = (org.godot.Godot) player.getProperty("stream");
         int secondsTotal = stream != null ? ((Number) stream.call("get_length")).intValue() : 0;
 
-        org.godot.Godot label = (org.godot.Godot) call("get_node", "Label");
+        org.godot.node.Label label = (org.godot.node.Label) getNode("Label");
         if (label != null) {
             String text = String.format("BEAT: %d/%d TIME: %d:%s / %d:%s",
                     beat % BARS + 1, BARS,
@@ -75,7 +76,7 @@ public class BPMSync extends Panel {
         timeDelay = ((Number) audioServer.call("get_time_to_next_mix")).doubleValue()
                 + ((Number) audioServer.call("get_output_latency")).doubleValue();
         playing = true;
-        org.godot.Godot player = (org.godot.Godot) call("get_node", "Player");
+        org.godot.node.Node player = getNode("Player");
         if (player != null) player.call("play");
     }
 
@@ -83,7 +84,7 @@ public class BPMSync extends Panel {
     public void _onPlaySoundPressed() {
         syncSource = SOUND_CLOCK;
         playing = true;
-        org.godot.Godot player = (org.godot.Godot) call("get_node", "Player");
+        org.godot.node.Node player = getNode("Player");
         if (player != null) player.call("play");
     }
 

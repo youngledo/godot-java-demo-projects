@@ -9,6 +9,7 @@ import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
 import org.godot.node.VBoxContainer;
+import org.godot.node.Node;
 
 @GodotClass(name = "LWCControls", parent = "VBoxContainer")
 public class LWCControls extends VBoxContainer {
@@ -46,7 +47,7 @@ public class LWCControls extends VBoxContainer {
         }
 
         org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        org.godot.Godot helpLabel = (org.godot.Godot) call("get_node", "%HelpLabel");
+        org.godot.node.Node helpLabel = getNode("%HelpLabel");
         if ((boolean) os.call("has_feature", "double")) {
             if (helpLabel != null) {
                 helpLabel.setProperty("text",
@@ -54,17 +55,17 @@ public class LWCControls extends VBoxContainer {
                     "No shaking should occur at high coordinate levels\n" +
                     "(±65,536 or more on any axis).");
                 helpLabel.call("add_theme_color_override", "font_color",
-                    new org.godot.math.Color(0.667f, 1.0f, 0.667f));
+                    new org.godot.math.Color(0.667, 1.0, 0.667));
             }
         }
     }
 
     @Override
     public void _process(double delta) {
-        org.godot.Godot coordinates = (org.godot.Godot) call("get_node", "%Coordinates");
-        org.godot.Godot incrementX = (org.godot.Godot) call("get_node", "%IncrementX");
-        org.godot.Godot incrementY = (org.godot.Godot) call("get_node", "%IncrementY");
-        org.godot.Godot incrementZ = (org.godot.Godot) call("get_node", "%IncrementZ");
+        org.godot.node.Node coordinates = getNode("%Coordinates");
+        org.godot.node.Node incrementX = getNode("%IncrementX");
+        org.godot.node.Node incrementY = getNode("%IncrementY");
+        org.godot.node.Node incrementZ = getNode("%IncrementZ");
 
         if (nodeToMove != null && coordinates != null) {
             Vector3 pos = (Vector3) nodeToMove.getProperty("position");
@@ -138,7 +139,7 @@ public class LWCControls extends VBoxContainer {
     }
 
     @GodotMethod
-    public void _on_go_to_button_pressed(long xPosition) {
+    public void OnGoToButtonPressed(long xPosition) {
         if (nodeToMove == null) return;
         if (xPosition == 0) {
             nodeToMove.setProperty("position", Vector3.ZERO);
@@ -149,8 +150,7 @@ public class LWCControls extends VBoxContainer {
     }
 
     @GodotMethod
-    public void _on_open_documentation_pressed() {
-        org.godot.singleton.OS.singleton().call("shell_open",
-            "https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
+    public void OnOpenDocumentationPressed() {
+        org.godot.singleton.OS.singleton().call("shell_open", "https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
     }
 }

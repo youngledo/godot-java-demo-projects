@@ -6,6 +6,8 @@ import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector2;
 import org.godot.node.RigidBody2D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "PPPlayer", parent = "RigidBody2D")
 public class PPPlayer extends RigidBody2D {
@@ -30,11 +32,11 @@ public class PPPlayer extends RigidBody2D {
 	private double airborneTime = 1e20;
 	private double shootTime = 1e20;
 	private boolean shooting = false;
-	private org.godot.Godot sprite;
-	private org.godot.Godot animationPlayer;
-	private org.godot.Godot bulletShoot;
-	private org.godot.Godot soundJump;
-	private org.godot.Godot soundShoot;
+	private org.godot.node.Sprite2D sprite;
+	private org.godot.node.AnimationPlayer animationPlayer;
+	private org.godot.node.Node bulletShoot;
+	private org.godot.node.Node soundJump;
+	private org.godot.node.Node soundShoot;
 	private boolean initialized = false;
 
 	@Override
@@ -42,11 +44,11 @@ public class PPPlayer extends RigidBody2D {
 		if (initialized) return;
 		initialized = true;
 
-		sprite = (org.godot.Godot) call("get_node", "Sprite2D");
-		animationPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-		bulletShoot = (org.godot.Godot) call("get_node", "BulletShoot");
-		soundJump = (org.godot.Godot) call("get_node", "SoundJump");
-		soundShoot = (org.godot.Godot) call("get_node", "SoundShoot");
+		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
+		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		bulletShoot = getNode("BulletShoot");
+		soundJump = getNode("SoundJump");
+		soundShoot = getNode("SoundShoot");
 	}
 
 	@Override
@@ -58,11 +60,11 @@ public class PPPlayer extends RigidBody2D {
 		boolean newSidingLeft = sidingLeft;
 
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-		boolean moveLeft = (boolean) input.call("is_action_pressed", "move_left");
-		boolean moveRight = (boolean) input.call("is_action_pressed", "move_right");
-		boolean jump = (boolean) input.call("is_action_pressed", "jump");
-		boolean shoot = (boolean) input.call("is_action_pressed", "shoot");
-		boolean spawn = (boolean) input.call("is_action_just_pressed", "spawn");
+		boolean moveLeft = (boolean) input.isActionPressed("move_left");
+		boolean moveRight = (boolean) input.isActionPressed("move_right");
+		boolean jump = (boolean) input.isActionPressed("jump");
+		boolean shoot = (boolean) input.isActionPressed("shoot");
+		boolean spawn = (boolean) (boolean) input.isActionJustPressed("spawn");
 
 		vel = new Vector2(vel.getX() - floorHVelocity, vel.getY());
 		floorHVelocity = 0.0;
@@ -150,7 +152,7 @@ public class PPPlayer extends RigidBody2D {
 
 		if (!anim.equals(newAnim) && animationPlayer != null) {
 			anim = newAnim;
-			animationPlayer.call("play", anim);
+			animationPlayer.play(anim);
 		}
 
 		shooting = shoot;
@@ -170,11 +172,11 @@ public class PPPlayer extends RigidBody2D {
 	}
 
 	@GodotMethod
-	public void _shot_bullet() {
+	public void ShotBullet() {
 		shootTime = 0;
-		Object bulletSceneObj = org.godot.singleton.ResourceLoader.singleton().load("res://player/bullet.tscn", "", 1);
+		org.godot.node.PackedScene bulletSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://player/bullet.tscn");
 		if (bulletSceneObj == null) return;
-		org.godot.Godot bullet = (org.godot.Godot) ((org.godot.Godot) bulletSceneObj).call("instantiate");
+		org.godot.node.Node bullet = bulletSceneObj.instantiate();
 
 		Vector2 pos = (Vector2) getProperty("position");
 		if (pos == null) pos = new Vector2(0, 0);
@@ -188,8 +190,8 @@ public class PPPlayer extends RigidBody2D {
 			pos.getX() + shootPos.getX() * speedScale,
 			pos.getY() + shootPos.getY()));
 
-		org.godot.Godot parent = (org.godot.Godot) call("get_parent");
-		if (parent != null) parent.call("add_child", bullet);
+		org.godot.node.Node parent = getParent();
+		if (parent != null) parent.addChild(bullet);
 
 		bullet.setProperty("linear_velocity", new Vector2(400.0 * speedScale, -40));
 		if (soundShoot != null) soundShoot.call("play");

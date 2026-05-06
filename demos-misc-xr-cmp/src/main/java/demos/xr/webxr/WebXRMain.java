@@ -3,13 +3,15 @@ package demos.xr.webxr;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "WebXRMain", parent = "Node3D")
 public class WebXRMain extends Node3D {
 
     private org.godot.Godot webxrInterface;
     private boolean vrSupported = false;
-    private org.godot.Godot leftController;
+    private org.godot.node.Node leftController;
 
     private boolean initialized = false;
 
@@ -18,13 +20,13 @@ public class WebXRMain extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        org.godot.Godot enterVrButton = (org.godot.Godot) call("get_node", "CanvasLayer/EnterVRButton");
+        org.godot.node.Node enterVrButton = getNode("CanvasLayer/EnterVRButton");
         if (enterVrButton != null) {
             org.godot.core.Callable pressedCb = new org.godot.core.Callable(this, "_on_enter_vr_button_pressed");
-            enterVrButton.call("connect", "pressed", pressedCb);
+            enterVrButton.connect("pressed", pressedCb);
         }
 
-        leftController = (org.godot.Godot) call("get_node", "XROrigin3D/LeftController");
+        leftController = getNode("XROrigin3D/LeftController");
 
         webxrInterface = (org.godot.Godot) call("find_interface", "WebXR");
         if (webxrInterface != null) {
@@ -42,18 +44,18 @@ public class WebXRMain extends Node3D {
             org.godot.core.Callable squeezeStartCb = new org.godot.core.Callable(this, "_webxr_on_squeeze_start");
             org.godot.core.Callable squeezeEndCb = new org.godot.core.Callable(this, "_webxr_on_squeeze_end");
 
-            webxrInterface.call("connect", "session_supported", sessionSupportedCb);
-            webxrInterface.call("connect", "session_started", sessionStartedCb);
-            webxrInterface.call("connect", "session_ended", sessionEndedCb);
-            webxrInterface.call("connect", "session_failed", sessionFailedCb);
+            webxrInterface.connect("session_supported", sessionSupportedCb, 0);
+            webxrInterface.connect("session_started", sessionStartedCb, 0);
+            webxrInterface.connect("session_ended", sessionEndedCb, 0);
+            webxrInterface.connect("session_failed", sessionFailedCb, 0);
 
-            webxrInterface.call("connect", "select", selectCb);
-            webxrInterface.call("connect", "selectstart", selectStartCb);
-            webxrInterface.call("connect", "selectend", selectEndCb);
+            webxrInterface.connect("select", selectCb, 0);
+            webxrInterface.connect("selectstart", selectStartCb, 0);
+            webxrInterface.connect("selectend", selectEndCb, 0);
 
-            webxrInterface.call("connect", "squeeze", squeezeCb);
-            webxrInterface.call("connect", "squeezestart", squeezeStartCb);
-            webxrInterface.call("connect", "squeezeend", squeezeEndCb);
+            webxrInterface.connect("squeeze", squeezeCb, 0);
+            webxrInterface.connect("squeezestart", squeezeStartCb, 0);
+            webxrInterface.connect("squeezeend", squeezeEndCb, 0);
 
             webxrInterface.call("is_session_supported", "immersive-vr");
         }
@@ -62,20 +64,20 @@ public class WebXRMain extends Node3D {
         if (leftController != null) {
             org.godot.core.Callable btnPressedCb = new org.godot.core.Callable(this, "_on_left_controller_button_pressed");
             org.godot.core.Callable btnReleasedCb = new org.godot.core.Callable(this, "_on_left_controller_button_released");
-            leftController.call("connect", "button_pressed", btnPressedCb);
-            leftController.call("connect", "button_released", btnReleasedCb);
+            leftController.connect("button_pressed", btnPressedCb);
+            leftController.connect("button_released", btnReleasedCb);
         }
     }
 
     @GodotMethod
-    public void _webxr_session_supported(String sessionMode, boolean supported) {
+    public void WebxrSessionSupported(String sessionMode, boolean supported) {
         if ("immersive-vr".equals(sessionMode)) {
             vrSupported = supported;
         }
     }
 
     @GodotMethod
-    public void _on_enter_vr_button_pressed() {
+    public void OnEnterVrButtonPressed() {
         if (!vrSupported) {
             call("alert", "Your browser doesn't support VR", "VR Not Supported");
             return;
@@ -92,11 +94,11 @@ public class WebXRMain extends Node3D {
     }
 
     @GodotMethod
-    public void _webxr_session_started() {
-        org.godot.Godot canvasLayer = (org.godot.Godot) call("get_node", "CanvasLayer");
+    public void WebxrSessionStarted() {
+        org.godot.node.Node canvasLayer = getNode("CanvasLayer");
         if (canvasLayer != null) canvasLayer.setProperty("visible", false);
 
-        org.godot.Godot vp = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport vp = getViewport();
         if (vp != null) vp.setProperty("use_xr", true);
 
         String refSpaceType = (String) webxrInterface.getProperty("reference_space_type");
@@ -107,26 +109,26 @@ public class WebXRMain extends Node3D {
     }
 
     @GodotMethod
-    public void _webxr_session_ended() {
-        org.godot.Godot canvasLayer = (org.godot.Godot) call("get_node", "CanvasLayer");
+    public void WebxrSessionEnded() {
+        org.godot.node.Node canvasLayer = getNode("CanvasLayer");
         if (canvasLayer != null) canvasLayer.setProperty("visible", true);
 
-        org.godot.Godot vp = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport vp = getViewport();
         if (vp != null) vp.setProperty("use_xr", false);
     }
 
     @GodotMethod
-    public void _webxr_session_failed(String message) {
+    public void WebxrSessionFailed(String message) {
         call("alert", "Failed to initialize: " + message, "Error");
     }
 
     @GodotMethod
-    public void _on_left_controller_button_pressed(String button) {
+    public void OnLeftControllerButtonPressed(String button) {
         System.out.println("Button pressed: " + button);
     }
 
     @GodotMethod
-    public void _on_left_controller_button_released(String button) {
+    public void OnLeftControllerButtonReleased(String button) {
         System.out.println("Button release: " + button);
     }
 
@@ -143,7 +145,7 @@ public class WebXRMain extends Node3D {
     }
 
     @GodotMethod
-    public void _webxr_on_select(int inputSourceId) {
+    public void WebxrOnSelect(int inputSourceId) {
         System.out.println("Select: " + inputSourceId);
         Object trackerObj = webxrInterface.call("get_input_source_tracker", inputSourceId);
         if (trackerObj != null) {
@@ -157,27 +159,27 @@ public class WebXRMain extends Node3D {
     }
 
     @GodotMethod
-    public void _webxr_on_select_start(int inputSourceId) {
+    public void WebxrOnSelectStart(int inputSourceId) {
         System.out.println("Select Start: " + inputSourceId);
     }
 
     @GodotMethod
-    public void _webxr_on_select_end(int inputSourceId) {
+    public void WebxrOnSelectEnd(int inputSourceId) {
         System.out.println("Select End: " + inputSourceId);
     }
 
     @GodotMethod
-    public void _webxr_on_squeeze(int inputSourceId) {
+    public void WebxrOnSqueeze(int inputSourceId) {
         System.out.println("Squeeze: " + inputSourceId);
     }
 
     @GodotMethod
-    public void _webxr_on_squeeze_start(int inputSourceId) {
+    public void WebxrOnSqueezeStart(int inputSourceId) {
         System.out.println("Squeeze Start: " + inputSourceId);
     }
 
     @GodotMethod
-    public void _webxr_on_squeeze_end(int inputSourceId) {
+    public void WebxrOnSqueezeEnd(int inputSourceId) {
         System.out.println("Squeeze End: " + inputSourceId);
     }
 }

@@ -5,6 +5,7 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "MaterialTester", parent = "Node3D")
 public class MaterialTester extends Node3D {
@@ -19,11 +20,11 @@ public class MaterialTester extends Node3D {
 	private double rotY = -0.5;
 	private double zoom = 5.0;
 
-	private org.godot.Godot testers;
-	private org.godot.Godot cameraHolder;
-	private org.godot.Godot rotationX;
-	private org.godot.Godot camera;
-	private org.godot.Godot materialName;
+	private org.godot.node.Node testers;
+	private org.godot.node.Node cameraHolder;
+	private org.godot.node.Node rotationX;
+	private org.godot.node.Node camera;
+	private org.godot.node.Node materialName;
 	private boolean initialized = false;
 
 	@Override
@@ -31,11 +32,11 @@ public class MaterialTester extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		testers = (org.godot.Godot) call("get_node", "Testers");
-		cameraHolder = (org.godot.Godot) call("get_node", "CameraHolder");
-		rotationX = (org.godot.Godot) call("get_node", "CameraHolder/RotationX");
-		camera = (org.godot.Godot) call("get_node", "CameraHolder/RotationX/Camera");
-		materialName = (org.godot.Godot) call("get_node", "UI/MaterialName");
+		testers = getNode("Testers");
+		cameraHolder = getNode("CameraHolder");
+		rotationX = getNode("CameraHolder/RotationX");
+		camera = getNode("CameraHolder/RotationX/Camera");
+		materialName = getNode("UI/MaterialName");
 
 		if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
 		if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
@@ -44,11 +45,11 @@ public class MaterialTester extends Node3D {
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
-		if ((boolean) ev.call("is_action_pressed", "ui_left")) { onPreviousPressed(); return true; }
-		if ((boolean) ev.call("is_action_pressed", "ui_right")) { onNextPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_left")) { onPreviousPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_right")) { onNextPressed(); return true; }
 
 		if ("InputEventMouseButton".equals(className)) {
 			long buttonIndex = (long) ev.getProperty("button_index");
@@ -78,7 +79,7 @@ public class MaterialTester extends Node3D {
 	@Override
 	public void _process(double delta) {
 		if (testers == null || cameraHolder == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.node.Node currentTester = (org.godot.node.Node) testers.getChild(testerIndex);
 		if (currentTester == null) return;
 
 		// Horizontal lerp (X axis)
@@ -95,7 +96,7 @@ public class MaterialTester extends Node3D {
 	@GodotMethod
 	public void onNextPressed() {
 		if (testers != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			if (testerIndex < count - 1) testerIndex++;
 		}
 		updateGui();
@@ -103,16 +104,16 @@ public class MaterialTester extends Node3D {
 
 	private void updateGui() {
 		if (testers == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.node.Node currentTester = (org.godot.node.Node) testers.getChild(testerIndex);
 		if (currentTester == null) return;
-		String name = (String) currentTester.call("get_name");
+		String name = (String) currentTester.getName();
 
 		if (materialName != null) materialName.setProperty("text", name);
-		org.godot.Godot prevBtn = (org.godot.Godot) call("get_node", "UI/Previous");
-		org.godot.Godot nextBtn = (org.godot.Godot) call("get_node", "UI/Next");
+		org.godot.node.Node prevBtn = getNode("UI/Previous");
+		org.godot.node.Node nextBtn = getNode("UI/Next");
 		if (prevBtn != null) prevBtn.setProperty("disabled", testerIndex == 0);
 		if (nextBtn != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			nextBtn.setProperty("disabled", testerIndex == count - 1);
 		}
 	}

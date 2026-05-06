@@ -5,6 +5,8 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.WorldEnvironment;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "DecalsTester", parent = "WorldEnvironment")
 public class DecalsTester extends WorldEnvironment {
@@ -18,10 +20,10 @@ public class DecalsTester extends WorldEnvironment {
 	private double rotY = Math.toRadians(90);
 	private double zoom = 1.5;
 
-	private org.godot.Godot testers;
-	private org.godot.Godot cameraHolder;
-	private org.godot.Godot rotationX;
-	private org.godot.Godot camera;
+	private org.godot.node.Node testers;
+	private org.godot.node.Camera3D cameraHolder;
+	private org.godot.node.Node rotationX;
+	private org.godot.node.Camera3D camera;
 	private boolean initialized = false;
 
 	@Override
@@ -29,30 +31,30 @@ public class DecalsTester extends WorldEnvironment {
 		if (initialized) return;
 		initialized = true;
 
-		testers = (org.godot.Godot) call("get_node", "Testers");
-		cameraHolder = (org.godot.Godot) call("get_node", "CameraHolder");
-		rotationX = (org.godot.Godot) call("get_node", "CameraHolder/RotationX");
-		camera = (org.godot.Godot) call("get_node", "CameraHolder/RotationX/Camera3D");
+		testers = getNode("Testers");
+		cameraHolder = (org.godot.node.Camera3D) getNode("CameraHolder");
+		rotationX = getNode("CameraHolder/RotationX");
+		camera = (org.godot.node.Camera3D) getNode("CameraHolder/RotationX/Camera3D");
 
-		if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
+		if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
 		if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
 		updateGui();
 	}
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		String className = (String) ev.call("get_class");
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		String className = ev.get_class_();
 
-		if ((boolean) ev.call("is_action_pressed", "ui_left")) { onPreviousPressed(); return true; }
-		if ((boolean) ev.call("is_action_pressed", "ui_right")) { onNextPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_left")) { onPreviousPressed(); return true; }
+		if ((boolean) ev.isActionPressed("ui_right")) { onNextPressed(); return true; }
 
-		if ((boolean) ev.call("is_action_pressed", "place_decal")) {
+		if ((boolean) ev.isActionPressed("place_decal")) {
 			if (camera != null) {
 				Vector3 origin = (Vector3) camera.getProperty("global_position");
-				org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
-				Vector2 mousePos = viewport != null ? (Vector2) viewport.call("get_mouse_position") : null;
-				Vector3 target = mousePos != null ? (Vector3) camera.call("project_position", mousePos, 100) : null;
+				org.godot.node.Viewport viewport = getViewport();
+				Vector2 mousePos = viewport != null ? (Vector2) viewport.getMousePosition() : null;
+				Vector3 target = mousePos != null ? (Vector3) camera.projectPosition(mousePos, 100) : null;
 
 				if (origin != null && target != null) {
 					org.godot.Godot world3d = (org.godot.Godot) call("get_world_3d");
@@ -66,12 +68,13 @@ public class DecalsTester extends WorldEnvironment {
 									org.godot.Godot resDict = (org.godot.Godot) result;
 									Object hitPos = resDict.call("get", "position");
 									if (hitPos != null) {
-										Object decalScene = call("load", "res://decal.tscn");
+										org.godot.node.PackedScene decalScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://decal.tscn");
 										if (decalScene != null) {
-											org.godot.Godot decal = (org.godot.Godot) ((org.godot.Godot) decalScene).call("instantiate");
+											org.godot.node.Node decal = decalScene.instantiate();
 											if (decal != null) {
-												call("add_child", decal);
-												org.godot.Godot decalNode = (org.godot.Godot) decal.call("get_node", "Decal");
+												addChild((org.godot.node.Node) decal);
+												
+													org.godot.node.Node decalNode = (org.godot.node.Node) decal.getNode("Decal");
 												if (decalNode != null) decalNode.setProperty("modulate", new org.godot.math.Color(1, 0, 0));
 												decal.setProperty("position", hitPos);
 											}
@@ -101,7 +104,7 @@ public class DecalsTester extends WorldEnvironment {
 				rotY -= relative.getX() * ROT_SPEED;
 				rotX -= relative.getY() * ROT_SPEED;
 				rotX = clamp(rotX, Math.toRadians(-90), 0);
-				if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
+				if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
 				if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
 				return true;
 			}
@@ -112,7 +115,7 @@ public class DecalsTester extends WorldEnvironment {
 	@Override
 	public void _process(double delta) {
 		if (testers == null || cameraHolder == null || camera == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.node.Node currentTester = (org.godot.node.Node) testers.getChild(testerIndex);
 		if (currentTester == null) return;
 
 		Vector3 holderPos = (Vector3) cameraHolder.getProperty("global_position");
@@ -130,7 +133,7 @@ public class DecalsTester extends WorldEnvironment {
 	@GodotMethod
 	public void onNextPressed() {
 		if (testers != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			testerIndex = Math.min(testerIndex + 1, count - 1);
 		}
 		updateGui();
@@ -138,24 +141,24 @@ public class DecalsTester extends WorldEnvironment {
 
 	private void updateGui() {
 		if (testers == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.call("get_child", testerIndex);
+		org.godot.node.Node currentTester = (org.godot.node.Node) testers.getChild(testerIndex);
 		if (currentTester == null) return;
-		String name = (String) currentTester.call("get_name");
+		String name = (String) currentTester.getName();
 
-		org.godot.Godot testName = (org.godot.Godot) call("get_node", "TestName");
+		org.godot.node.Node testName = getNode("TestName");
 		if (testName != null) testName.setProperty("text", capitalize(name));
-		org.godot.Godot prevBtn = (org.godot.Godot) call("get_node", "Previous");
-		org.godot.Godot nextBtn = (org.godot.Godot) call("get_node", "Next");
+		org.godot.node.Node prevBtn = getNode("Previous");
+		org.godot.node.Node nextBtn = getNode("Next");
 		if (prevBtn != null) prevBtn.setProperty("disabled", testerIndex == 0);
 		if (nextBtn != null) {
-			int count = (int) (long) testers.call("get_child_count");
+			int count = (int) (long) testers.getChildCount();
 			nextBtn.setProperty("disabled", testerIndex == count - 1);
 		}
 	}
 
 	@GodotMethod
-	public void _on_decal_filter_mode_item_selected(long index) {
-		org.godot.Godot rs = (org.godot.Godot) call("get_node", "/root/RenderingServer");
+	public void OnDecalFilterModeItemSelected(long index) {
+		org.godot.node.Node rs = getNode("/root/RenderingServer");
 		if (rs != null) rs.call("decals_set_filter", index);
 	}
 

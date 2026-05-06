@@ -3,12 +3,13 @@ package demos.twod.platformer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Marker2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PFGun", parent = "Marker2D")
 public class PFGun extends Marker2D {
 
 	private static final double BULLET_VELOCITY = 850.0;
-	private org.godot.Godot cooldownTimer;
+	private org.godot.node.Node cooldownTimer;
 	private boolean initialized = false;
 
 	@Override
@@ -16,7 +17,7 @@ public class PFGun extends Marker2D {
 		if (initialized) return;
 		initialized = true;
 
-		cooldownTimer = (org.godot.Godot) call("get_node", "Cooldown");
+		cooldownTimer = getNode("Cooldown");
 	}
 
 	@GodotMethod
@@ -25,9 +26,9 @@ public class PFGun extends Marker2D {
 			return false;
 		}
 
-		Object bulletSceneObj = call("load", "res://player/bullet.tscn");
+		org.godot.node.PackedScene bulletSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://player/bullet.tscn");
 		if (bulletSceneObj == null) return false;
-		org.godot.Godot bullet = (org.godot.Godot) ((org.godot.Godot) bulletSceneObj).call("instantiate");
+		org.godot.Godot bullet = bulletSceneObj.instantiate();
 
 		org.godot.math.Vector2 pos = (org.godot.math.Vector2) getProperty("global_position");
 		if (pos != null) bullet.setProperty("global_position", pos);
@@ -35,7 +36,7 @@ public class PFGun extends Marker2D {
 		bullet.setProperty("linear_velocity", new org.godot.math.Vector2(direction * BULLET_VELOCITY, 0));
 		bullet.call("set_as_top_level", true);
 
-		call("add_child", bullet);
+		addChild((org.godot.node.Node) bullet);
 
 		if (cooldownTimer != null) cooldownTimer.call("start");
 		return true;

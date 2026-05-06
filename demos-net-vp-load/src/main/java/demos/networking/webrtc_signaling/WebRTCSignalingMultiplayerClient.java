@@ -21,40 +21,40 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
     public void disconnected() {}
 
     @Signal
-    public void lobby_joined() {}
+    public void lobbyJoined() {}
 
     @Signal
-    public void lobby_sealed() {}
+    public void lobbySealed() {}
 
     @Signal
-    public void peer_connected() {}
+    public void peerConnected() {}
 
     @Signal
-    public void peer_disconnected() {}
+    public void peerDisconnected() {}
 
     @Signal
-    public void offer_received() {}
+    public void offerReceived() {}
 
     @Signal
-    public void answer_received() {}
+    public void answerReceived() {}
 
     @Signal
-    public void candidate_received() {}
+    public void candidateReceived() {}
 
     @Override
     public void _ready() {
         super._ready();
         rtcMp = (Godot) call("WebRTCMultiplayerPeer.new");
 
-        call("connect", "connected", this, "_connected");
-        call("connect", "disconnected", this, "_disconnected");
-        call("connect", "offer_received", this, "_offer_received");
-        call("connect", "answer_received", this, "_answer_received");
-        call("connect", "candidate_received", this, "_candidate_received");
-        call("connect", "lobby_joined", this, "_lobby_joined");
-        call("connect", "lobby_sealed", this, "_lobby_sealed");
-        call("connect", "peer_connected", this, "_peer_connected");
-        call("connect", "peer_disconnected", this, "_peer_disconnected");
+		connect("connected", new Callable(this, "_connected"), 0);
+		connect("disconnected", new Callable(this, "_disconnected"), 0);
+		connect("offer_received", new Callable(this, "_offer_received"), 0);
+		connect("answer_received", new Callable(this, "_answer_received"), 0);
+		connect("candidate_received", new Callable(this, "_candidate_received"), 0);
+		connect("lobby_joined", new Callable(this, "_lobby_joined"), 0);
+		connect("lobby_sealed", new Callable(this, "_lobby_sealed"), 0);
+		connect("peer_connected", new Callable(this, "_peer_connected"), 0);
+		connect("peer_disconnected", new Callable(this, "_peer_disconnected"), 0);
     }
 
     @GodotMethod
@@ -68,7 +68,7 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
 
     @GodotMethod
     public void stop() {
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         rtcMp.call("close");
         close();
@@ -80,8 +80,8 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
             "iceServers", new Object[]{java.util.Map.of("urls", new String[]{"stun:stun.l.google.com:19302"})}
         );
         peer.call("initialize", config);
-        peer.call("connect", "session_description_created", new Callable(this, "_offer_created", id), 0);
-        peer.call("connect", "ice_candidate_created", new Callable(this, "_new_ice_candidate", id), 0);
+        peer.connect("session_description_created", new Callable(this, "_offer_created", id), 0);
+        peer.connect("ice_candidate_created", new Callable(this, "_new_ice_candidate", id), 0);
         rtcMp.call("add_peer", peer, id);
         long uniqueId = (long) rtcMp.call("get_unique_id");
         if (id < uniqueId) {
@@ -91,21 +91,21 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
     }
 
     @GodotMethod
-    public void _new_ice_candidate(String midName, int indexName, String sdpName, int id) {
-        send_candidate(id, midName, indexName, sdpName);
+    public void NewIceCandidate(String midName, int indexName, String sdpName, int id) {
+        sendCandidate(id, midName, indexName, sdpName);
     }
 
     @GodotMethod
-    public void _offer_created(String type, String data, int id) {
+    public void OfferCreated(String type, String data, int id) {
         if (!(boolean) rtcMp.call("has_peer", id)) return;
         System.out.println("created " + type);
         Godot peerObj = (Godot) rtcMp.call("get_peer", id);
-        Godot connection = (Godot) peerObj.call("get", "connection");
+        Godot connection = (Godot) peerObj.getProperty("connection");
         connection.call("set_local_description", type, data);
         if ("offer".equals(type)) {
-            send_offer(id, data);
+            sendOffer(id, data);
         } else {
-            send_answer(id, data);
+            sendAnswer(id, data);
         }
     }
 
@@ -119,17 +119,17 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
         } else {
             rtcMp.call("create_client", id);
         }
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", rtcMp);
     }
 
     @GodotMethod
-    public void _lobby_joined(String lobbyStr) {
+    public void LobbyJoined(String lobbyStr) {
         lobby = lobbyStr;
     }
 
     @GodotMethod
-    public void _lobby_sealed() {
+    public void LobbySealed() {
         sealed = true;
     }
 
@@ -142,43 +142,43 @@ public class WebRTCSignalingMultiplayerClient extends WebRTCSignalingWSClient {
     }
 
     @GodotMethod
-    public void _peer_connected(int id) {
+    public void PeerConnected(int id) {
         System.out.println("Peer connected: " + id);
         createPeer(id);
     }
 
     @GodotMethod
-    public void _peer_disconnected(int id) {
+    public void PeerDisconnected(int id) {
         if ((boolean) rtcMp.call("has_peer", id)) {
             rtcMp.call("remove_peer", id);
         }
     }
 
     @GodotMethod
-    public void _offer_received(int id, String offer) {
+    public void OfferReceived(int id, String offer) {
         System.out.println("Got offer: " + id);
         if ((boolean) rtcMp.call("has_peer", id)) {
             Godot peerObj = (Godot) rtcMp.call("get_peer", id);
-            Godot connection = (Godot) peerObj.call("get", "connection");
+            Godot connection = (Godot) peerObj.getProperty("connection");
             connection.call("set_remote_description", "offer", offer);
         }
     }
 
     @GodotMethod
-    public void _answer_received(int id, String answer) {
+    public void AnswerReceived(int id, String answer) {
         System.out.println("Got answer: " + id);
         if ((boolean) rtcMp.call("has_peer", id)) {
             Godot peerObj = (Godot) rtcMp.call("get_peer", id);
-            Godot connection = (Godot) peerObj.call("get", "connection");
+            Godot connection = (Godot) peerObj.getProperty("connection");
             connection.call("set_remote_description", "answer", answer);
         }
     }
 
     @GodotMethod
-    public void _candidate_received(int id, String mid, int index, String sdp) {
+    public void CandidateReceived(int id, String mid, int index, String sdp) {
         if ((boolean) rtcMp.call("has_peer", id)) {
             Godot peerObj = (Godot) rtcMp.call("get_peer", id);
-            Godot connection = (Godot) peerObj.call("get", "connection");
+            Godot connection = (Godot) peerObj.getProperty("connection");
             connection.call("add_ice_candidate", mid, index, sdp);
         }
     }

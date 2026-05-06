@@ -67,7 +67,7 @@ public class WebRTCSignalingServer extends Node {
             if (sealed) return false;
             if (!peer.isWsOpen()) return false;
             peer.send(MSG_ID, peer.id == host ? 1 : peer.id, mesh ? "true" : "");
-            for (Peer p : peers.values()) {
+            for (Peer p : peers.values() ) {
                 if (!p.isWsOpen()) continue;
                 if (!mesh && p.id != host) continue;
                 p.send(MSG_PEER_CONNECT, peer.id, "");
@@ -82,7 +82,7 @@ public class WebRTCSignalingServer extends Node {
             peers.remove(peer.id);
             boolean close = peer.id == host;
             if (sealed) return close;
-            for (Peer p : peers.values()) {
+            for (Peer p : peers.values() ) {
                 if (!p.isWsOpen()) continue;
                 if (close) {
                     p.ws.call("close");
@@ -96,7 +96,7 @@ public class WebRTCSignalingServer extends Node {
         boolean seal(int peerId) {
             if (host != peerId) return false;
             sealed = true;
-            for (Peer p : peers.values()) {
+            for (Peer p : peers.values() ) {
                 if (!p.isWsOpen()) continue;
                 p.send(MSG_SEAL, 0, "");
             }
@@ -139,7 +139,7 @@ public class WebRTCSignalingServer extends Node {
         }
 
         List<Integer> toRemove = new ArrayList<>();
-        for (Map.Entry<Integer, Peer> entry : peers.entrySet()) {
+        for (Map.Entry<Integer, Peer> entry : peers.entrySet() ) {
             Peer p = entry.getValue();
             if (p.lobby.isEmpty() && System.currentTimeMillis() - p.time > TIMEOUT) {
                 p.ws.call("close");
@@ -164,11 +164,11 @@ public class WebRTCSignalingServer extends Node {
             }
         }
 
-        for (String k : new ArrayList<>(lobbies.keySet())) {
+        for (String k : new ArrayList<>(lobbies.keySet()) ) {
             Lobby lobby = lobbies.get(k);
             if (!lobby.sealed) continue;
-            if (lobby.time + SEAL_TIME < System.currentTimeMillis()) {
-                for (Integer pid : lobby.peers.keySet()) {
+            if (lobby.time + SEAL_TIME < System.currentTimeMillis() ) {
+                for (Integer pid : lobby.peers.keySet() ) {
                     Peer p = peers.get(pid);
                     if (p != null) {
                         p.ws.call("close");
@@ -184,7 +184,7 @@ public class WebRTCSignalingServer extends Node {
     }
 
     private boolean joinLobby(Peer peer, String lobbyName, boolean meshVal) {
-        if (lobbyName.isEmpty()) {
+        if (lobbyName.isEmpty() ) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 32; i++) {
                 sb.append(ALFNUM.charAt(rand.nextInt(ALFNUM.length())));
@@ -211,9 +211,9 @@ public class WebRTCSignalingServer extends Node {
         if (!(boolean) parsed.call("has", "id")) return false;
         if (!(boolean) parsed.call("has", "data")) return false;
 
-        int msgType = ((Number) parsed.call("get", "type")).intValue();
-        int msgId = ((Number) parsed.call("get", "id")).intValue();
-        String msgData = (String) parsed.call("get", "data");
+        int msgType = ((Number) parsed.getProperty("type")).intValue();
+        int msgId = ((Number) parsed.getProperty("id")).intValue();
+        String msgData = (String) parsed.getProperty("data");
 
         if (msgType == MSG_JOIN) {
             if (!peer.lobby.isEmpty()) return false;

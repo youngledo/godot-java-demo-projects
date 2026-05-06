@@ -21,19 +21,18 @@ public class TextField extends LineEdit {
         connect("text_submitted",
             new org.godot.core.Callable(this, "_on_text_submitted"), 4096); // CONNECT_DEFERRED
         if (submitButton != null) {
-            submitButton.connect("pressed",
-                new org.godot.core.Callable(this, "_on_submit_pressed"), 0);
+            submitButton.connect("pressed", new org.godot.core.Callable(this, "_on_submit_pressed"), 0);
         }
     }
 
     @GodotMethod
-    public void _on_text_submitted(String text) {
-        call("clear");
+    public void OnTextSubmitted(String text) {
+        clear();
     }
 
     @GodotMethod
-    public void _on_submit_pressed() {
+    public void OnSubmitPressed() {
         String text = (String) getProperty("text");
-        call("emit_signal", "text_submitted", text);
+        emitSignal("text_submitted", text);
     }
 }

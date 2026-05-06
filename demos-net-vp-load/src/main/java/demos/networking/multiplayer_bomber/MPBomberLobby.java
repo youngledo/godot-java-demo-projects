@@ -12,145 +12,145 @@ public class MPBomberLobby extends Control {
 
     @Override
     public void _ready() {
-        gamestate = (Godot) call("get_node", "/root/gamestate");
+        gamestate = (Godot) getNode("/root/gamestate");
 
-        gamestate.call("connect", "connection_failed", new org.godot.core.Callable(this, "_on_connection_failed"));
-        gamestate.call("connect", "connection_succeeded", new org.godot.core.Callable(this, "_on_connection_success"));
-        gamestate.call("connect", "player_list_changed", new org.godot.core.Callable(this, "refresh_lobby"));
-        gamestate.call("connect", "game_ended", new org.godot.core.Callable(this, "_on_game_ended"));
-        gamestate.call("connect", "game_error", new org.godot.core.Callable(this, "_on_game_error"));
+        gamestate.connect("connection_failed", new org.godot.core.Callable(this, "_on_connection_failed"), 0);
+        gamestate.connect("connection_succeeded", new org.godot.core.Callable(this, "_on_connection_success"), 0);
+        gamestate.connect("player_list_changed", new org.godot.core.Callable(this, "refresh_lobby"), 0);
+        gamestate.connect("game_ended", new org.godot.core.Callable(this, "_on_game_ended"), 0);
+        gamestate.connect("game_error", new org.godot.core.Callable(this, "_on_game_error"), 0);
 
         // Connect button signals (moved from .tscn [connection] lines)
-        Godot startBtn = (Godot) call("get_node", "Players/Start");
+        Godot startBtn = (Godot) getNode("Players/Start");
         if (startBtn != null) {
-            startBtn.call("connect", "pressed", new org.godot.core.Callable(this, "_on_start_pressed"));
+            startBtn.connect("pressed", new org.godot.core.Callable(this, "_on_start_pressed"), 0);
         }
-        Godot findIpBtn = (Godot) call("get_node", "Players/FindPublicIP");
+        Godot findIpBtn = (Godot) getNode("Players/FindPublicIP");
         if (findIpBtn != null) {
-            findIpBtn.call("connect", "pressed", new org.godot.core.Callable(this, "_on_find_public_ip_pressed"));
+            findIpBtn.connect("pressed", new org.godot.core.Callable(this, "_on_find_public_ip_pressed"), 0);
         }
-        Godot hostBtn = (Godot) call("get_node", "Connect/Host");
+        Godot hostBtn = (Godot) getNode("Connect/Host");
         if (hostBtn != null) {
-            hostBtn.call("connect", "pressed", new org.godot.core.Callable(this, "_on_host_pressed"));
+            hostBtn.connect("pressed", new org.godot.core.Callable(this, "_on_host_pressed"), 0);
         }
-        Godot joinBtn = (Godot) call("get_node", "Connect/Join");
+        Godot joinBtn = (Godot) getNode("Connect/Join");
         if (joinBtn != null) {
-            joinBtn.call("connect", "pressed", new org.godot.core.Callable(this, "_on_join_pressed"));
+            joinBtn.connect("pressed", new org.godot.core.Callable(this, "_on_join_pressed"), 0);
         }
 
         if ((boolean) call("OS.has_environment", "USERNAME")) {
             String username = (String) call("OS.get_environment", "USERNAME");
-            Godot nameEdit = (Godot) call("get_node", "Connect/Name");
+            Godot nameEdit = (Godot) getNode("Connect/Name");
             nameEdit.setProperty("text", username);
         }
     }
 
     @GodotMethod
-    public void _on_host_pressed() {
-        Godot nameEdit = (Godot) call("get_node", "Connect/Name");
+    public void OnHostPressed() {
+        Godot nameEdit = (Godot) getNode("Connect/Name");
         String name = (String) nameEdit.getProperty("text");
-        if (name.isEmpty()) {
-            Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+        if (name.isEmpty() ) {
+            Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
             errorLabel.setProperty("text", "Invalid name!");
             return;
         }
 
-        ((Godot) call("get_node", "Connect")).call("hide");
-        ((Godot) call("get_node", "Players")).call("show");
-        Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+        ((Godot) getNode("Connect")).call("hide");
+        ((Godot) getNode("Players")).call("show");
+        Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
         errorLabel.setProperty("text", "");
 
         gamestate.call("host_game", name);
-        Godot window = (Godot) call("get_window");
+        Godot window = (Godot) getWindow();
         String projectName = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", projectName + ": Server (" + name + ")");
-        refresh_lobby();
+        refreshLobby();
     }
 
     @GodotMethod
-    public void _on_join_pressed() {
-        Godot nameEdit = (Godot) call("get_node", "Connect/Name");
+    public void OnJoinPressed() {
+        Godot nameEdit = (Godot) getNode("Connect/Name");
         String name = (String) nameEdit.getProperty("text");
-        if (name.isEmpty()) {
-            Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+        if (name.isEmpty() ) {
+            Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
             errorLabel.setProperty("text", "Invalid name!");
             return;
         }
 
-        Godot ipEdit = (Godot) call("get_node", "Connect/IPAddress");
+        Godot ipEdit = (Godot) getNode("Connect/IPAddress");
         String ip = (String) ipEdit.getProperty("text");
         if (!(boolean) ipEdit.call("is_valid_ip_address")) {
-            Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+            Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
             errorLabel.setProperty("text", "Invalid IP address!");
             return;
         }
 
-        Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+        Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
         errorLabel.setProperty("text", "");
-        ((Godot) call("get_node", "Connect/Host")).setProperty("disabled", true);
-        ((Godot) call("get_node", "Connect/Join")).setProperty("disabled", true);
+        ((Godot) getNode("Connect/Host")).setProperty("disabled", true);
+        ((Godot) getNode("Connect/Join")).setProperty("disabled", true);
 
         gamestate.call("join_game", ip, name);
-        Godot window = (Godot) call("get_window");
+        Godot window = (Godot) getWindow();
         String projectName = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", projectName + ": Client (" + name + ")");
     }
 
     @GodotMethod
-    public void _on_connection_success() {
-        ((Godot) call("get_node", "Connect")).call("hide");
-        ((Godot) call("get_node", "Players")).call("show");
+    public void OnConnectionSuccess() {
+        ((Godot) getNode("Connect")).call("hide");
+        ((Godot) getNode("Players")).call("show");
     }
 
     @GodotMethod
-    public void _on_connection_failed() {
-        ((Godot) call("get_node", "Connect/Host")).setProperty("disabled", false);
-        ((Godot) call("get_node", "Connect/Join")).setProperty("disabled", false);
-        Godot errorLabel = (Godot) call("get_node", "Connect/ErrorLabel");
+    public void OnConnectionFailed() {
+        ((Godot) getNode("Connect/Host")).setProperty("disabled", false);
+        ((Godot) getNode("Connect/Join")).setProperty("disabled", false);
+        Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
         errorLabel.call("set_text", "Connection failed.");
     }
 
     @GodotMethod
-    public void _on_game_ended() {
-        call("show");
-        ((Godot) call("get_node", "Connect")).call("show");
-        ((Godot) call("get_node", "Players")).call("hide");
-        ((Godot) call("get_node", "Connect/Host")).setProperty("disabled", false);
-        ((Godot) call("get_node", "Connect/Join")).setProperty("disabled", false);
+    public void OnGameEnded() {
+        show();
+        ((Godot) getNode("Connect")).call("show");
+        ((Godot) getNode("Players")).call("hide");
+        ((Godot) getNode("Connect/Host")).setProperty("disabled", false);
+        ((Godot) getNode("Connect/Join")).setProperty("disabled", false);
     }
 
     @GodotMethod
-    public void _on_game_error(String errtxt) {
-        Godot errorDialog = (Godot) call("get_node", "ErrorDialog");
+    public void OnGameError(String errtxt) {
+        Godot errorDialog = (Godot) getNode("ErrorDialog");
         errorDialog.setProperty("dialog_text", errtxt);
         errorDialog.call("popup_centered");
-        ((Godot) call("get_node", "Connect/Host")).setProperty("disabled", false);
-        ((Godot) call("get_node", "Connect/Join")).setProperty("disabled", false);
+        ((Godot) getNode("Connect/Host")).setProperty("disabled", false);
+        ((Godot) getNode("Connect/Join")).setProperty("disabled", false);
     }
 
     @GodotMethod
-    public void refresh_lobby() {
+    public void refreshLobby() {
         Object[] playerList = (Object[]) gamestate.call("get_player_list");
         // Sort players
         java.util.Arrays.sort(playerList);
-        Godot list = (Godot) call("get_node", "Players/List");
+        Godot list = (Godot) getNode("Players/List");
         list.call("clear");
         list.call("add_item", gamestate.getProperty("playerName") + " (you)");
         for (Object p : playerList) {
             list.call("add_item", p);
         }
 
-        Godot startBtn = (Godot) call("get_node", "Players/Start");
+        Godot startBtn = (Godot) getNode("Players/Start");
         startBtn.setProperty("disabled", !(boolean) call("multiplayer.is_server"));
     }
 
     @GodotMethod
-    public void _on_start_pressed() {
+    public void OnStartPressed() {
         gamestate.call("begin_game");
     }
 
     @GodotMethod
-    public void _on_find_public_ip_pressed() {
+    public void OnFindPublicIpPressed() {
         call("OS.shell_open", "https://icanhazip.com/");
     }
 }

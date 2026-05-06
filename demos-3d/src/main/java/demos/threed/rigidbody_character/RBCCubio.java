@@ -5,13 +5,15 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.RigidBody3D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "RBCCubio", parent = "RigidBody3D")
 public class RBCCubio extends RigidBody3D {
 
-	private org.godot.Godot shapeCast;
-	private org.godot.Godot camera;
-	private org.godot.Godot winText;
+	private org.godot.node.Node shapeCast;
+	private org.godot.node.Camera3D camera;
+	private org.godot.node.Label winText;
 	private Vector3 startPosition;
 	private boolean initialized = false;
 
@@ -20,9 +22,9 @@ public class RBCCubio extends RigidBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		shapeCast = (org.godot.Godot) call("get_node", "ShapeCast3D");
-		camera = (org.godot.Godot) call("get_node", "Target/Camera3D");
-		winText = (org.godot.Godot) call("get_node", "WinText");
+		shapeCast = getNode("ShapeCast3D");
+		camera = (org.godot.node.Camera3D) getNode("Target/Camera3D");
+		winText = (org.godot.node.Label) getNode("WinText");
 		startPosition = (Vector3) getProperty("position");
 	}
 
@@ -30,16 +32,16 @@ public class RBCCubio extends RigidBody3D {
 	public void _physicsProcess(double delta) {
 		Input input = Input.singleton();
 
-		if ((boolean) input.call("is_action_just_pressed", "exit", false)) {
-			org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-			if (tree != null) tree.call("quit");
+		if ((boolean) (boolean) input.isActionJustPressed("exit")) {
+			org.godot.node.SceneTree tree = getTree();
+			if (tree != null) tree.quit();
 		}
 
 		Vector3 pos = (Vector3) getProperty("global_position");
-		if ((boolean) input.call("is_action_just_pressed", "reset_position", false) || (pos != null && pos.getY() < -6.0)) {
+		if ((boolean) (boolean) input.isActionJustPressed("reset_position") || (pos != null && pos.getY() < -6.0)) {
 			setProperty("position", startPosition);
 			setProperty("linear_velocity", new Vector3(0, 0, 0));
-			call("reset_physics_interpolation");
+			resetPhysicsInterpolation();
 		}
 
 		double dx = (double) input.call("get_axis", "move_left", "move_right");
@@ -52,14 +54,14 @@ public class RBCCubio extends RigidBody3D {
 
 		// Air movement
 		Vector3 impulse = new Vector3(dir.getX() * 5.0 * delta, 0, dir.getZ() * 5.0 * delta);
-		call("apply_central_impulse", impulse);
+		applyCentralImpulse(impulse);
 
 		if (onGround()) {
 			// Ground movement (higher acceleration)
 			Vector3 groundImpulse = new Vector3(dir.getX() * 10.0 * delta, 0, dir.getZ() * 10.0 * delta);
-			call("apply_central_impulse", groundImpulse);
+			applyCentralImpulse(groundImpulse);
 
-			if ((boolean) input.call("is_action_pressed", "jump", false)) {
+			if ((boolean) input.isActionPressed("jump")) {
 				setProperty("linear_velocity", new Vector3(
 					((Vector3) getProperty("linear_velocity")).getX(),
 					7.0,
@@ -74,7 +76,7 @@ public class RBCCubio extends RigidBody3D {
 	}
 
 	@GodotMethod
-	public void _on_tcube_body_entered(Object body) {
+	public void OnTcubeBodyEntered(Object body) {
 		if (body == this && winText != null) {
 			winText.setProperty("visible", true);
 		}

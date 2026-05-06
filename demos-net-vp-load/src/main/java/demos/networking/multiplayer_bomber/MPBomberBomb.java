@@ -17,8 +17,8 @@ public class MPBomberBomb extends Area2D {
     @Override
     public void _ready() {
         // Connect body_entered/body_exited signals (moved from .tscn [connection] lines)
-        call("connect", "body_entered", new org.godot.core.Callable(this, "_on_bomb_body_enter"));
-        call("connect", "body_exited", new org.godot.core.Callable(this, "_on_bomb_body_exit"));
+        connect("body_entered", new org.godot.core.Callable(this, "_on_bomb_body_enter"));
+        connect("body_exited", new org.godot.core.Callable(this, "_on_bomb_body_exit"));
     }
 
     @GodotMethod
@@ -28,7 +28,7 @@ public class MPBomberBomb extends Area2D {
         for (Godot p : inArea) {
             if ((boolean) p.call("has_method", "exploded")) {
                 Godot world2d = (Godot) call("get_world_2d");
-                Godot worldState = (Godot) world2d.call("get", "direct_space_state");
+                Godot worldState = (Godot) world2d.getProperty("direct_space_state");
                 org.godot.math.Vector2 pos = (org.godot.math.Vector2) getProperty("position");
                 org.godot.math.Vector2 pPos = (org.godot.math.Vector2) p.getProperty("position");
                 Godot query = (Godot) call("PhysicsRayQueryParameters2D.create", pos, pPos);
@@ -50,19 +50,19 @@ public class MPBomberBomb extends Area2D {
     @GodotMethod
     public void done() {
         if ((boolean) call("is_multiplayer_authority")) {
-            call("queue_free");
+            queueFree();
         }
     }
 
     @GodotMethod
-    public void _on_bomb_body_enter(Object body) {
+    public void OnBombBodyEnter(Object body) {
         if (body instanceof Godot && !inArea.contains(body)) {
             inArea.add((Godot) body);
         }
     }
 
     @GodotMethod
-    public void _on_bomb_body_exit(Object body) {
+    public void OnBombBodyExit(Object body) {
         if (body instanceof Godot) {
             inArea.remove(body);
         }

@@ -23,15 +23,15 @@ public class WebRTCMinimalMinimal extends Node {
         ch2 = (Godot) p2.call("create_data_channel", "chat", java.util.Map.of("id", 1, "negotiated", true));
 
         // Connect P1 session created to itself to set local description.
-        p1.call("connect", "session_description_created", p1, "set_local_description");
+        p1.connect("session_description_created", new org.godot.core.Callable(p1, "set_local_description"), 0);
         // Connect P1 session and ICE created to p2 set remote description and candidates.
-        p1.call("connect", "session_description_created", p2, "set_remote_description");
-        p1.call("connect", "ice_candidate_created", p2, "add_ice_candidate");
+        p1.connect("session_description_created", new org.godot.core.Callable(p2, "set_remote_description"), 0);
+        p1.connect("ice_candidate_created", new org.godot.core.Callable(p2, "add_ice_candidate"), 0);
 
         // Same for P2.
-        p2.call("connect", "session_description_created", p2, "set_local_description");
-        p2.call("connect", "session_description_created", p1, "set_remote_description");
-        p2.call("connect", "ice_candidate_created", p1, "add_ice_candidate");
+        p2.connect("session_description_created", new org.godot.core.Callable(p2, "set_local_description"), 0);
+        p2.connect("session_description_created", new org.godot.core.Callable(p1, "set_remote_description"), 0);
+        p2.connect("ice_candidate_created", new org.godot.core.Callable(p1, "add_ice_candidate"), 0);
 
         // Let P1 create the offer.
         p1.call("create_offer");

@@ -9,6 +9,6 @@ public class DayNightCycle extends DirectionalLight3D {
 
 	@Override
 	public void _process(double delta) {
-		call("rotate_object_local", new Vector3(1, 0, 0), 0.025 * delta);
+		rotateObjectLocal(new Vector3(1, 0, 0), 0.025 * delta);
 	}
 }

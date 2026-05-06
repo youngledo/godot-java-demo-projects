@@ -64,7 +64,7 @@ public class WaterPlane extends Area3D {
         call("RenderingServer.call_on_render_thread", "_initializeComputeCode", textureSize);
 
         // Get material and set texture size
-        Object meshInstance = call("get_node", "MeshInstance3D");
+        Object meshInstance = getNode("MeshInstance3D");
         if (meshInstance != null) {
             Object material = callOn(meshInstance, "get", "material_override");
             if (material != null) {
@@ -105,7 +105,7 @@ public class WaterPlane extends Area3D {
 
     private void checkMousePos() {
         // Raycast from camera to find where mouse intersects our water plane
-        Object viewport = call("get_viewport");
+        Object viewport = getViewport();
         if (viewport == null) return;
         Object camera = callOn(viewport, "get_camera_3d");
         if (camera == null) return;

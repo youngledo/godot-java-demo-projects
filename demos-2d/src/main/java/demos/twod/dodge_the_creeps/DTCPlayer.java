@@ -6,6 +6,9 @@ import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector2;
 import org.godot.node.Area2D;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "DTCPlayer", parent = "Area2D")
 public class DTCPlayer extends Area2D {
@@ -13,9 +16,9 @@ public class DTCPlayer extends Area2D {
 	@Export
 	public double speed = 400.0;
 
-	private org.godot.Godot animatedSprite;
-	private org.godot.Godot collisionShape;
-	private org.godot.Godot trail;
+	private org.godot.node.AnimatedSprite2D animatedSprite;
+	private org.godot.node.CollisionShape2D collisionShape;
+	private org.godot.node.Node trail;
 	private Vector2 screenSize;
 	private boolean initialized = false;
 
@@ -25,13 +28,13 @@ public class DTCPlayer extends Area2D {
 		initialized = true;
 
 		call("add_user_signal", "hit");
-		animatedSprite = (org.godot.Godot) call("get_node", "AnimatedSprite2D");
-		collisionShape = (org.godot.Godot) call("get_node", "CollisionShape2D");
-		trail = (org.godot.Godot) call("get_node", "Trail");
+		animatedSprite = (org.godot.node.AnimatedSprite2D) getNode("AnimatedSprite2D");
+		collisionShape = (org.godot.node.CollisionShape2D) getNode("CollisionShape2D");
+		trail = getNode("Trail");
 
-		org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+		org.godot.node.Viewport viewport = getViewport();
 		if (viewport != null) {
-			Object rect = viewport.call("get_visible_rect");
+			Object rect = viewport.getVisibleRect();
 			if (rect != null) {
 				Object size = ((org.godot.Godot) rect).getProperty("size");
 				screenSize = (Vector2) size;
@@ -40,7 +43,7 @@ public class DTCPlayer extends Area2D {
 
 		// Connect body_entered signal
 		connect("body_entered", new Callable(this, "_on_body_entered"), 0);
-		call("hide");
+		hide();
 	}
 
 	@Override
@@ -48,19 +51,19 @@ public class DTCPlayer extends Area2D {
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 		double vx = 0, vy = 0;
 
-		if ((boolean) input.call("is_action_pressed", "move_right", false)) vx += 1;
-		if ((boolean) input.call("is_action_pressed", "move_left", false)) vx -= 1;
-		if ((boolean) input.call("is_action_pressed", "move_down", false)) vy += 1;
-		if ((boolean) input.call("is_action_pressed", "move_up", false)) vy -= 1;
+		if ((boolean) input.isActionPressed("move_right")) vx += 1;
+		if ((boolean) input.isActionPressed("move_left")) vx -= 1;
+		if ((boolean) input.isActionPressed("move_down")) vy += 1;
+		if ((boolean) input.isActionPressed("move_up")) vy -= 1;
 
 		Vector2 pos = (Vector2) getProperty("position");
 
 		if (vx != 0 || vy != 0) {
 			double len = Math.sqrt(vx * vx + vy * vy);
 			vx /= len; vy /= len;
-			if (animatedSprite != null) animatedSprite.call("play");
+			if (animatedSprite != null) animatedSprite.play();
 		} else {
-			if (animatedSprite != null) animatedSprite.call("stop");
+			if (animatedSprite != null) animatedSprite.stop();
 		}
 
 		if (pos != null) {
@@ -88,14 +91,14 @@ public class DTCPlayer extends Area2D {
 	public void start(Vector2 pos) {
 		setProperty("position", pos);
 		setProperty("rotation", 0);
-		call("show");
+		show();
 		if (collisionShape != null) collisionShape.setProperty("disabled", false);
 	}
 
 	@GodotMethod
-	public void _on_body_entered(Object body) {
-		call("hide");
-		call("emit_signal", "hit");
-		if (collisionShape != null) collisionShape.call("set_deferred", "disabled", true);
+	public void OnBodyEntered(Object body) {
+		hide();
+		emitSignal("hit");
+		if (collisionShape != null) collisionShape.setDeferred("disabled", true);
 	}
 }

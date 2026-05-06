@@ -19,7 +19,7 @@ public class RPPlayer extends RPWalker {
     public void _process(double delta) {
         if (input == null || isMoving()) return;
 
-        Object moveVecObj = input.call("get_vector", "move_left", "move_right", "move_up", "move_down");
+        Object moveVecObj = input.getVector("move_left", "move_right", "move_up", "move_down");
         if (!(moveVecObj instanceof Vector2)) return;
         Vector2 inputDir = (Vector2) moveVecObj;
 

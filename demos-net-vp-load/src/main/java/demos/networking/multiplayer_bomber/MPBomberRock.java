@@ -10,9 +10,9 @@ public class MPBomberRock extends CharacterBody2D {
 
     @GodotMethod
     public void exploded(int byWho) {
-        Godot score = (Godot) call("get_node", "../../Score");
+        Godot score = (Godot) getNode("../../Score");
         score.call("increase_score", byWho);
-        Godot animPlayer = (Godot) call("get_node", "AnimationPlayer");
+        Godot animPlayer = (Godot) getNode("AnimationPlayer");
         animPlayer.call("play", "explode");
     }
 }

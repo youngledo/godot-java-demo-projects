@@ -3,6 +3,8 @@ package demos.twod.platformer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "PFPauseMenu", parent = "Control")
 public class PFPauseMenu extends Control {
@@ -15,38 +17,38 @@ public class PFPauseMenu extends Control {
 		if (initialized) return;
 		initialized = true;
 
-		call("hide");
-		org.godot.Godot colorRect = (org.godot.Godot) call("get_node", "ColorRect");
+		hide();
+		org.godot.node.ColorRect colorRect = (org.godot.node.ColorRect) getNode("ColorRect");
 		if (colorRect != null) {
-			coinsCounter = (org.godot.Godot) colorRect.call("get_node", "CoinsCounter");
+			coinsCounter = (org.godot.Godot) colorRect.getNode("CoinsCounter");
 		}
 	}
 
 	@GodotMethod
 	public void open() {
-		call("show");
+		show();
 	}
 
 	@GodotMethod
 	public void close() {
-		org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+		org.godot.node.SceneTree tree = getTree();
 		if (tree != null) tree.setProperty("paused", false);
-		call("hide");
+		hide();
 	}
 
 	@GodotMethod
-	public void _on_coin_collected() {
+	public void OnCoinCollected() {
 		if (coinsCounter != null) coinsCounter.call("collect_coin");
 	}
 
 	@GodotMethod
-	public void _on_resume_button_pressed() {
+	public void OnResumeButtonPressed() {
 		close();
 	}
 
 	@GodotMethod
-	public void _on_quit_button_pressed() {
-		org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-		if (tree != null) tree.call("quit");
+	public void OnQuitButtonPressed() {
+		org.godot.node.SceneTree tree = getTree();
+		if (tree != null) tree.quit();
 	}
 }

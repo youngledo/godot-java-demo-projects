@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.RigidBody3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PIBullet", parent = "RigidBody3D")
 public class PIBullet extends RigidBody3D {
@@ -21,7 +22,7 @@ public class PIBullet extends RigidBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		org.godot.Godot col = (org.godot.Godot) call("get_node", "CollisionShape3D");
+		org.godot.node.CollisionShape3D col = (org.godot.node.CollisionShape3D) getNode("CollisionShape3D");
 		if (col != null) col.setProperty("disabled", true);
 
 		timer = lifeTime;
@@ -30,7 +31,7 @@ public class PIBullet extends RigidBody3D {
 	@Override
 	public void _physicsProcess(double delta) {
 		if (!enabled) {
-			org.godot.Godot col = (org.godot.Godot) call("get_node", "CollisionShape3D");
+			org.godot.node.CollisionShape3D col = (org.godot.node.CollisionShape3D) getNode("CollisionShape3D");
 			if (col != null) col.setProperty("disabled", false);
 			enabled = true;
 		}
@@ -38,14 +39,14 @@ public class PIBullet extends RigidBody3D {
 		// Animate scale
 		double ratio = 1.0 - timer / lifeTime;
 		double scale = 1.0 - ratio * 0.5; // Shrink over time
-		org.godot.Godot scaler = (org.godot.Godot) call("get_node", "Scaler");
+		org.godot.node.Node scaler = getNode("Scaler");
 		if (scaler != null) {
 			scaler.setProperty("scale", new Vector3(scale, scale, scale));
 		}
 
 		timer -= delta;
 		if (timer <= 0) {
-			call("queue_free");
+			queueFree();
 		}
 	}
 }

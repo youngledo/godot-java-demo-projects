@@ -4,6 +4,7 @@ import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "MPPong", parent = "Node2D")
 public class MPPong extends Node2D {
@@ -21,13 +22,13 @@ public class MPPong extends Node2D {
 
     @Override
     public void _ready() {
-        player2 = (Godot) call("get_node", "Player2");
-        scoreLeftNode = (Godot) call("get_node", "ScoreLeft");
-        scoreRightNode = (Godot) call("get_node", "ScoreRight");
-        winnerLeft = (Godot) call("get_node", "WinnerLeft");
-        winnerRight = (Godot) call("get_node", "WinnerRight");
+        player2 = (Godot) getNode("Player2");
+        scoreLeftNode = (Godot) getNode("ScoreLeft");
+        scoreRightNode = (Godot) getNode("ScoreRight");
+        winnerLeft = (Godot) getNode("WinnerLeft");
+        winnerRight = (Godot) getNode("WinnerRight");
 
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         if ((boolean) mp.call("is_server")) {
             Object peers = mp.call("get_peers");
             // Get first peer - peers is an array/dictionary
@@ -45,7 +46,7 @@ public class MPPong extends Node2D {
     }
 
     @GodotMethod
-    public void update_score(boolean addToLeft) {
+    public void updateScore(boolean addToLeft) {
         if (addToLeft) {
             scoreLeft += 1;
             scoreLeftNode.call("set_text", String.valueOf(scoreLeft));
@@ -64,14 +65,14 @@ public class MPPong extends Node2D {
         }
 
         if (gameEnded) {
-            ((Godot) call("get_node", "ExitGame")).call("show");
-            Godot ball = (Godot) call("get_node", "Ball");
+            ((Godot) getNode("ExitGame")).call("show");
+            Godot ball = (Godot) getNode("Ball");
             ball.call("rpc", "stop");
         }
     }
 
     @GodotMethod
-    public void _on_exit_game_pressed() {
-        call("emit_signal", "game_finished");
+    public void OnExitGamePressed() {
+        emitSignal("game_finished");
     }
 }

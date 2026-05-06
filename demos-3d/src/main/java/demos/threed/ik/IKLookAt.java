@@ -5,6 +5,7 @@ import org.godot.node.Node3D;
 import org.godot.math.Vector3;
 import org.godot.math.Basis;
 import org.godot.math.Transform3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "IKLookAt", parent = "Node3D")
 public class IKLookAt extends Node3D {
@@ -20,7 +21,7 @@ public class IKLookAt extends Node3D {
     private String additionalBoneName = "";
     private double additionalBoneLength = 1.0;
 
-    private org.godot.Godot skeletonToUse = null;
+    private org.godot.node.Skeleton3D skeletonToUse = null;
     private String boneName = "";
     private int updateMode = 0;
     private boolean firstCall = true;
@@ -72,11 +73,11 @@ public class IKLookAt extends Node3D {
     private void setupSkeletonPath() {
         Object skelPathObj = getProperty("skeleton_path");
         if (skelPathObj == null) return;
-        org.godot.Godot temp = (org.godot.Godot) call("get_node", skelPathObj);
+        org.godot.node.Node temp = (org.godot.node.Node) call("get_node", skelPathObj);
         if (temp != null) {
-            Object hasMethod = temp.call("has_method", "get_bone_global_pose");
+            Object hasMethod = temp.hasMethod("get_bone_global_pose");
             if (hasMethod instanceof Boolean && (Boolean) hasMethod) {
-                skeletonToUse = temp;
+                skeletonToUse = (org.godot.node.Skeleton3D) temp;
             }
         }
     }
@@ -100,12 +101,12 @@ public class IKLookAt extends Node3D {
         }
         if (skeletonToUse == null || updateMode >= 3) return;
 
-        Object boneIdxObj = skeletonToUse.call("find_bone", boneName);
+        Object boneIdxObj = skeletonToUse.findBone(boneName);
         if (!(boneIdxObj instanceof Number)) return;
         int bone = ((Number) boneIdxObj).intValue();
         if (bone == -1) return;
 
-        Object restObj = skeletonToUse.call("get_bone_global_pose", bone);
+        Object restObj = skeletonToUse.getBoneGlobalPose(bone);
         if (!(restObj instanceof Transform3D)) return;
         Transform3D rest = (Transform3D) restObj;
 
@@ -113,7 +114,7 @@ public class IKLookAt extends Node3D {
         if (globalOrigin == null) return;
 
         // Convert target to skeleton-local space
-        Object skelGlobalObj = skeletonToUse.call("get_global_transform");
+        Object skelGlobalObj = skeletonToUse.getGlobalTransform();
         if (skelGlobalObj instanceof Transform3D) {
             Transform3D skelGlobal = (Transform3D) skelGlobalObj;
             globalOrigin = skelGlobal.inverse().apply(globalOrigin);
@@ -124,7 +125,7 @@ public class IKLookAt extends Node3D {
         else if (lookAtAxis == 2) up = Vector3.FORWARD;
         else up = Vector3.UP;
 
-        Vector3 dir = globalOrigin.sub(rest.getOrigin()).normalized();
+        Vector3 dir = globalOrigin.sub(rest.getOrigin().normalized());
         Basis lookBasis = makeLookAtBasis(dir, up);
         rest = new Transform3D(lookBasis, rest.getOrigin());
 
@@ -167,10 +168,10 @@ public class IKLookAt extends Node3D {
         rest = new Transform3D(newBasis, rest.getOrigin());
 
         if (positionUsingAdditionalBone && !additionalBoneName.isEmpty()) {
-            Object addBoneIdxObj = skeletonToUse.call("find_bone", additionalBoneName);
+            Object addBoneIdxObj = skeletonToUse.findBone(additionalBoneName);
             if (addBoneIdxObj instanceof Number) {
                 int addBoneIdx = ((Number) addBoneIdxObj).intValue();
-                Object addBonePoseObj = skeletonToUse.call("get_bone_global_pose", addBoneIdx);
+                Object addBonePoseObj = skeletonToUse.getBoneGlobalPose(addBoneIdx);
                 if (addBonePoseObj instanceof Transform3D) {
                     Transform3D addBonePose = (Transform3D) addBonePoseObj;
                     Basis addBasis = addBonePose.getBasis();
@@ -180,6 +181,6 @@ public class IKLookAt extends Node3D {
             }
         }
 
-        skeletonToUse.call("set_bone_global_pose_override", bone, rest, interpolationValue, true);
+        skeletonToUse.setBoneGlobalPoseOverride(bone, rest, interpolationValue, true);
     }
 }

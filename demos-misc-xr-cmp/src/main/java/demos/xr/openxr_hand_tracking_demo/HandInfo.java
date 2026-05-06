@@ -2,13 +2,14 @@ package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "HandInfo", parent = "Node3D")
 public class HandInfo extends Node3D {
 
     private int hand = 0; // 0 = Left, 1 = Right
     private org.godot.Godot fallbackMesh;
-    private org.godot.Godot infoLabel;
+    private org.godot.node.Node infoLabel;
     private boolean initialized = false;
 
     @Override
@@ -16,7 +17,7 @@ public class HandInfo extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        infoLabel = (org.godot.Godot) call("get_node", "Info");
+        infoLabel = getNode("Info");
     }
 
     @Override

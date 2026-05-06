@@ -2,6 +2,9 @@ package demos.threed.voxel;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Control;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "VXPauseMenu", parent = "Control")
 public class VXPauseMenu extends Control {
@@ -20,38 +23,38 @@ public class VXPauseMenu extends Control {
         org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
         if (input == null) return;
 
-        Object justPressed = input.call("is_action_just_pressed", "pause");
+        Object justPressed = (boolean) input.isActionJustPressed("pause");
         if (justPressed instanceof Boolean && (Boolean) justPressed) {
             Object vis = getProperty("visible");
             boolean visible = vis instanceof Boolean && (Boolean) vis;
             setProperty("visible", !visible);
 
             if (!visible) {
-                input.call("set_mouse_mode", 0); // VISIBLE
+                input.setMouseMode(0); // VISIBLE
             } else {
-                input.call("set_mouse_mode", 2); // CAPTURED
+                input.setMouseMode(2); // CAPTURED
             }
         }
     }
 
-    public void _on_Resume_pressed() {
+    public void OnResumePressed() {
         setProperty("visible", false);
         org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-        if (input != null) input.call("set_mouse_mode", 2);
+        if (input != null) input.setMouseMode(2);
     }
 
-    public void _on_Options_pressed() {
-        org.godot.Godot options = (org.godot.Godot) call("get_node", "Options");
-        if (options != null) options.call("show");
+    public void OnOptionsPressed() {
+        org.godot.node.CanvasItem options = (org.godot.node.CanvasItem) getNode("Options");
+        if (options != null) options.show();
     }
 
-    public void _on_MainMenu_pressed() {
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-        if (tree != null) tree.call("change_scene_to_file", "res://menu/main/main_menu.tscn");
+    public void OnMainMenuPressed() {
+        org.godot.node.SceneTree tree = getTree();
+        if (tree != null) tree.changeSceneToFile("res://menu/main/main_menu.tscn");
     }
 
-    public void _on_Exit_pressed() {
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-        if (tree != null) tree.call("quit");
+    public void OnExitPressed() {
+        org.godot.node.SceneTree tree = getTree();
+        if (tree != null) tree.quit();
     }
 }

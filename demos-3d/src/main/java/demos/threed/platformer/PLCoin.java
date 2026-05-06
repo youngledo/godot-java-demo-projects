@@ -3,6 +3,7 @@ package demos.threed.platformer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Area3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PLCoin", parent = "Area3D")
 public class PLCoin extends Area3D {
@@ -17,13 +18,13 @@ public class PLCoin extends Area3D {
 	}
 
 	@GodotMethod
-	public void _on_coin_body_enter(Object body) {
+	public void OnCoinBodyEnter(Object body) {
 		if (taken) return;
 		String cls = (String) ((org.godot.Godot) body).call("get_class");
 		if (!"PLPlayer".equals(cls)) return;
 
 		taken = true;
-		org.godot.Godot anim = (org.godot.Godot) call("get_node", "Animation");
+		org.godot.node.Node anim = getNode("Animation");
 		if (anim != null) anim.call("play", "take");
 
 		Object coinsObj = ((org.godot.Godot) body).getProperty("coins");

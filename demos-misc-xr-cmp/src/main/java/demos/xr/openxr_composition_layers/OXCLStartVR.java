@@ -3,6 +3,9 @@ package demos.xr.openxr_composition_layers;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "OXCLStartVR", parent = "Node3D")
 public class OXCLStartVR extends Node3D {
@@ -19,10 +22,10 @@ public class OXCLStartVR extends Node3D {
         xrInterface = (org.godot.Godot) call("find_interface", "OpenXR");
         if (xrInterface != null && (boolean) xrInterface.call("is_initialized")) {
             System.out.println("OpenXR instantiated successfully.");
-            org.godot.Godot vp = (org.godot.Godot) call("get_viewport");
+            org.godot.node.Viewport vp = getViewport();
 
             vp.setProperty("use_xr", true);
-            org.godot.singleton.DisplayServer.singleton().call("window_set_vsync_mode", 1);
+            org.godot.singleton.DisplayServer.singleton().windowSetVsyncMode(1);
 
             org.godot.Godot renderingServer = org.godot.singleton.RenderingServer.singleton();
             if (renderingServer != null && renderingServer.call("get_rendering_device") != null) {
@@ -35,20 +38,20 @@ public class OXCLStartVR extends Node3D {
             org.godot.core.Callable sessionStoppingCb = new org.godot.core.Callable(this, "_on_openxr_stopping");
             org.godot.core.Callable poseRecenteredCb = new org.godot.core.Callable(this, "_on_openxr_pose_recentered");
 
-            xrInterface.call("connect", "session_begun", sessionBegunCb);
-            xrInterface.call("connect", "session_visible", sessionVisibleCb);
-            xrInterface.call("connect", "session_focussed", sessionFocussedCb);
-            xrInterface.call("connect", "session_stopping", sessionStoppingCb);
-            xrInterface.call("connect", "pose_recentered", poseRecenteredCb);
+            xrInterface.connect("session_begun", sessionBegunCb, 0);
+            xrInterface.connect("session_visible", sessionVisibleCb, 0);
+            xrInterface.connect("session_focussed", sessionFocussedCb, 0);
+            xrInterface.connect("session_stopping", sessionStoppingCb, 0);
+            xrInterface.connect("pose_recentered", poseRecenteredCb, 0);
         } else {
             System.out.println("OpenXR not instantiated!");
-            org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-            if (tree != null) tree.call("quit");
+            org.godot.node.SceneTree tree = getTree();
+            if (tree != null) tree.quit();
         }
     }
 
     @GodotMethod
-    public void _on_openxr_session_begun() {
+    public void OnOpenxrSessionBegun() {
         double currentRefreshRate = (double) xrInterface.call("get_display_refresh_rate");
         if (currentRefreshRate > 0) {
             System.out.println("OpenXR: Refresh rate reported as " + currentRefreshRate);
@@ -78,14 +81,14 @@ public class OXCLStartVR extends Node3D {
             currentRefreshRate = newRate;
         }
 
-        org.godot.Godot engine = (org.godot.Godot) call("get_node", "/root/Engine");
+        org.godot.node.Node engine = getNode("/root/Engine");
         if (engine != null) {
             engine.setProperty("physics_ticks_per_second", (int) Math.round(currentRefreshRate));
         }
     }
 
     @GodotMethod
-    public void _on_openxr_visible_state() {
+    public void OnOpenxrVisibleState() {
         if (xrIsFocused) {
             System.out.println("OpenXR lost focus");
             xrIsFocused = false;
@@ -94,19 +97,19 @@ public class OXCLStartVR extends Node3D {
     }
 
     @GodotMethod
-    public void _on_openxr_focused_state() {
+    public void OnOpenxrFocusedState() {
         System.out.println("OpenXR gained focus");
         xrIsFocused = true;
         setProperty("process_mode", 0);
     }
 
     @GodotMethod
-    public void _on_openxr_stopping() {
+    public void OnOpenxrStopping() {
         System.out.println("OpenXR is stopping");
     }
 
     @GodotMethod
-    public void _on_openxr_pose_recentered() {
+    public void OnOpenxrPoseRecentered() {
         // Pose recentered signal.
     }
 }

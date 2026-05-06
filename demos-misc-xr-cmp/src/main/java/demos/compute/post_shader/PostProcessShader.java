@@ -142,7 +142,7 @@ public class PostProcessShader extends CompositorEffect {
         }
 
         // No new shader?
-        if (newShaderCode.isEmpty()) {
+        if (newShaderCode.isEmpty() ) {
             if (pipeline != null) {
                 return (boolean) rd.call("rid_is_valid", pipeline);
             }
@@ -164,12 +164,12 @@ public class PostProcessShader extends CompositorEffect {
 
         // In with the new
         Godot shaderSource = (Godot) call("RDShaderSource.new");
-        shaderSource.call("set", "language", 0); // SHADER_LANGUAGE_GLSL
-        shaderSource.call("set", "source_compute", fullCode);
+        shaderSource.setProperty("language", 0); // SHADER_LANGUAGE_GLSL
+        shaderSource.setProperty("source_compute", fullCode);
         Godot shaderSpirv = (Godot) rd.call("shader_compile_spirv_from_source", shaderSource);
 
-        String compileError = (String) shaderSpirv.call("get", "compile_error_compute");
-        if (compileError != null && !compileError.isEmpty()) {
+        String compileError = (String) shaderSpirv.getProperty("compile_error_compute");
+        if (compileError != null && !compileError.isEmpty() ) {
             call("push_error", compileError);
             call("push_error", "In: " + fullCode);
             return false;
@@ -231,8 +231,8 @@ public class PostProcessShader extends CompositorEffect {
         // Make sure we have a sampler
         if (nearestSampler == null || !(boolean) rd.call("rid_is_valid", nearestSampler)) {
             Godot samplerState = (Godot) call("RDSamplerState.new");
-            samplerState.call("set", "min_filter", 0); // SAMPLER_FILTER_NEAREST
-            samplerState.call("set", "mag_filter", 0);
+            samplerState.setProperty("min_filter", 0); // SAMPLER_FILTER_NEAREST
+            samplerState.setProperty("mag_filter", 0);
             nearestSampler = (Godot) rd.call("sampler_create", samplerState);
         }
 
@@ -251,18 +251,18 @@ public class PostProcessShader extends CompositorEffect {
 
             // Create uniform set
             Godot sceneDataUniform = (Godot) call("RDUniform.new");
-            sceneDataUniform.call("set", "uniform_type", 6); // UNIFORM_TYPE_UNIFORM_BUFFER
-            sceneDataUniform.call("set", "binding", 0);
+            sceneDataUniform.setProperty("uniform_type", 6); // UNIFORM_TYPE_UNIFORM_BUFFER
+            sceneDataUniform.setProperty("binding", 0);
             sceneDataUniform.call("add_id", sceneDataBuffers);
 
             Godot colorUniform = (Godot) call("RDUniform.new");
-            colorUniform.call("set", "uniform_type", 9); // UNIFORM_TYPE_IMAGE
-            colorUniform.call("set", "binding", 1);
+            colorUniform.setProperty("uniform_type", 9); // UNIFORM_TYPE_IMAGE
+            colorUniform.setProperty("binding", 1);
             colorUniform.call("add_id", colorImage);
 
             Godot depthUniform = (Godot) call("RDUniform.new");
-            depthUniform.call("set", "uniform_type", 4); // UNIFORM_TYPE_SAMPLER_WITH_TEXTURE
-            depthUniform.call("set", "binding", 2);
+            depthUniform.setProperty("uniform_type", 4); // UNIFORM_TYPE_SAMPLER_WITH_TEXTURE
+            depthUniform.setProperty("binding", 2);
             depthUniform.call("add_id", nearestSampler);
             depthUniform.call("add_id", depthImage);
 

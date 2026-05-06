@@ -5,6 +5,8 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 @GodotClass(name = "PFPlayer", parent = "CharacterBody2D")
 public class PFPlayer extends CharacterBody2D {
@@ -18,12 +20,12 @@ public class PFPlayer extends CharacterBody2D {
 	public String actionSuffix = "";
 
 	private boolean doubleJumpCharged = false;
-	private org.godot.Godot sprite;
-	private org.godot.Godot animationPlayer;
-	private org.godot.Godot platformDetector;
-	private org.godot.Godot camera;
+	private org.godot.node.Sprite2D sprite;
+	private org.godot.node.AnimationPlayer animationPlayer;
+	private org.godot.node.Node platformDetector;
+	private org.godot.node.Node camera;
 	private org.godot.Godot gun;
-	private org.godot.Godot jumpSound;
+	private org.godot.node.Node jumpSound;
 	private double gravity = 980.0;
 	private boolean initialized = false;
 
@@ -33,14 +35,14 @@ public class PFPlayer extends CharacterBody2D {
 		initialized = true;
 
 		call("add_user_signal", "coin_collected");
-		sprite = (org.godot.Godot) call("get_node", "Sprite2D");
-		animationPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-		platformDetector = (org.godot.Godot) call("get_node", "PlatformDetector");
-		camera = (org.godot.Godot) call("get_node", "Camera");
-		jumpSound = (org.godot.Godot) call("get_node", "Jump");
+		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
+		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		platformDetector = getNode("PlatformDetector");
+		camera = getNode("Camera");
+		jumpSound = getNode("Jump");
 
 		if (sprite != null) {
-			gun = (org.godot.Godot) sprite.call("get_node", "Gun");
+			gun = (org.godot.Godot) sprite.getNode("Gun");
 		}
 
 		gravity = 980.0;
@@ -59,16 +61,16 @@ public class PFPlayer extends CharacterBody2D {
 
 	@Override
 	public void _physicsProcess(double delta) {
-		if ((boolean) call("is_on_floor")) {
+		if ((boolean) isOnFloor()) {
 			doubleJumpCharged = true;
 		}
 
 		org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 		String suffix = actionSuffix;
 
-		if ((boolean) input.call("is_action_just_pressed", "jump" + suffix)) {
+		if ((boolean) input.isActionJustPressed( "jump" + suffix)) {
 			tryJump(suffix);
-		} else if (!(boolean) input.call("is_action_pressed", "jump" + suffix)) {
+		} else if (!(boolean) input.isActionPressed( "jump" + suffix)) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			if (vel != null && vel.getY() < 0.0) {
 				setProperty("velocity", new Vector2(vel.getX(), vel.getY() * 0.6));
@@ -80,8 +82,8 @@ public class PFPlayer extends CharacterBody2D {
 		double vy = Math.min(TERMINAL_VELOCITY, vel.getY() + gravity * delta);
 
 		double direction = 0;
-		if ((boolean) input.call("is_action_pressed", "move_left" + suffix)) direction -= 1;
-		if ((boolean) input.call("is_action_pressed", "move_right" + suffix)) direction += 1;
+		if ((boolean) input.isActionPressed( "move_left" + suffix)) direction -= 1;
+		if ((boolean) input.isActionPressed( "move_right" + suffix)) direction += 1;
 		direction *= WALK_SPEED;
 
 		double vx = vel.getX();
@@ -92,21 +94,21 @@ public class PFPlayer extends CharacterBody2D {
 		}
 
 		setProperty("velocity", new Vector2(vx, vy));
-		call("move_and_slide");
+		moveAndSlide();
 
 		// Animation
 		String anim = getNewAnimation(false);
 		if (animationPlayer != null) {
 			String currentAnim = (String) animationPlayer.getProperty("current_animation");
 			if (!anim.equals(currentAnim)) {
-				animationPlayer.call("play", anim);
+				animationPlayer.play(anim);
 			}
 		}
 	}
 
 	@GodotMethod
 	public void tryJump(String suffix) {
-		if ((boolean) call("is_on_floor")) {
+		if ((boolean) isOnFloor()) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			setProperty("velocity", new Vector2(vel != null ? vel.getX() : 0, JUMP_VELOCITY));
 			if (jumpSound != null) jumpSound.call("play");
@@ -124,7 +126,7 @@ public class PFPlayer extends CharacterBody2D {
 
 	private String getNewAnimation(boolean isShooting) {
 		String anim;
-		if ((boolean) call("is_on_floor")) {
+		if ((boolean) isOnFloor()) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			if (vel != null && Math.abs(vel.getX()) > 0.1) {
 				anim = "run";

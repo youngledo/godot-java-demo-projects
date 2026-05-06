@@ -7,6 +7,7 @@ import org.godot.core.Callable;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "STCPlayer", parent = "CharacterBody3D")
 public class STCPlayer extends CharacterBody3D {
@@ -20,8 +21,8 @@ public class STCPlayer extends CharacterBody3D {
 	@Export
 	public double fallAcceleration = 75.0;
 
-	private org.godot.Godot animPlayer;
-	private org.godot.Godot mobDetector;
+	private org.godot.node.AnimationPlayer animPlayer;
+	private org.godot.node.Node mobDetector;
 	private boolean initialized = false;
 
 	@Override
@@ -30,8 +31,8 @@ public class STCPlayer extends CharacterBody3D {
 		initialized = true;
 
 		call("add_user_signal", "hit");
-		animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-		mobDetector = (org.godot.Godot) call("get_node", "MobDetector");
+		animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		mobDetector = getNode("MobDetector");
 
 		if (mobDetector != null) {
 			mobDetector.connect("body_entered", new Callable(this, "_on_mob_detector_body_entered"), 0);
@@ -43,17 +44,17 @@ public class STCPlayer extends CharacterBody3D {
 		Input input = Input.singleton();
 		double dx = 0, dz = 0;
 
-		if ((boolean) input.call("is_action_pressed", "move_right", false)) dx += 1;
-		if ((boolean) input.call("is_action_pressed", "move_left", false)) dx -= 1;
-		if ((boolean) input.call("is_action_pressed", "move_back", false)) dz += 1;
-		if ((boolean) input.call("is_action_pressed", "move_forward", false)) dz -= 1;
+		if ((boolean) input.isActionPressed("move_right")) dx += 1;
+		if ((boolean) input.isActionPressed("move_left")) dx -= 1;
+		if ((boolean) input.isActionPressed("move_back")) dz += 1;
+		if ((boolean) input.isActionPressed("move_forward")) dz -= 1;
 
 		Vector3 direction = new Vector3(dx, 0, dz);
 		if (dx != 0 || dz != 0) {
 			double len = Math.sqrt(dx * dx + dz * dz);
 			direction = new Vector3(dx / len, 0, dz / len);
 			// Look at direction
-			call("look_at", new Vector3(
+			lookAt(new Vector3(
 				(Vector3) getProperty("position") != null ? ((Vector3) getProperty("position")).getX() + direction.getX() : direction.getX(),
 				(Vector3) getProperty("position") != null ? ((Vector3) getProperty("position")).getY() : 0,
 				(Vector3) getProperty("position") != null ? ((Vector3) getProperty("position")).getZ() + direction.getZ() : direction.getZ()
@@ -69,14 +70,14 @@ public class STCPlayer extends CharacterBody3D {
 		double vz = direction.getZ() * speed;
 		double vy = vel.getY();
 
-		boolean onFloor = (boolean) call("is_on_floor");
-		if (onFloor && (boolean) input.call("is_action_just_pressed", "jump", false)) {
+		boolean onFloor = (boolean) isOnFloor();
+		if (onFloor && (boolean) (boolean) input.isActionJustPressed("jump")) {
 			vy += jumpImpulse;
 		}
 		vy -= fallAcceleration * delta;
 
 		setProperty("velocity", new Vector3(vx, vy, vz));
-		call("move_and_slide");
+		moveAndSlide();
 
 		// Check slide collisions for mob squashing
 		long collisionCount = (long) call("get_slide_collision_count");
@@ -110,19 +111,19 @@ public class STCPlayer extends CharacterBody3D {
 
 	@GodotMethod
 	public void die() {
-		call("emit_signal", "hit");
-		call("queue_free");
+		emitSignal("hit");
+		queueFree();
 	}
 
 	@GodotMethod
-	public void _on_mob_detector_body_entered(Object body) {
+	public void OnMobDetectorBodyEntered(Object body) {
 		die();
 	}
 
 	@Override
 	public void _exitTree() {
 		if (animPlayer != null) {
-			animPlayer.call("stop");
+			animPlayer.stop();
 			animPlayer = null;
 		}
 	}

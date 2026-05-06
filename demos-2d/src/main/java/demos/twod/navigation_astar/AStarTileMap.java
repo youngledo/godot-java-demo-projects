@@ -8,7 +8,7 @@ import org.godot.node.TileMapLayer;
 @GodotClass(name = "AStarTileMap", parent = "TileMapLayer")
 public class AStarTileMap extends TileMapLayer {
 
-	private org.godot.Godot astar;
+	private org.godot.node.AStarGrid2D astar;
 	private boolean initialized = false;
 
 	@Override
@@ -19,7 +19,7 @@ public class AStarTileMap extends TileMapLayer {
 		// Create AStarGrid2D
 		Object astarObj = call("create_astar_grid");
 		if (astarObj != null) {
-			astar = (org.godot.Godot) astarObj;
+			astar = (org.godot.node.AStarGrid2D) astarObj;
 		}
 		if (astar != null) {
 			astar.setProperty("cell_size", new Vector2(64, 64));
@@ -27,7 +27,7 @@ public class AStarTileMap extends TileMapLayer {
 			astar.setProperty("default_compute_heuristic", 0); // MANHATTAN
 			astar.setProperty("default_estimate_heuristic", 0);
 			astar.setProperty("diagonal_mode", 1); // NEVER
-			astar.call("update");
+			astar.update();
 
 			// Mark used cells as solid
 			Object[] usedCells = (Object[]) call("get_used_cells");
@@ -57,7 +57,7 @@ public class AStarTileMap extends TileMapLayer {
 
 	@GodotMethod
 	public void clearPath() {
-		call("queue_redraw");
+		queueRedraw();
 	}
 
 	@GodotMethod

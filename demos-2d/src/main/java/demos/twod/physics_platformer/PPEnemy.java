@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.RigidBody2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PPEnemy", parent = "RigidBody2D")
 public class PPEnemy extends RigidBody2D {
@@ -24,10 +25,10 @@ public class PPEnemy extends RigidBody2D {
 
 	@Override
 	public void _integrateForces(java.lang.Object stateObj) {
-		org.godot.Godot bodyState = (org.godot.Godot) stateObj;
+		org.godot.node.RigidBody2D bodyState = (org.godot.node.RigidBody2D) stateObj;
 		if (bodyState == null) return;
 
-		Vector2 vel = (Vector2) bodyState.call("get_linear_velocity");
+		Vector2 vel = (Vector2) bodyState.getLinearVelocity();
 		if (vel == null) vel = new Vector2(0, 0);
 
 		String newAnim = anim;
@@ -38,7 +39,7 @@ public class PPEnemy extends RigidBody2D {
 			newAnim = "walk";
 
 			double wallSide = 0;
-			long contactCount = (long) bodyState.call("get_contact_count");
+			long contactCount = (long) bodyState.getContactCount();
 
 			for (long i = 0; i < contactCount; i++) {
 				Object collider = bodyState.call("get_contact_collider_object", i);
@@ -59,11 +60,11 @@ public class PPEnemy extends RigidBody2D {
 			}
 
 			// Check raycasts for edge detection
-			org.godot.Godot rcLeft = (org.godot.Godot) call("get_node_or_null", "RaycastLeft");
-			org.godot.Godot rcRight = (org.godot.Godot) call("get_node_or_null", "RaycastRight");
+			org.godot.node.RayCast2D rcLeft = (org.godot.node.RayCast2D) call("get_node_or_null", "RaycastLeft");
+			org.godot.node.RayCast2D rcRight = (org.godot.node.RayCast2D) call("get_node_or_null", "RaycastRight");
 
-			boolean leftColliding = rcLeft != null && (boolean) rcLeft.call("is_colliding");
-			boolean rightColliding = rcRight != null && (boolean) rcRight.call("is_colliding");
+			boolean leftColliding = rcLeft != null && (boolean) rcLeft.isColliding();
+			boolean rightColliding = rcRight != null && (boolean) rcRight.isColliding();
 
 			if (direction < 0 && !leftColliding && rightColliding) {
 				direction = -direction;
@@ -78,15 +79,15 @@ public class PPEnemy extends RigidBody2D {
 
 		if (!anim.equals(newAnim)) {
 			anim = newAnim;
-			org.godot.Godot animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-			if (animPlayer != null) animPlayer.call("play", anim);
+			org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+			if (animPlayer != null) animPlayer.play(anim);
 		}
 
-		bodyState.call("set_linear_velocity", vel);
+		bodyState.setLinearVelocity(vel);
 	}
 
 	private void flipSprite() {
-		org.godot.Godot sprite = (org.godot.Godot) call("get_node", "Sprite2D");
+		org.godot.node.Sprite2D sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
 		if (sprite != null) {
 			org.godot.math.Vector2 scale = (org.godot.math.Vector2) sprite.getProperty("scale");
 			if (scale != null) {
@@ -96,7 +97,7 @@ public class PPEnemy extends RigidBody2D {
 	}
 
 	@GodotMethod
-	public void _bullet_collider(Object colliderObj, Object stateObj, Object normalObj) {
+	public void BulletCollider(Object colliderObj, Object stateObj, Object normalObj) {
 		if (state == 1) return;
 		state = 1;
 
@@ -105,33 +106,33 @@ public class PPEnemy extends RigidBody2D {
 			collider.call("disable");
 		}
 
-		org.godot.Godot soundHit = (org.godot.Godot) call("get_node", "SoundHit");
-		if (soundHit != null) soundHit.call("play");
+		org.godot.node.AudioStreamPlayer soundHit = (org.godot.node.AudioStreamPlayer) getNode("SoundHit");
+		if (soundHit != null) soundHit.play();
 	}
 
 	@Override
 	public void _exitTree() {
-		org.godot.Godot soundHit = (org.godot.Godot) call("get_node_or_null", "SoundHit");
-		if (soundHit != null) soundHit.call("stop");
-		org.godot.Godot soundExplode = (org.godot.Godot) call("get_node_or_null", "SoundExplode");
-		if (soundExplode != null) soundExplode.call("stop");
+		org.godot.node.AudioStreamPlayer soundHit = (org.godot.node.AudioStreamPlayer) call("get_node_or_null", "SoundHit");
+		if (soundHit != null) soundHit.stop();
+		org.godot.node.AudioStreamPlayer soundExplode = (org.godot.node.AudioStreamPlayer) call("get_node_or_null", "SoundExplode");
+		if (soundExplode != null) soundExplode.stop();
 	}
 
 	@GodotMethod
 	public void _die() {
-		call("queue_free");
+		queueFree();
 	}
 
 	@GodotMethod
-	public void _pre_explode() {
-		org.godot.Godot s1 = (org.godot.Godot) call("get_node", "Shape1");
-		org.godot.Godot s2 = (org.godot.Godot) call("get_node", "Shape2");
-		org.godot.Godot s3 = (org.godot.Godot) call("get_node", "Shape3");
-		if (s1 != null) s1.call("queue_free");
-		if (s2 != null) s2.call("queue_free");
-		if (s3 != null) s3.call("queue_free");
+	public void PreExplode() {
+		org.godot.node.Node s1 = getNode("Shape1");
+		org.godot.node.Node s2 = getNode("Shape2");
+		org.godot.node.Node s3 = getNode("Shape3");
+		if (s1 != null) s1.queueFree();
+		if (s2 != null) s2.queueFree();
+		if (s3 != null) s3.queueFree();
 
-		org.godot.Godot soundExplode = (org.godot.Godot) call("get_node", "SoundExplode");
-		if (soundExplode != null) soundExplode.call("play");
+		org.godot.node.AudioStreamPlayer soundExplode = (org.godot.node.AudioStreamPlayer) getNode("SoundExplode");
+		if (soundExplode != null) soundExplode.play();
 	}
 }

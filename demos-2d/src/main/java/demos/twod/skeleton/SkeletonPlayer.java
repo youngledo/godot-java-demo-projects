@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "SkeletonPlayer", parent = "CharacterBody2D")
 public class SkeletonPlayer extends CharacterBody2D {
@@ -23,8 +24,8 @@ public class SkeletonPlayer extends CharacterBody2D {
 	private boolean fallingSlow = false;
 	private boolean fallingFast = false;
 	private double noMoveHorizontalTime = 0.0;
-	private org.godot.Godot sprite;
-	private org.godot.Godot animTree;
+	private org.godot.node.Sprite2D sprite;
+	private org.godot.node.Node animTree;
 	private double spriteScaleX = 1.0;
 	private boolean initialized = false;
 
@@ -33,8 +34,8 @@ public class SkeletonPlayer extends CharacterBody2D {
 		if (initialized) return;
 		initialized = true;
 
-		sprite = (org.godot.Godot) call("get_node", "Sprite2D");
-		animTree = (org.godot.Godot) call("get_node", "AnimationTree");
+		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
+		animTree = getNode("AnimationTree");
 		if (sprite != null) {
 			Vector2 scale = (Vector2) sprite.getProperty("scale");
 			spriteScaleX = scale.getX();
@@ -49,9 +50,9 @@ public class SkeletonPlayer extends CharacterBody2D {
 		Input input = Input.singleton();
 
 		boolean isJumping = false;
-		if (input.is_action_just_pressed("jump", false)) {
+		if ((boolean) (boolean) input.isActionJustPressed("jump")) {
 			isJumping = tryJump();
-		} else if (input.is_action_just_released("jump", false)) {
+		} else if (input.isActionJustReleased("jump", false)) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			if (vel.getY() < 0.0) {
 				setProperty("velocity", new Vector2(vel.getX(), vel.getY() * 0.6));
@@ -62,7 +63,7 @@ public class SkeletonPlayer extends CharacterBody2D {
 		double vx = vel.getX();
 		double vy = Math.min(TERMINAL_VELOCITY, vel.getY() + GRAVITY * delta);
 
-		double direction = input.get_axis("move_left", "move_right") * WALK_SPEED;
+		double direction = input.getAxis("move_left", "move_right") * WALK_SPEED;
 		vx = moveToward(vx, direction, ACCELERATION_SPEED * delta);
 
 		if (noMoveHorizontalTime > 0.0) {
@@ -78,7 +79,7 @@ public class SkeletonPlayer extends CharacterBody2D {
 		}
 
 		setProperty("velocity", new Vector2(vx, vy));
-		call("move_and_slide");
+		moveAndSlide();
 
 		if (vy >= TERMINAL_VELOCITY) {
 			fallingFast = true;
@@ -91,7 +92,7 @@ public class SkeletonPlayer extends CharacterBody2D {
 			animTree.setProperty("parameters/jump/request", 1); // ONE_SHOT_REQUEST_FIRE
 		}
 
-		boolean onFloor = (boolean) call("is_on_floor");
+		boolean onFloor = (boolean) isOnFloor();
 		if (onFloor) {
 			if (fallingFast && animTree != null) {
 				animTree.setProperty("parameters/land_hard/request", 1);
@@ -128,7 +129,7 @@ public class SkeletonPlayer extends CharacterBody2D {
 	}
 
 	private boolean tryJump() {
-		boolean onFloor = (boolean) call("is_on_floor");
+		boolean onFloor = (boolean) isOnFloor();
 		if (onFloor) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			setProperty("velocity", new Vector2(vel.getX(), JUMP_VELOCITY));

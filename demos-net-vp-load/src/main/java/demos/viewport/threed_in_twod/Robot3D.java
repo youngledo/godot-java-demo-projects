@@ -3,11 +3,12 @@ package demos.viewport.threed_in_twod;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "Robot3D", parent = "Node3D")
 public class Robot3D extends Node3D {
 
-    private org.godot.Godot model;
+    private org.godot.node.Node model;
     private boolean initialized = false;
 
     @Override
@@ -15,7 +16,7 @@ public class Robot3D extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        model = (org.godot.Godot) call("get_node", "Model");
+        model = getNode("Model");
     }
 
     @Override

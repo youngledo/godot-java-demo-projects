@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
 import org.godot.node.SubViewport;
+import org.godot.node.Node;
 
 @GodotClass(name = "TwoDInThreeD", parent = "Node3D")
 public class TwoDInThreeD extends Node3D {
@@ -20,22 +21,22 @@ public class TwoDInThreeD extends Node3D {
         initialized = true;
 
         // Clear the viewport
-        SubViewport viewport = (SubViewport) call("get_node", "SubViewport");
+        SubViewport viewport = (SubViewport) getNode("SubViewport");
         if (viewport != null) {
             viewport.setProperty("render_target_clear_mode", 1); // CLEAR_MODE_ONCE
         }
 
         // Retrieve the texture and set it to the viewport quad
-        org.godot.Godot viewportQuad = (org.godot.Godot) call("get_node", "ViewportQuad");
+        org.godot.node.Node viewportQuad = getNode("ViewportQuad");
         if (viewportQuad != null) {
             Object materialOverride = viewportQuad.getProperty("material_override");
             if (materialOverride != null && viewport != null) {
-                ((org.godot.Godot) materialOverride).setProperty("albedo_texture", viewport.call("get_texture"));
+                ((org.godot.Godot) materialOverride).setProperty("albedo_texture", viewport.getTexture());
             }
         }
 
         // Store camera base rotation
-        org.godot.Godot camera = (org.godot.Godot) call("get_node", "Camera3D");
+        org.godot.node.Camera3D camera = (org.godot.node.Camera3D) getNode("Camera3D");
         if (camera != null) {
             cameraBaseRotation = (Vector3) camera.getProperty("rotation");
         }
@@ -45,7 +46,7 @@ public class TwoDInThreeD extends Node3D {
     public void _process(double delta) {
         counter += delta;
 
-        org.godot.Godot camera = (org.godot.Godot) call("get_node", "Camera3D");
+        org.godot.node.Camera3D camera = (org.godot.node.Camera3D) getNode("Camera3D");
         if (camera != null && cameraBaseRotation != null) {
             double rx = cameraBaseRotation.getY() + Math.cos(counter) * CAMERA_IDLE_SCALE;
             double ry = cameraBaseRotation.getY() + Math.sin(counter) * CAMERA_IDLE_SCALE;

@@ -16,7 +16,7 @@ public class SSInputRoutingViewportContainer extends SubViewportContainer {
     }
 
     @GodotMethod
-    public boolean _propagate_input_event(Object inputEvent) {
+    public boolean PropagateInputEvent(Object inputEvent) {
         if (inputEvent instanceof org.godot.Godot) {
             org.godot.Godot evt = (org.godot.Godot) inputEvent;
             String className = (String) evt.call("get_class");

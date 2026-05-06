@@ -17,23 +17,23 @@ public class WebRTCMinimalChat extends Node {
         peer = (Godot) call("WebRTCPeerConnection.new");
         channel = (Godot) peer.call("create_data_channel", "chat", java.util.Map.of("negotiated", true, "id", 1));
 
-        peer.call("connect", "ice_candidate_created", new Callable(this, "_on_ice_candidate"), 0);
-        peer.call("connect", "session_description_created", new Callable(this, "_on_session"), 0);
+        peer.connect("ice_candidate_created", new Callable(this, "_on_ice_candidate"), 0);
+        peer.connect("session_description_created", new Callable(this, "_on_session"), 0);
 
         // Register to the local signaling server
-        Godot signaling = (Godot) call("get_node", "/root/Signaling");
+        Godot signaling = (Godot) getNode("/root/Signaling");
         signaling.call("register", String.valueOf(call("get_path")));
     }
 
     @GodotMethod
-    public void _on_ice_candidate(String media, int index, String sdp) {
-        Godot signaling = (Godot) call("get_node", "/root/Signaling");
+    public void OnIceCandidate(String media, int index, String sdp) {
+        Godot signaling = (Godot) getNode("/root/Signaling");
         signaling.call("send_candidate", String.valueOf(call("get_path")), media, index, sdp);
     }
 
     @GodotMethod
-    public void _on_session(String type, String sdp) {
-        Godot signaling = (Godot) call("get_node", "/root/Signaling");
+    public void OnSession(String type, String sdp) {
+        Godot signaling = (Godot) getNode("/root/Signaling");
         signaling.call("send_session", String.valueOf(call("get_path")), type, sdp);
         peer.call("set_local_description", type, sdp);
     }
@@ -51,7 +51,7 @@ public class WebRTCMinimalChat extends Node {
     }
 
     @GodotMethod
-    public void send_message(String message) {
+    public void sendMessage(String message) {
         byte[] data = message.getBytes();
         channel.call("put_packet", data);
     }

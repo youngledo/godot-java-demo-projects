@@ -14,7 +14,7 @@ public class DraggableRegion extends Area2D {
             if ("InputEventMouseButton".equals(className)) {
                 boolean pressed = (boolean) evt.getProperty("pressed");
                 if (pressed) {
-                    org.godot.Godot win = (org.godot.Godot) call("get_window");
+                    org.godot.Godot win = getWindow();
                     if (win != null) win.call("start_drag");
                 }
             }

@@ -2,6 +2,7 @@ package demos.xr.openxr_hand_tracking_demo.pickup;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.RigidBody3D;
+import org.godot.node.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +11,10 @@ import java.util.List;
 public class PickupAbleBody extends RigidBody3D {
 
     private org.godot.Godot highlightMaterial;
-    private org.godot.Godot pickedUpBy;
+    private org.godot.node.Node pickedUpBy;
     private List<org.godot.Godot> closestAreas = new ArrayList<>();
-    private org.godot.Godot originalParent;
-    private org.godot.Godot tween;
+    private org.godot.node.Node originalParent;
+    private org.godot.node.Tween tween;
 
     private boolean initialized = false;
 
@@ -49,23 +50,23 @@ public class PickupAbleBody extends RigidBody3D {
         }
 
         // Remember state.
-        originalParent = (org.godot.Godot) call("get_parent");
+        originalParent = (org.godot.node.Node) getParent();
         org.godot.math.Transform3D currentTransform = (org.godot.math.Transform3D) call("get_global_transform");
 
         // Remove from old parent.
-        originalParent.call("remove_child", this);
+        originalParent.removeChild(this);
 
         // Process pickup.
-        pickedUpBy = pickUpByNode;
-        pickedUpBy.call("add_child", this);
-        call("set_global_transform", currentTransform);
+        pickedUpBy = (org.godot.node.Node) pickUpByNode;
+        pickedUpBy.addChild(this);
+        setGlobalTransform(currentTransform);
         setProperty("freeze", true);
 
         // Kill existing tween and create new.
         if (tween != null) {
-            tween.call("kill");
+            tween.kill();
         }
-        tween = (org.godot.Godot) call("create_tween");
+        tween = (org.godot.node.Tween) call("create_tween");
 
         // Snap to transform (identity for now).
         org.godot.math.Transform3D snapTo = new org.godot.math.Transform3D();
@@ -77,36 +78,36 @@ public class PickupAbleBody extends RigidBody3D {
 
         // Cancel ongoing tween.
         if (tween != null) {
-            tween.call("kill");
+            tween.kill();
             tween = null;
         }
 
         org.godot.math.Transform3D currentTransform = (org.godot.math.Transform3D) call("get_global_transform");
 
-        pickedUpBy.call("remove_child", this);
+        pickedUpBy.removeChild(this);
         pickedUpBy = null;
 
-        originalParent.call("add_child", this);
-        call("set_global_transform", currentTransform);
+        originalParent.addChild(this);
+        setGlobalTransform(currentTransform);
         setProperty("freeze", false);
     }
 
     private void updateHighlight() {
-        if (pickedUpBy == null && !closestAreas.isEmpty()) {
+        if (pickedUpBy == null && !closestAreas.isEmpty() ) {
             // Add highlight.
-            int childCount = (int) call("get_child_count");
+            int childCount = (int) getChildCount();
             for (int i = 0; i < childCount; i++) {
-                org.godot.Godot child = (org.godot.Godot) call("get_child", i);
-                if (child != null && "MeshInstance3D".equals(child.call("get_class"))) {
+                org.godot.node.Node child = getChild(i);
+                if (child != null && "MeshInstance3D".equals(child.get_class_())) {
                     child.setProperty("material_overlay", highlightMaterial);
                 }
             }
         } else {
             // Remove highlight.
-            int childCount = (int) call("get_child_count");
+            int childCount = (int) getChildCount();
             for (int i = 0; i < childCount; i++) {
-                org.godot.Godot child = (org.godot.Godot) call("get_child", i);
-                if (child != null && "MeshInstance3D".equals(child.call("get_class"))) {
+                org.godot.node.Node child = getChild(i);
+                if (child != null && "MeshInstance3D".equals(child.get_class_())) {
                     child.setProperty("material_overlay", null);
                 }
             }

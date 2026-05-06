@@ -3,6 +3,7 @@ package demos.threed.tonemap_color_correction;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "TCCTestScene", parent = "Node3D")
 public class TCCTestScene extends Node3D {

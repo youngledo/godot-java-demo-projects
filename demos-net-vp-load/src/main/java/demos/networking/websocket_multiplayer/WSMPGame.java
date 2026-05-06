@@ -20,25 +20,25 @@ public class WSMPGame extends Control {
 
     @Override
     public void _ready() {
-        list = (Godot) call("get_node", "HBoxContainer/VBoxContainer/ItemList");
-        action = (Godot) call("get_node", "HBoxContainer/VBoxContainer/Action");
+        list = (Godot) getNode("HBoxContainer/VBoxContainer/ItemList");
+        action = (Godot) getNode("HBoxContainer/VBoxContainer/Action");
     }
 
     @GodotMethod
     public void _log(String message) {
-        Godot rtl = (Godot) call("get_node", "HBoxContainer/RichTextLabel");
+        Godot rtl = (Godot) getNode("HBoxContainer/RichTextLabel");
         rtl.call("add_text", message + "\n");
     }
 
     @GodotMethod
-    public void set_player_name(String pName) {
+    public void setPlayerName(String pName) {
         if (!(boolean) call("is_multiplayer_authority")) return;
         long sender = (long) call("multiplayer.get_remote_sender_id");
         call("rpc", "update_player_name", (int) sender, pName);
     }
 
     @GodotMethod
-    public void update_player_name(int player, String pName) {
+    public void updatePlayerName(int player, String pName) {
         int pos = players.indexOf(player);
         if (pos != -1) {
             list.call("set_item_text", pos, pName);
@@ -46,7 +46,7 @@ public class WSMPGame extends Control {
     }
 
     @GodotMethod
-    public void request_action(String actionStr) {
+    public void requestAction(String actionStr) {
         if (!(boolean) call("is_multiplayer_authority")) return;
         long sender = (long) call("multiplayer.get_remote_sender_id");
         if (players.get(turn) != (int) sender) {
@@ -72,7 +72,7 @@ public class WSMPGame extends Control {
     }
 
     @GodotMethod
-    public void set_turn(int turnVal) {
+    public void setTurn(int turnVal) {
         this.turn = turnVal;
         if (turnVal >= players.size()) return;
 
@@ -84,13 +84,13 @@ public class WSMPGame extends Control {
             }
         }
 
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         long uniqueId = (long) mp.call("get_unique_id");
         action.setProperty("disabled", players.get(turnVal) != (int) uniqueId);
     }
 
     @GodotMethod
-    public void del_player(int id) {
+    public void delPlayer(int id) {
         int pos = players.indexOf(id);
         if (pos == -1) return;
 
@@ -105,9 +105,9 @@ public class WSMPGame extends Control {
     }
 
     @GodotMethod
-    public void add_player(int id, String pName) {
+    public void addPlayer(int id, String pName) {
         players.add(id);
-        if (pName == null || pName.isEmpty()) {
+        if (pName == null || pName.isEmpty() ) {
             list.call("add_item", "... connecting ...", null, false);
         } else {
             list.call("add_item", pName, null, false);
@@ -129,7 +129,7 @@ public class WSMPGame extends Control {
 
     @GodotMethod
     public void start() {
-        set_turn(0);
+        setTurn(0);
     }
 
     @GodotMethod
@@ -141,24 +141,24 @@ public class WSMPGame extends Control {
     }
 
     @GodotMethod
-    public void on_peer_add(int id) {
+    public void onPeerAdd(int id) {
         if (!(boolean) call("multiplayer.is_server")) return;
 
         for (int i = 0; i < players.size(); i++) {
             call("rpc_id", id, "add_player", players.get(i), getPlayerName(i));
         }
-        call("rpc", id, "add_player", "");
+        call("rpc_id", id, "add_player", id, "");
         call("rpc_id", id, "set_turn", turn);
     }
 
     @GodotMethod
-    public void on_peer_del(int id) {
+    public void onPeerDel(int id) {
         if (!(boolean) call("multiplayer.is_server")) return;
         call("rpc", "del_player", id);
     }
 
     @GodotMethod
-    public void _on_Action_pressed() {
+    public void OnActionPressed() {
         if ((boolean) call("multiplayer.is_server")) {
             if (turn != 0) return;
             doAction("roll");

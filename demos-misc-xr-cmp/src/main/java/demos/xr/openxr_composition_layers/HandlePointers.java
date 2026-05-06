@@ -2,6 +2,7 @@ package demos.xr.openxr_composition_layers;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "HandlePointers", parent = "Node3D")
 public class HandlePointers extends Node3D {

@@ -15,10 +15,10 @@ public class WSChatClientUI extends Control {
 
     @Override
     public void _ready() {
-        client = (Godot) call("get_node", "WebSocketClient");
-        logDest = (Godot) call("get_node", "Panel/VBoxContainer/RichTextLabel");
-        lineEdit = (Godot) call("get_node", "Panel/VBoxContainer/Send/LineEdit");
-        host = (Godot) call("get_node", "Panel/VBoxContainer/Connect/Host");
+        client = (Godot) getNode("WebSocketClient");
+        logDest = (Godot) getNode("Panel/VBoxContainer/RichTextLabel");
+        lineEdit = (Godot) getNode("Panel/VBoxContainer/Send/LineEdit");
+        host = (Godot) getNode("Panel/VBoxContainer/Connect/Host");
     }
 
     private void info(String msg) {
@@ -27,7 +27,7 @@ public class WSChatClientUI extends Control {
     }
 
     @GodotMethod
-    public void _on_web_socket_client_connection_closed() {
+    public void OnWebSocketClientConnectionClosed() {
         Godot ws = (Godot) client.call("get_socket");
         long code = (long) ws.call("get_close_code");
         String reason = (String) ws.call("get_close_reason");
@@ -35,19 +35,19 @@ public class WSChatClientUI extends Control {
     }
 
     @GodotMethod
-    public void _on_web_socket_client_connected_to_server() {
+    public void OnWebSocketClientConnectedToServer() {
         Godot ws = (Godot) client.call("get_socket");
         String protocol = (String) ws.call("get_selected_protocol");
         info("Client just connected with protocol: " + protocol);
     }
 
     @GodotMethod
-    public void _on_web_socket_client_message_received(String message) {
+    public void OnWebSocketClientMessageReceived(String message) {
         info(message);
     }
 
     @GodotMethod
-    public void _on_send_pressed() {
+    public void OnSendPressed() {
         String text = (String) lineEdit.getProperty("text");
         if (text == null || text.isEmpty()) return;
 
@@ -57,7 +57,7 @@ public class WSChatClientUI extends Control {
     }
 
     @GodotMethod
-    public void _on_connect_toggled(boolean pressed) {
+    public void OnConnectToggled(boolean pressed) {
         if (!pressed) {
             client.call("closeConnection");
             return;

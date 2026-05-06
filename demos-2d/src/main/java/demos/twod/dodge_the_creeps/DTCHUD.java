@@ -4,14 +4,15 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.node.CanvasLayer;
+import org.godot.node.Node;
 
 @GodotClass(name = "DTCHUD", parent = "CanvasLayer")
 public class DTCHUD extends CanvasLayer {
 
-	private org.godot.Godot messageLabel;
-	private org.godot.Godot messageTimer;
-	private org.godot.Godot startButton;
-	private org.godot.Godot scoreLabel;
+	private org.godot.node.Label messageLabel;
+	private org.godot.node.Node messageTimer;
+	private org.godot.node.Button startButton;
+	private org.godot.node.Label scoreLabel;
 	private boolean initialized = false;
 
 	@Override
@@ -20,10 +21,10 @@ public class DTCHUD extends CanvasLayer {
 		initialized = true;
 
 		call("add_user_signal", "start_game");
-		messageLabel = (org.godot.Godot) call("get_node", "MessageLabel");
-		messageTimer = (org.godot.Godot) call("get_node", "MessageTimer");
-		startButton = (org.godot.Godot) call("get_node", "StartButton");
-		scoreLabel = (org.godot.Godot) call("get_node", "ScoreLabel");
+		messageLabel = (org.godot.node.Label) getNode("MessageLabel");
+		messageTimer = getNode("MessageTimer");
+		startButton = (org.godot.node.Button) getNode("StartButton");
+		scoreLabel = (org.godot.node.Label) getNode("ScoreLabel");
 
 		if (startButton != null) {
 			startButton.connect("pressed", new Callable(this, "_on_start_button_pressed"), 0);
@@ -37,7 +38,7 @@ public class DTCHUD extends CanvasLayer {
 	public void showMessage(String text) {
 		if (messageLabel != null) {
 			messageLabel.setProperty("text", text);
-			messageLabel.call("show");
+			messageLabel.show();
 		}
 		if (messageTimer != null) messageTimer.call("start");
 	}
@@ -48,26 +49,26 @@ public class DTCHUD extends CanvasLayer {
 		// Simplified: no await, just show restart after delay
 		if (messageLabel != null) {
 			messageLabel.setProperty("text", "Dodge the\nCreeps");
-			messageLabel.call("show");
+			messageLabel.show();
 		}
-		if (startButton != null) startButton.call("show");
+		if (startButton != null) startButton.show();
 	}
 
 	@GodotMethod
-	public void update_score(long newScore) {
+	public void updateScore(long newScore) {
 		if (scoreLabel != null) {
 			scoreLabel.setProperty("text", String.valueOf(newScore));
 		}
 	}
 
 	@GodotMethod
-	public void _on_start_button_pressed() {
-		if (startButton != null) startButton.call("hide");
-		call("emit_signal", "start_game");
+	public void OnStartButtonPressed() {
+		if (startButton != null) startButton.hide();
+		emitSignal("start_game");
 	}
 
 	@GodotMethod
-	public void _on_message_timer_timeout() {
-		if (messageLabel != null) messageLabel.call("hide");
+	public void OnMessageTimerTimeout() {
+		if (messageLabel != null) messageLabel.hide();
 	}
 }

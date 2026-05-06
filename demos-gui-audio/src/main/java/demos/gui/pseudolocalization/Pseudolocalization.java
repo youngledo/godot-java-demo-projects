@@ -3,6 +3,7 @@ package demos.gui.pseudolocalization;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "Pseudolocalization", parent = "Control")
 public class Pseudolocalization extends Control {
@@ -17,15 +18,15 @@ public class Pseudolocalization extends Control {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
 
-        org.godot.Godot accents = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/accents");
-        org.godot.Godot toggle = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/toggle");
-        org.godot.Godot fakebidi = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/fakebidi");
-        org.godot.Godot doublevowels = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/doublevowels");
-        org.godot.Godot overrideBtn = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/override");
-        org.godot.Godot skipplaceholders = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/skipplaceholders");
-        org.godot.Godot prefixTextEdit = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/prefix/TextEdit");
-        org.godot.Godot suffixTextEdit = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/suffix/TextEdit");
-        org.godot.Godot expRatioSpinBox = (org.godot.Godot) call("get_node", "Main/Pseudolocalization_options/exp_ratio/SpinBox");
+        org.godot.node.Node accents = getNode("Main/Pseudolocalization_options/accents");
+        org.godot.node.Node toggle = getNode("Main/Pseudolocalization_options/toggle");
+        org.godot.node.Node fakebidi = getNode("Main/Pseudolocalization_options/fakebidi");
+        org.godot.node.Node doublevowels = getNode("Main/Pseudolocalization_options/doublevowels");
+        org.godot.node.Node overrideBtn = getNode("Main/Pseudolocalization_options/override");
+        org.godot.node.Node skipplaceholders = getNode("Main/Pseudolocalization_options/skipplaceholders");
+        org.godot.node.TextEdit prefixTextEdit = (org.godot.node.TextEdit) getNode("Main/Pseudolocalization_options/prefix/TextEdit");
+        org.godot.node.TextEdit suffixTextEdit = (org.godot.node.TextEdit) getNode("Main/Pseudolocalization_options/suffix/TextEdit");
+        org.godot.node.SpinBox expRatioSpinBox = (org.godot.node.SpinBox) getNode("Main/Pseudolocalization_options/exp_ratio/SpinBox");
 
         if (accents != null) accents.setProperty("button_pressed", ps.call("get_setting", "internationalization/pseudolocalization/replace_with_accents"));
         if (toggle != null) toggle.setProperty("button_pressed", ts.getProperty("pseudolocalization_enabled"));
@@ -42,7 +43,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_accents_toggled(boolean buttonPressed) {
+    public void OnAccentsToggled(boolean buttonPressed) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/replace_with_accents", buttonPressed);
@@ -50,13 +51,13 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_toggle_toggled(boolean buttonPressed) {
+    public void OnToggleToggled(boolean buttonPressed) {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ts.setProperty("pseudolocalization_enabled", buttonPressed);
     }
 
     @GodotMethod
-    public void _on_fake_bidi_toggled(boolean buttonPressed) {
+    public void OnFakeBidiToggled(boolean buttonPressed) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/fake_bidi", buttonPressed);
@@ -64,7 +65,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_prefix_changed(String newText) {
+    public void OnPrefixChanged(String newText) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/prefix", newText);
@@ -72,7 +73,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_suffix_changed(String newText) {
+    public void OnSuffixChanged(String newText) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/suffix", newText);
@@ -80,10 +81,10 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_pseudolocalize_pressed() {
+    public void OnPseudolocalizePressed() {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        org.godot.Godot keyTextEdit = (org.godot.Godot) call("get_node", "Main/Pseudolocalizer/Key");
-        org.godot.Godot resultTextEdit = (org.godot.Godot) call("get_node", "Main/Pseudolocalizer/Result");
+        org.godot.node.Node keyTextEdit = getNode("Main/Pseudolocalizer/Key");
+        org.godot.node.Node resultTextEdit = getNode("Main/Pseudolocalizer/Result");
         if (keyTextEdit != null && resultTextEdit != null) {
             String keyText = (String) keyTextEdit.getProperty("text");
             String result = (String) ts.call("pseudolocalize", keyText);
@@ -92,7 +93,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_double_vowels_toggled(boolean buttonPressed) {
+    public void OnDoubleVowelsToggled(boolean buttonPressed) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/double_vowels", buttonPressed);
@@ -100,7 +101,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_expansion_ratio_value_changed(double value) {
+    public void OnExpansionRatioValueChanged(double value) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/expansion_ratio", value);
@@ -108,7 +109,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_override_toggled(boolean buttonPressed) {
+    public void OnOverrideToggled(boolean buttonPressed) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/override", buttonPressed);
@@ -116,7 +117,7 @@ public class Pseudolocalization extends Control {
     }
 
     @GodotMethod
-    public void _on_skip_placeholders_toggled(boolean buttonPressed) {
+    public void OnSkipPlaceholdersToggled(boolean buttonPressed) {
         org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ps.call("set_setting", "internationalization/pseudolocalization/skip_placeholders", buttonPressed);

@@ -10,6 +10,7 @@ import org.godot.node.ColorRect;
 import org.godot.node.Label;
 import org.godot.node.Node2D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "PongGame", parent = "Node2D")
 public class PongGame extends Node2D {
@@ -45,33 +46,33 @@ public class PongGame extends Node2D {
 
 		// Background
 		ColorRect bg = ColorRect.create();
-		bg.call("set_color", new Color(0.141176, 0.152941, 0.164706));
-		bg.call("set_size", new Vector2(WIDTH, HEIGHT));
-		add_child(bg, false, 0);
+		bg.setColor(new Color(0.141176, 0.152941, 0.164706));
+		bg.setSize(new Vector2(WIDTH, HEIGHT));
+		addChild(bg, false, 0);
 
 		// Separator
 		ColorRect sep = ColorRect.create();
-		sep.call("set_color", new Color(0.3, 0.3, 0.3));
-		sep.call("set_size", new Vector2(2, HEIGHT));
-		sep.call("set_position", new Vector2(WIDTH / 2 - 1, 0));
-		add_child(sep, false, 0);
+		sep.setColor(new Color(0.3, 0.3, 0.3));
+		sep.setSize(new Vector2(2, HEIGHT));
+		sep.setPosition(new Vector2(WIDTH / 2 - 1, 0));
+		addChild(sep, false, 0);
 
 		// Ball
 		ball = ColorRect.create();
 		ball.call("set_color", new Color(1, 1, 1));
 		ball.call("set_size", new Vector2(BALL_SIZE, BALL_SIZE));
-		add_child(ball, false, 0);
+		addChild(ball, false, 0);
 
 		// Paddles
 		leftPaddle = ColorRect.create();
 		leftPaddle.call("set_color", new Color(0, 1, 1));
 		leftPaddle.call("set_size", new Vector2(PADDLE_W, PADDLE_H));
-		add_child(leftPaddle, false, 0);
+		addChild(leftPaddle, false, 0);
 
 		rightPaddle = ColorRect.create();
-		rightPaddle.call("set_color", new Color(1, 0, 1));
-		rightPaddle.call("set_size", new Vector2(PADDLE_W, PADDLE_H));
-		add_child(rightPaddle, false, 0);
+		rightPaddle.setColor(new Color(1, 0, 1));
+		rightPaddle.setSize(new Vector2(PADDLE_W, PADDLE_H));
+		addChild(rightPaddle, false, 0);
 
 		resetBall(-1);
 		leftY = HEIGHT / 2;
@@ -84,11 +85,11 @@ public class PongGame extends Node2D {
 		Input input = Input.singleton();
 
 		// Left paddle (W/S)
-		double leftInput = input.get_action_strength("left_move_down", false) - input.get_action_strength("left_move_up", false);
+		double leftInput = input.getActionStrength("left_move_down", false) - input.getActionStrength("left_move_up", false);
 		leftY = clamp(leftY + leftInput * paddleSpeed * delta, PADDLE_H / 2, leftScreenY - PADDLE_H / 2);
 
 		// Right paddle (Up/Down)
-		double rightInput = input.get_action_strength("right_move_down", false) - input.get_action_strength("right_move_up", false);
+		double rightInput = input.getActionStrength("right_move_down", false) - input.getActionStrength("right_move_up", false);
 		rightY = clamp(rightY + rightInput * paddleSpeed * delta, PADDLE_H / 2, leftScreenY - PADDLE_H / 2);
 
 		// Ball movement
@@ -108,7 +109,7 @@ public class PongGame extends Node2D {
 		// Left paddle collision
 		double lpx = PADDLE_OFFSET;
 		if (ballVX < 0 && ballX - BALL_SIZE / 2 <= lpx + PADDLE_W && ballX + BALL_SIZE / 2 >= lpx
-				&& ballY >= leftY - PADDLE_H / 2 - BALL_SIZE / 2 && ballY <= leftY + PADDLE_H / 2 + BALL_SIZE / 2) {
+					&& ballY >= leftY - PADDLE_H / 2 - BALL_SIZE / 2 && ballY <= leftY + PADDLE_H / 2 + BALL_SIZE / 2) {
 			ballX = lpx + PADDLE_W + BALL_SIZE / 2;
 			bounceOffPaddle(leftY, 1);
 		}
@@ -116,7 +117,7 @@ public class PongGame extends Node2D {
 		// Right paddle collision
 		double rpx = WIDTH - PADDLE_OFFSET - PADDLE_W;
 		if (ballVX > 0 && ballX + BALL_SIZE / 2 >= rpx && ballX - BALL_SIZE / 2 <= rpx + PADDLE_W
-				&& ballY >= rightY - PADDLE_H / 2 - BALL_SIZE / 2 && ballY <= rightY + PADDLE_H / 2 + BALL_SIZE / 2) {
+					&& ballY >= rightY - PADDLE_H / 2 - BALL_SIZE / 2 && ballY <= rightY + PADDLE_H / 2 + BALL_SIZE / 2) {
 			ballX = rpx - BALL_SIZE / 2;
 			bounceOffPaddle(rightY, -1);
 		}
@@ -146,9 +147,9 @@ public class PongGame extends Node2D {
 	}
 
 	private void updatePositions() {
-		ball.call("set_position", new Vector2(ballX - BALL_SIZE / 2, ballY - BALL_SIZE / 2));
-		leftPaddle.call("set_position", new Vector2(PADDLE_OFFSET, leftY - PADDLE_H / 2));
-		rightPaddle.call("set_position", new Vector2(WIDTH - PADDLE_OFFSET - PADDLE_W, rightY - PADDLE_H / 2));
+		ball.setPosition(new Vector2(ballX - BALL_SIZE / 2, ballY - BALL_SIZE / 2));
+		leftPaddle.setPosition(new Vector2(PADDLE_OFFSET, leftY - PADDLE_H / 2));
+		rightPaddle.setPosition(new Vector2(WIDTH - PADDLE_OFFSET - PADDLE_W, rightY - PADDLE_H / 2));
 	}
 
 	private static double clamp(double value, double min, double max) {

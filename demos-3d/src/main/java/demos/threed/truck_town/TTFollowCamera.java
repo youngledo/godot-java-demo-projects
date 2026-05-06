@@ -4,6 +4,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Camera3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "TTFollowCamera", parent = "Camera3D")
 public class TTFollowCamera extends Camera3D {
@@ -55,7 +56,7 @@ public class TTFollowCamera extends Camera3D {
 	@Override
 	public void _physicsProcess(double delta) {
 		if (cameraType == 0) { // EXTERIOR
-			org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+			org.godot.Godot parent = (org.godot.Godot) getParent();
 			if (parent == null) return;
 
 			Object parentTransform = parent.getProperty("global_transform");
@@ -76,9 +77,9 @@ public class TTFollowCamera extends Camera3D {
 			}
 
 			Vector3 newPos = new Vector3(target.getX() + fromTarget.getX(), target.getY() + height, target.getZ() + fromTarget.getZ());
-			call("look_at_from_position", newPos, target, new Vector3(0, 1, 0));
+			lookAtFromPosition(newPos, target, new Vector3(0, 1, 0));
 		} else if (cameraType == 2) { // TOP_DOWN
-			org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+			org.godot.Godot parent = (org.godot.Godot) getParent();
 			if (parent != null) {
 				Vector3 parentPos = (Vector3) parent.getProperty("global_position");
 				if (parentPos != null) {
@@ -109,8 +110,8 @@ public class TTFollowCamera extends Camera3D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		if ((boolean) ev.call("is_action_pressed", "cycle_camera")) {
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		if ((boolean) ev.isActionPressed("cycle_camera")) {
 			cameraType = (cameraType + 1) % 3;
 			if (cameraType == 0) {
 				// Reset to initial transform
@@ -119,7 +120,7 @@ public class TTFollowCamera extends Camera3D {
 				}
 			} else if (cameraType == 1) {
 				// Interior camera
-				org.godot.Godot interior = (org.godot.Godot) call("get_node", "../../InteriorCameraPosition");
+				org.godot.node.Node interior = getNode("../../InteriorCameraPosition");
 				if (interior != null) {
 					Object gt = interior.getProperty("global_transform");
 					if (gt != null) {
@@ -128,7 +129,7 @@ public class TTFollowCamera extends Camera3D {
 				}
 			} else if (cameraType == 2) {
 				// Top-down
-				org.godot.Godot topDown = (org.godot.Godot) call("get_node", "../../TopDownCameraPosition");
+				org.godot.node.Node topDown = getNode("../../TopDownCameraPosition");
 				if (topDown != null) {
 					Object gt = topDown.getProperty("global_transform");
 					if (gt != null) {

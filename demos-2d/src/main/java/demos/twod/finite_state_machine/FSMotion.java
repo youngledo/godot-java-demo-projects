@@ -10,11 +10,11 @@ public class FSMotion extends FSState {
 
     @Override
     public boolean handleInput(Object inputEvent) {
-        org.godot.Godot event = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent event = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (event != null) {
             Object pressed = event.call("is_action_pressed", "simulate_damage");
             if (pressed instanceof Boolean && (Boolean) pressed) {
-                org.godot.Godot sm = (org.godot.Godot) call("get_parent");
+                org.godot.Godot sm = getParent();
                 if (sm instanceof FSStateMachine) {
                     ((FSStateMachine) sm).pushState(STAGGER);
                 } else {

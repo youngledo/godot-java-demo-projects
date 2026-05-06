@@ -15,8 +15,8 @@ public class Troll extends CharacterBody2D {
 	@Override
 	public void _physicsProcess(double delta) {
 		Input input = Input.singleton();
-		double motionX = input.get_axis("move_left", "move_right");
-		double motionY = input.get_axis("move_up", "move_down") * TAN30DEG;
+		double motionX = input.getAxis("move_left", "move_right");
+		double motionY = input.getAxis("move_up", "move_down") * TAN30DEG;
 
 		double len = Math.sqrt(motionX * motionX + motionY * motionY);
 		if (len > 0) {
@@ -29,7 +29,7 @@ public class Troll extends CharacterBody2D {
 		double vy = vel.getY() + motionY * MOTION_SPEED;
 		vx *= FRICTION_FACTOR;
 		vy *= FRICTION_FACTOR;
-		call("set_velocity", new Vector2(vx, vy));
-		call("move_and_slide");
+		setVelocity(new Vector2(vx, vy));
+		moveAndSlide();
 	}
 }

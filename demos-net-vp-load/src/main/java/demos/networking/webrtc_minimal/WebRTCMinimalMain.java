@@ -17,18 +17,18 @@ public class WebRTCMinimalMain extends Node {
         if (p2 != null) call("add_child", p2, false, 0);
 
         // Wait one second and send message from P1.
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         Godot timer1 = (Godot) tree.call("create_timer", 1.0);
-        timer1.call("connect", "timeout", new org.godot.core.Callable(this, "_send_p1"), 0);
+        timer1.connect("timeout", new org.godot.core.Callable(this, "_send_p1"), 0);
 
         // Wait two seconds and send message from P2.
         Godot timer2 = (Godot) tree.call("create_timer", 2.0);
-        timer2.call("connect", "timeout", new org.godot.core.Callable(this, "_send_p2"), 0);
+        timer2.connect("timeout", new org.godot.core.Callable(this, "_send_p2"), 0);
     }
 
     @org.godot.annotation.GodotMethod
-    public void _send_p1() {
-        Godot p1 = (Godot) call("get_child", 0);
+    public void SendP1() {
+        Godot p1 = (Godot) getChild(0);
         if (p1 != null) {
             String path = String.valueOf(p1.call("get_path"));
             p1.call("send_message", "Hi from " + path);
@@ -36,8 +36,8 @@ public class WebRTCMinimalMain extends Node {
     }
 
     @org.godot.annotation.GodotMethod
-    public void _send_p2() {
-        Godot p2 = (Godot) call("get_child", 1);
+    public void SendP2() {
+        Godot p2 = (Godot) getChild(1);
         if (p2 != null) {
             String path = String.valueOf(p2.call("get_path"));
             p2.call("send_message", "Hi from " + path);

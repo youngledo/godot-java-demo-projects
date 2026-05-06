@@ -6,6 +6,7 @@ import org.godot.node.RigidBody3D;
 import org.godot.math.Vector3;
 import org.godot.math.Basis;
 import org.godot.math.Transform3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "PLEnemy", parent = "RigidBody3D")
 public class PLEnemy extends RigidBody3D {
@@ -20,9 +21,9 @@ public class PLEnemy extends RigidBody3D {
 	private double rotDir = 4.0;
 
 	private Vector3 gravity = new Vector3(0, -9.8, 0);
-	private org.godot.Godot animationPlayer;
-	private org.godot.Godot rayFloor;
-	private org.godot.Godot rayWall;
+	private org.godot.node.AnimationPlayer animationPlayer;
+	private org.godot.node.Node rayFloor;
+	private org.godot.node.Node rayWall;
 	private boolean initialized = false;
 
 	@Override
@@ -39,9 +40,9 @@ public class PLEnemy extends RigidBody3D {
 			gravity = gravDir.mul(gravMag);
 		}
 
-		animationPlayer = (org.godot.Godot) call("get_node", "Enemy/AnimationPlayer");
-		rayFloor = (org.godot.Godot) call("get_node", "Enemy/Skeleton/RayFloor");
-		rayWall = (org.godot.Godot) call("get_node", "Enemy/Skeleton/RayWall");
+		animationPlayer = (org.godot.node.AnimationPlayer) getNode("Enemy/AnimationPlayer");
+		rayFloor = getNode("Enemy/Skeleton/RayFloor");
+		rayWall = getNode("Enemy/Skeleton/RayWall");
 	}
 
 	@Override
@@ -60,7 +61,7 @@ public class PLEnemy extends RigidBody3D {
 			advance = floorColliding && !wallColliding;
 		}
 
-		org.godot.Godot skeleton = (org.godot.Godot) call("get_node", "Enemy/Skeleton");
+		org.godot.node.Node skeleton = getNode("Enemy/Skeleton");
 		Vector3 dir = Vector3.FORWARD;
 		if (skeleton != null) {
 			Object skelXform = skeleton.call("get_transform");
@@ -73,7 +74,7 @@ public class PLEnemy extends RigidBody3D {
 
 		if (advance) {
 			if (dir.dot(linVelocity) < MAX_SPEED) {
-				apply_central_force(dir.mul(ACCEL));
+				applyCentralForce(dir.mul(ACCEL));
 			}
 			deaccelDir = dir.cross(gravity).normalized();
 		} else {
@@ -95,7 +96,7 @@ public class PLEnemy extends RigidBody3D {
 		if (dspeed < 0) dspeed = 0;
 
 		linVelocity = linVelocity.sub(deaccelDir.mul(deaccelDir.dot(linVelocity))).add(deaccelDir.mul(dspeed));
-		call("set_linear_velocity", linVelocity);
+		setLinearVelocity(linVelocity);
 
 		prevAdvance = advance;
 	}
@@ -109,12 +110,12 @@ public class PLEnemy extends RigidBody3D {
 		setProperty("collision_layer", 0L);
 
 		if (animationPlayer != null) {
-			animationPlayer.call("play", "impact");
-			animationPlayer.call("queue", "extra/explode");
+			animationPlayer.play("impact");
+			animationPlayer.queue("extra/explode");
 		}
-		org.godot.Godot soundWalk = (org.godot.Godot) call("get_node", "SoundWalkLoop");
+		org.godot.node.Node soundWalk = getNode("SoundWalkLoop");
 		if (soundWalk != null) soundWalk.call("stop");
-		org.godot.Godot soundHit = (org.godot.Godot) call("get_node", "SoundHit");
+		org.godot.node.Node soundHit = getNode("SoundHit");
 		if (soundHit != null) soundHit.call("play");
 	}
 }

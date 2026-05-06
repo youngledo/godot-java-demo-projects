@@ -2,6 +2,7 @@ package demos.twod.role_playing_game;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "RPPawn", parent = "Node2D")
 public class RPPawn extends Node2D {
@@ -26,8 +27,8 @@ public class RPPawn extends Node2D {
 
     public void setActive(boolean value) {
         active = value;
-        call("set_process", value);
-        call("set_process_input", value);
+        setProcess(value);
+        setProcessInput(value);
     }
 
     public boolean isActive() { return active; }

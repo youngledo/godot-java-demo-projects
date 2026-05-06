@@ -3,6 +3,8 @@ package demos.gui.translation;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Panel;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "TranslationCsv", parent = "Panel")
 public class TranslationCsv extends Panel {
@@ -18,36 +20,36 @@ public class TranslationCsv extends Panel {
     }
 
     @GodotMethod
-    public void _on_english_pressed() {
+    public void OnEnglishPressed() {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ts.call("set_locale", "en");
         printIntro();
     }
 
     @GodotMethod
-    public void _on_spanish_pressed() {
+    public void OnSpanishPressed() {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ts.call("set_locale", "es");
         printIntro();
     }
 
     @GodotMethod
-    public void _on_japanese_pressed() {
+    public void OnJapanesePressed() {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ts.call("set_locale", "ja");
         printIntro();
     }
 
     @GodotMethod
-    public void _on_russian_pressed() {
+    public void OnRussianPressed() {
         org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
         ts.call("set_locale", "ru");
         printIntro();
     }
 
     @GodotMethod
-    public void _on_play_audio_pressed() {
-        org.godot.Godot audio = (org.godot.Godot) call("get_node", "Audio");
+    public void OnPlayAudioPressed() {
+        org.godot.node.Node audio = getNode("Audio");
         if (audio != null) audio.call("play");
     }
 
@@ -60,12 +62,12 @@ public class TranslationCsv extends Panel {
     }
 
     @GodotMethod
-    public void _on_go_to_po_translation_demo_pressed() {
-        org.godot.Godot tree = (org.godot.Godot) call("get_tree");
+    public void OnGoToPoTranslationDemoPressed() {
+        org.godot.node.SceneTree tree = getTree();
         if (tree != null) {
-            Object packedScene = call("load", "res://translation_demo_po.tscn");
+            org.godot.node.PackedScene packedScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://translation_demo_po.tscn");
             if (packedScene != null) {
-                tree.call("change_scene_to_packed", packedScene);
+                tree.changeSceneToPacked(packedScene);
             }
         }
     }

@@ -5,14 +5,15 @@ import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector3;
 import org.godot.node.Node;
+import org.godot.node.SceneTree;
 
 @GodotClass(name = "STCMain", parent = "Node")
 public class STCMain extends Node {
 
-	private org.godot.Godot mobTimer;
-	private org.godot.Godot retry;
-	private org.godot.Godot scoreLabel;
-	private org.godot.Godot player;
+	private org.godot.node.Node mobTimer;
+	private org.godot.node.Control retry;
+	private org.godot.node.Label scoreLabel;
+	private org.godot.node.Node player;
 	private boolean initialized = false;
 
 	@Override
@@ -20,12 +21,12 @@ public class STCMain extends Node {
 		if (initialized) return;
 		initialized = true;
 
-		mobTimer = (org.godot.Godot) call("get_node", "MobTimer");
-		retry = (org.godot.Godot) call("get_node", "UserInterface/Retry");
-		scoreLabel = (org.godot.Godot) call("get_node", "UserInterface/ScoreLabel");
-		player = (org.godot.Godot) call("get_node", "Player");
+		mobTimer = getNode("MobTimer");
+		retry = (org.godot.node.Control) getNode("UserInterface/Retry");
+		scoreLabel = (org.godot.node.Label) getNode("UserInterface/ScoreLabel");
+		player = getNode("Player");
 
-		if (retry != null) retry.call("hide");
+		if (retry != null) retry.hide();
 
 		// Connect mob timer
 		if (mobTimer != null) {
@@ -50,11 +51,11 @@ public class STCMain extends Node {
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		if ((boolean) ev.call("is_action_pressed", "ui_accept")) {
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		if ((boolean) ev.isActionPressed("ui_accept")) {
 			if (retry != null && (boolean) retry.getProperty("visible")) {
-				org.godot.Godot tree = (org.godot.Godot) call("get_tree");
-				if (tree != null) tree.call("reload_current_scene");
+				org.godot.node.SceneTree tree = getTree();
+				if (tree != null) tree.reloadCurrentScene();
 				return true;
 			}
 		}
@@ -62,18 +63,18 @@ public class STCMain extends Node {
 	}
 
 	@GodotMethod
-	public void _on_mob_timer_timeout() {
+	public void OnMobTimerTimeout() {
 		// Create mob from scene
-		org.godot.Godot loader = (org.godot.Godot) call("get_node", "/root/ResourceLoader");
+		org.godot.node.Node loader = getNode("/root/ResourceLoader");
 		// Use load to get mob scene
-		Object mobSceneObj = call("load", "res://Mob.tscn");
+		org.godot.node.PackedScene mobSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://Mob.tscn");
 		if (mobSceneObj == null) return;
 
-		org.godot.Godot mobScene = (org.godot.Godot) mobSceneObj;
-		org.godot.Godot mob = (org.godot.Godot) mobScene.call("instantiate");
+		org.godot.node.PackedScene mobScene = (org.godot.node.PackedScene) mobSceneObj;
+		org.godot.node.Node mob = (org.godot.node.Node) mobScene.instantiate();
 
 		// Choose random location on SpawnPath
-		org.godot.Godot spawnLocation = (org.godot.Godot) call("get_node", "SpawnPath/SpawnLocation");
+		org.godot.node.Node spawnLocation = getNode("SpawnPath/SpawnLocation");
 		if (spawnLocation != null) {
 			spawnLocation.setProperty("progress_ratio", Math.random());
 		}
@@ -83,7 +84,7 @@ public class STCMain extends Node {
 		Vector3 playerPos = player != null ? (Vector3) player.getProperty("position") : new Vector3(0, 0, 0);
 		mob.call("initialize", spawnPos, playerPos);
 
-		call("add_child", mob);
+		addChild(mob);
 
 		// Connect mob's squashed signal to score label
 		mob.call("add_user_signal", "squashed");
@@ -91,13 +92,13 @@ public class STCMain extends Node {
 	}
 
 	@GodotMethod
-	public void _on_player_hit() {
+	public void OnPlayerHit() {
 		if (mobTimer != null) mobTimer.call("stop");
-		if (retry != null) retry.call("show");
+		if (retry != null) retry.show();
 	}
 
 	@GodotMethod
-	public void _on_mob_squashed() {
+	public void OnMobSquashed() {
 		if (scoreLabel != null) {
 			long score = (long) scoreLabel.getProperty("text");
 			scoreLabel.setProperty("text", String.valueOf(score + 1));

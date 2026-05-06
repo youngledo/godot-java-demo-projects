@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
 import org.godot.node.Area2D;
+import org.godot.node.Node;
 import java.util.ArrayList;
 
 @GodotClass(name = "FSSword", parent = "Area2D")
@@ -28,25 +29,25 @@ public class FSSword extends Area2D {
     private boolean initialized = false;
 
     @Signal
-    public void attack_finished() {}
+    public void attackFinished() {}
 
     @Override
     public void _ready() {
         if (initialized) return;
         initialized = true;
 
-        org.godot.Godot animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
+        org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
         if (animPlayer != null) {
-            animPlayer.call("connect", "animation_finished", new org.godot.core.Callable(this, "on_animation_finished"));
+            animPlayer.connect("animation_finished", new org.godot.core.Callable(this, "on_animation_finished"), 0);
         }
-        call("connect", "body_entered", new org.godot.core.Callable(this, "on_body_entered"));
+        connect("body_entered", new org.godot.core.Callable(this, "on_body_entered"));
 
         // Connect to StateMachine's state_changed signal via owner (Player node)
-        org.godot.Godot owner = (org.godot.Godot) getProperty("owner");
+        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
-            org.godot.Godot stateMachine = (org.godot.Godot) owner.call("get_node", "StateMachine");
+            org.godot.Godot stateMachine = (org.godot.node.Node) owner.getNode("StateMachine");
             if (stateMachine != null) {
-                stateMachine.call("connect", "state_changed", new org.godot.core.Callable(this, "on_StateMachine_state_changed"));
+                stateMachine.connect("state_changed", new org.godot.core.Callable(this, "on_StateMachine_state_changed"), 0);
             }
         }
 
@@ -62,15 +63,15 @@ public class FSSword extends Area2D {
 
         if (newState == 0) { // IDLE
             comboCount = 0;
-            org.godot.Godot animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-            if (animPlayer != null) animPlayer.call("stop");
+            org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+            if (animPlayer != null) animPlayer.stop();
             setProperty("visible", false);
             setProperty("monitoring", false);
         } else if (newState == 1) { // ATTACK
             currentDamage = comboDamages[comboCount - 1];
             currentAnimation = comboAnimations[comboCount - 1];
-            org.godot.Godot animPlayer = (org.godot.Godot) call("get_node", "AnimationPlayer");
-            if (animPlayer != null) animPlayer.call("play", currentAnimation);
+            org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+            if (animPlayer != null) animPlayer.play(currentAnimation);
             setProperty("visible", true);
             setProperty("monitoring", true);
         }
@@ -105,16 +106,16 @@ public class FSSword extends Area2D {
         changeState(1);
     }
 
-    public void set_attack_input_listening() {
+    public void setAttackInputListening() {
         attackInputState = 1;
     }
 
-    public void set_ready_for_next_attack() {
+    public void setReadyForNextAttack() {
         readyForNextAttack = true;
     }
 
     @GodotMethod
-    public void on_body_entered(org.godot.Godot body) {
+    public void onBodyEntered(org.godot.Godot body) {
         boolean hasHealth = (boolean) body.call("has_node", "Health");
         if (!hasHealth) return;
 
@@ -133,18 +134,18 @@ public class FSSword extends Area2D {
     }
 
     @GodotMethod
-    public void on_animation_finished(String name) {
+    public void onAnimationFinished(String name) {
         if (currentAnimation.isEmpty()) return;
         if (attackInputState == 2 && comboCount < MAX_COMBO_COUNT) {
             doAttack();
         } else {
             changeState(0);
-            call("emit_signal", "attack_finished");
+            emitSignal("attack_finished");
         }
     }
 
     @GodotMethod
-    public void on_StateMachine_state_changed(org.godot.Godot currentState) {
+    public void onStateMachineStateChanged(org.godot.Godot currentState) {
         Object nameObj = currentState.getProperty("name");
         String name = nameObj != null ? nameObj.toString() : "";
         if (name.equals("Attack")) {

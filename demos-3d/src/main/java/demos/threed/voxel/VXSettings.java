@@ -25,14 +25,14 @@ public class VXSettings extends Node {
         if (exists) {
             Object file = call("FileAccess.open", savePath, 1); // READ
             if (file instanceof org.godot.Godot) {
-                org.godot.Godot f = (org.godot.Godot) file;
+                org.godot.Godot f = (org.godot.node.FileAccess) file;
                 Object textObj = f.call("get_as_text");
                 f.call("close");
 
                 if (textObj != null) {
                     Object json = call("JSON.new");
                     if (json instanceof org.godot.Godot) {
-                        org.godot.Godot j = (org.godot.Godot) json;
+                        org.godot.Godot j = (org.godot.node.JSON) json;
                         j.call("parse", textObj.toString());
                         Object dataObj = j.getProperty("data");
                         if (dataObj instanceof org.godot.Godot) {
@@ -54,7 +54,7 @@ public class VXSettings extends Node {
         Object file = call("FileAccess.open", savePath, 2); // WRITE
         if (!(file instanceof org.godot.Godot)) return;
 
-        org.godot.Godot f = (org.godot.Godot) file;
+        org.godot.Godot f = (org.godot.node.FileAccess) file;
         String jsonStr = "{\"render_distance\":" + renderDistance + ",\"fog_enabled\":" + fogEnabled + "}";
         f.call("store_line", jsonStr);
         f.call("close");

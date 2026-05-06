@@ -6,6 +6,8 @@ import org.godot.math.Transform3D;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "WindowObserver", parent = "CharacterBody3D")
 public class Observer extends CharacterBody3D {
@@ -14,14 +16,14 @@ public class Observer extends CharacterBody3D {
 
     public long state = 0; // MENU = 0, GRAB = 1
     private Vector2 rPos = new Vector2();
-    private org.godot.Godot camera;
+    private org.godot.node.Camera3D camera;
     private boolean initialized = false;
 
     @Override
     public void _ready() {
         if (initialized) return;
         initialized = true;
-        camera = (org.godot.Godot) call("get_node", "Camera3D");
+        camera = (org.godot.node.Camera3D) getNode("Camera3D");
     }
 
     @Override
@@ -29,8 +31,8 @@ public class Observer extends CharacterBody3D {
         if (state != 1) return; // GRAB
 
         org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-        double xMovement = (double) input.call("get_axis", "move_left", "move_right");
-        double zMovement = (double) input.call("get_axis", "move_forward", "move_backwards");
+        double xMovement = (double) input.getAxis("move_left", "move_right");
+        double zMovement = (double) input.getAxis("move_forward", "move_backwards");
 
         Vector3 dir = direction(new Vector3(xMovement, 0, zMovement));
         Transform3D transform = (Transform3D) getProperty("transform");
@@ -47,7 +49,7 @@ public class Observer extends CharacterBody3D {
 
         double d = delta * 0.1;
         // Yaw
-        call("rotate", Vector3.UP, d * rPos.getX());
+        rotate(Vector3.UP, d * rPos.getX());
         // Pitch
         if (camera != null) {
             Transform3D camTransform = (Transform3D) camera.getProperty("transform");
@@ -80,7 +82,7 @@ public class Observer extends CharacterBody3D {
                 org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
                 boolean pressed = (boolean) evt.getProperty("pressed");
                 boolean echo = (boolean) evt.getProperty("echo");
-                if ((boolean) input.call("is_action_pressed", "ui_cancel") && pressed && !echo) {
+                if ((boolean) input.isActionPressed("ui_cancel") && pressed && !echo) {
                     if (state == 1) { // GRAB
                         input.setProperty("mouse_mode", 0); // MOUSE_MODE_VISIBLE
                         state = 0; // MENU
@@ -96,7 +98,7 @@ public class Observer extends CharacterBody3D {
 
     private Vector3 direction(Vector3 vector) {
         if (camera == null) return vector;
-        Transform3D globalTransform = (Transform3D) camera.call("get_global_transform");
+        Transform3D globalTransform = (Transform3D) camera.getGlobalTransform();
         if (globalTransform == null) return vector;
         org.godot.math.Basis basis = globalTransform.getBasis();
         // Multiply basis by vector
@@ -111,16 +113,15 @@ public class Observer extends CharacterBody3D {
     }
 
     @GodotMethod
-    public void _on_transparent_check_button_toggled(boolean buttonPressed) {
+    public void OnTransparentCheckButtonToggled(boolean buttonPressed) {
         org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
         if (!(boolean) ds.call("has_feature", 5)) { // FEATURE_WINDOW_TRANSPARENCY
-            org.godot.singleton.OS.singleton().call("alert",
-                "Window transparency is not supported by the current display server (" +
-                ds.call("get_name") + ").");
+            org.godot.singleton.OS.singleton().alert("Window transparency is not supported by the current display server ("
+                + ds.getName() + ").");
             return;
         }
 
-        org.godot.Godot viewport = (org.godot.Godot) call("get_viewport");
+        org.godot.node.Viewport viewport = getViewport();
         if (viewport != null) {
             viewport.setProperty("transparent_bg", buttonPressed);
         }

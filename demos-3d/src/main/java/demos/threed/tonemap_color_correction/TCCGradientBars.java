@@ -4,6 +4,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "TCCGradientBars", parent = "Node3D")
 public class TCCGradientBars extends Node3D {

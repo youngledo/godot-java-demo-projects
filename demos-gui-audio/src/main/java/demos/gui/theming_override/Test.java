@@ -5,14 +5,15 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Color;
 import org.godot.node.Control;
 import org.godot.node.Label;
+import org.godot.node.Node;
 
 @GodotClass(name = "Test", parent = "Control")
 public class Test extends Control {
 
-    private org.godot.Godot label;
-    private org.godot.Godot button;
-    private org.godot.Godot button2;
-    private org.godot.Godot resetAllButton;
+    private org.godot.node.Label label;
+    private org.godot.node.Button button;
+    private org.godot.node.Button button2;
+    private org.godot.node.Node resetAllButton;
     private boolean initialized = false;
 
     @Override
@@ -20,35 +21,35 @@ public class Test extends Control {
         if (initialized) return;
         initialized = true;
 
-        label = (org.godot.Godot) call("get_node", "Panel/MarginContainer/VBoxContainer/Label");
-        button = (org.godot.Godot) call("get_node", "Panel/MarginContainer/VBoxContainer/Button");
-        button2 = (org.godot.Godot) call("get_node", "Panel/MarginContainer/VBoxContainer/Button2");
-        resetAllButton = (org.godot.Godot) call("get_node", "Panel/MarginContainer/VBoxContainer/ResetAllButton");
+        label = (org.godot.node.Label) getNode("Panel/MarginContainer/VBoxContainer/Label");
+        button = (org.godot.node.Button) getNode("Panel/MarginContainer/VBoxContainer/Button");
+        button2 = (org.godot.node.Button) getNode("Panel/MarginContainer/VBoxContainer/Button2");
+        resetAllButton = getNode("Panel/MarginContainer/VBoxContainer/ResetAllButton");
 
-        if (button != null && (boolean) button.call("is_inside_tree")) button.call("grab_focus");
+        if (button != null && (boolean) button.isInsideTree()) button.grabFocus();
     }
 
     @GodotMethod
-    public void _on_button_pressed() {
-        if (!is_inside_tree()) return;
+    public void OnButtonPressed() {
+        if (!isInsideTree()) return;;
 
         if (button != null) {
-            org.godot.Godot normalStyle = (org.godot.Godot) button.call("get_theme_stylebox", "normal");
-            org.godot.Godot hoverStyle = (org.godot.Godot) button.call("get_theme_stylebox", "hover");
-            org.godot.Godot pressedStyle = (org.godot.Godot) button.call("get_theme_stylebox", "pressed");
+            org.godot.node.Resource normalStyle = (org.godot.node.Resource) button.getThemeStylebox("normal");
+            org.godot.node.Resource hoverStyle = (org.godot.node.Resource) button.getThemeStylebox("hover");
+            org.godot.node.Resource pressedStyle = (org.godot.node.Resource) button.getThemeStylebox("pressed");
 
             if (normalStyle != null) {
-                org.godot.Godot newNormal = (org.godot.Godot) normalStyle.call("duplicate");
+                org.godot.Godot newNormal = (org.godot.node.Resource) normalStyle.duplicate();
                 newNormal.setProperty("border_color", new Color(1, 1, 0));
                 button.call("add_theme_stylebox_override", "normal", newNormal);
             }
             if (hoverStyle != null) {
-                org.godot.Godot newHover = (org.godot.Godot) hoverStyle.call("duplicate");
+                org.godot.Godot newHover = (org.godot.node.Resource) hoverStyle.duplicate();
                 newHover.setProperty("border_color", new Color(1, 1, 0));
                 button.call("add_theme_stylebox_override", "hover", newHover);
             }
             if (pressedStyle != null) {
-                org.godot.Godot newPressed = (org.godot.Godot) pressedStyle.call("duplicate");
+                org.godot.Godot newPressed = (org.godot.node.Resource) pressedStyle.duplicate();
                 newPressed.setProperty("border_color", new Color(1, 1, 0));
                 button.call("add_theme_stylebox_override", "pressed", newPressed);
             }
@@ -60,52 +61,52 @@ public class Test extends Control {
     }
 
     @GodotMethod
-    public void _on_button2_pressed() {
-        if (!is_inside_tree()) return;
+    public void OnButton2Pressed() {
+        if (!isInsideTree()) return;;
 
         if (button2 != null) {
-            org.godot.Godot normalStyle = (org.godot.Godot) button2.call("get_theme_stylebox", "normal");
-            org.godot.Godot hoverStyle = (org.godot.Godot) button2.call("get_theme_stylebox", "hover");
-            org.godot.Godot pressedStyle = (org.godot.Godot) button2.call("get_theme_stylebox", "pressed");
+            org.godot.node.Resource normalStyle = (org.godot.node.Resource) button2.getThemeStylebox("normal");
+            org.godot.node.Resource hoverStyle = (org.godot.node.Resource) button2.getThemeStylebox("hover");
+            org.godot.node.Resource pressedStyle = (org.godot.node.Resource) button2.getThemeStylebox("pressed");
 
             if (normalStyle != null) {
-                org.godot.Godot newNormal = (org.godot.Godot) normalStyle.call("duplicate");
+                org.godot.Godot newNormal = (org.godot.node.Resource) normalStyle.duplicate();
                 newNormal.setProperty("border_color", new Color(0, 1, 0.5));
                 button2.call("add_theme_stylebox_override", "normal", newNormal);
             }
             if (hoverStyle != null) {
-                org.godot.Godot newHover = (org.godot.Godot) hoverStyle.call("duplicate");
+                org.godot.Godot newHover = (org.godot.node.Resource) hoverStyle.duplicate();
                 newHover.setProperty("border_color", new Color(0, 1, 0.5));
                 button2.call("add_theme_stylebox_override", "hover", newHover);
             }
             if (pressedStyle != null) {
-                org.godot.Godot newPressed = (org.godot.Godot) pressedStyle.call("duplicate");
+                org.godot.Godot newPressed = (org.godot.node.Resource) pressedStyle.duplicate();
                 newPressed.setProperty("border_color", new Color(0, 1, 0.5));
                 button2.call("add_theme_stylebox_override", "pressed", newPressed);
             }
         }
 
         if (label != null) {
-            label.call("add_theme_color_override", "font_color", new Color(0.375, 1, 0.75));
+            label.addThemeColorOverride("font_color", new Color(0.375, 1, 0.75));
         }
     }
 
     @GodotMethod
-    public void _on_reset_all_button_pressed() {
-        if (!is_inside_tree()) return;
+    public void OnResetAllButtonPressed() {
+        if (!isInsideTree()) return;;
 
         if (button != null) {
-            button.call("remove_theme_stylebox_override", "normal");
-            button.call("remove_theme_stylebox_override", "hover");
-            button.call("remove_theme_stylebox_override", "pressed");
+            button.removeThemeStyleboxOverride("normal");
+            button.removeThemeStyleboxOverride("hover");
+            button.removeThemeStyleboxOverride("pressed");
         }
         if (button2 != null) {
-            button2.call("remove_theme_stylebox_override", "normal");
-            button2.call("remove_theme_stylebox_override", "hover");
-            button2.call("remove_theme_stylebox_override", "pressed");
+            button2.removeThemeStyleboxOverride("normal");
+            button2.removeThemeStyleboxOverride("hover");
+            button2.removeThemeStyleboxOverride("pressed");
         }
         if (label != null) {
-            label.call("remove_theme_color_override", "font_color");
+            label.removeThemeColorOverride("font_color");
         }
     }
 }

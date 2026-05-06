@@ -39,25 +39,25 @@ public class WebRTCSignalingWSClient extends Node {
     public void disconnected() {}
 
     @Signal
-    public void lobby_joined() {}
+    public void lobbyJoined() {}
 
     @Signal
-    public void lobby_sealed() {}
+    public void lobbySealed() {}
 
     @Signal
-    public void peer_connected() {}
+    public void peerConnected() {}
 
     @Signal
-    public void peer_disconnected() {}
+    public void peerDisconnected() {}
 
     @Signal
-    public void offer_received() {}
+    public void offerReceived() {}
 
     @Signal
-    public void answer_received() {}
+    public void answerReceived() {}
 
     @Signal
-    public void candidate_received() {}
+    public void candidateReceived() {}
 
     private Godot ws;
     long code = 1000;
@@ -86,11 +86,11 @@ public class WebRTCSignalingWSClient extends Node {
         long state = (long) ws.call("get_ready_state");
 
         if (state != oldState && state == 1L && autojoin) { // STATE_OPEN
-            join_lobby(lobby);
+            joinLobby(lobby);
         }
 
         while (state == 1L && (long) ws.call("get_available_packet_count") > 0) {
-            if (!parseMsg()) {
+            if (!parseMsg() ) {
                 System.out.println("Error parsing message from server.");
             }
         }
@@ -98,7 +98,7 @@ public class WebRTCSignalingWSClient extends Node {
         if (state != oldState && state == 3L) { // STATE_CLOSED
             code = (long) ws.call("get_close_code");
             reason = (String) ws.call("get_close_reason");
-            call("emit_signal", "disconnected");
+            emitSignal("disconnected");
         }
         oldState = state;
     }
@@ -117,25 +117,25 @@ public class WebRTCSignalingWSClient extends Node {
         if (data == null) return false;
 
         if (msgType == MSG_ID) {
-            call("emit_signal", "connected", (int) srcId, "true".equals(data));
+            emitSignal("connected", (int) srcId, "true".equals(data));
         } else if (msgType == MSG_JOIN) {
-            call("emit_signal", "lobby_joined", data);
+            emitSignal("lobby_joined", data);
         } else if (msgType == MSG_SEAL) {
-            call("emit_signal", "lobby_sealed");
+            emitSignal("lobby_sealed");
         } else if (msgType == MSG_PEER_CONNECT) {
-            call("emit_signal", "peer_connected", (int) srcId);
+            emitSignal("peer_connected", (int) srcId);
         } else if (msgType == MSG_PEER_DISCONNECT) {
-            call("emit_signal", "peer_disconnected", (int) srcId);
+            emitSignal("peer_disconnected", (int) srcId);
         } else if (msgType == MSG_OFFER) {
-            call("emit_signal", "offer_received", (int) srcId, data);
+            emitSignal("offer_received", (int) srcId, data);
         } else if (msgType == MSG_ANSWER) {
-            call("emit_signal", "answer_received", (int) srcId, data);
+            emitSignal("answer_received", (int) srcId, data);
         } else if (msgType == MSG_CANDIDATE) {
             String[] candidate = data.split("\n");
             if (candidate.length != 3) return false;
             try {
                 int index = Integer.parseInt(candidate[1].trim());
-                call("emit_signal", "candidate_received", (int) srcId, candidate[0], index, candidate[2]);
+                emitSignal("candidate_received", (int) srcId, candidate[0], index, candidate[2]);
             } catch (NumberFormatException e) {
                 return false;
             }
@@ -147,27 +147,27 @@ public class WebRTCSignalingWSClient extends Node {
     }
 
     @GodotMethod
-    public long join_lobby(String lobbyName) {
+    public long joinLobby(String lobbyName) {
         return sendMsg(MSG_JOIN, mesh ? 0 : 1, lobbyName);
     }
 
     @GodotMethod
-    public long seal_lobby() {
+    public long sealLobby() {
         return sendMsg(MSG_SEAL, 0, "");
     }
 
     @GodotMethod
-    public long send_candidate(int id, String mid, int index, String sdp) {
+    public long sendCandidate(int id, String mid, int index, String sdp) {
         return sendMsg(MSG_CANDIDATE, id, "\n" + mid + "\n" + index + "\n" + sdp);
     }
 
     @GodotMethod
-    public long send_offer(int id, String offer) {
+    public long sendOffer(int id, String offer) {
         return sendMsg(MSG_OFFER, id, offer);
     }
 
     @GodotMethod
-    public long send_answer(int id, String answer) {
+    public long sendAnswer(int id, String answer) {
         return sendMsg(MSG_ANSWER, id, answer);
     }
 

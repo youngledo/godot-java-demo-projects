@@ -15,7 +15,7 @@ public class FSOnGround extends FSMotion {
         if (event != null) {
             Object pressed = event.call("is_action_pressed", "jump");
             if (pressed instanceof Boolean && (Boolean) pressed) {
-                org.godot.Godot sm = (org.godot.Godot) call("get_parent");
+                org.godot.Godot sm = getParent();
                 if (sm != null) sm.call("push_state", JUMP);
             }
         }

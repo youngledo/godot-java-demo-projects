@@ -47,7 +47,7 @@ public class VXChunk {
 
         Vector3 worldPos = new Vector3(posX * CHUNK_SIZE, posY * CHUNK_SIZE, posZ * CHUNK_SIZE);
         node.setPosition(worldPos);
-        node.call("set_name", posX + "," + posY + "," + posZ);
+        node.setName(posX + "," + posY + "," + posZ);
 
         if (worldType == 0) {
             cd.data = VXTerrainGenerator.randomBlocks();
@@ -80,7 +80,7 @@ public class VXChunk {
         boxShape.setSize(new Vector3(1, 1, 1));
         collider.setShape(boxShape);
         collider.setPosition(new Vector3(bx + 0.5, by + 0.5, bz + 0.5));
-        node.call("add_child", collider);
+        node.addChild(collider);
     }
 
     /**
@@ -99,7 +99,7 @@ public class VXChunk {
                     cd, voxelWorld);
         }
 
-        surfaceTool.generate_tangents();
+        surfaceTool.generateTangents();
         surfaceTool.index();
         ArrayMesh arrayMesh = surfaceTool.commit(null, 0);
 
@@ -109,7 +109,7 @@ public class VXChunk {
         if (matObj != null) {
             mi.setProperty("material_override", matObj);
         }
-        cd.node.call("call_deferred", "add_child", mi);
+        cd.node.callDeferred("add_child", mi);
     }
 
     private static void drawBlockMesh(SurfaceTool st, int bx, int by, int bz, int blockId,
@@ -203,36 +203,36 @@ public class VXChunk {
         st.call("set_normal", normal);
 
         st.call("set_uv", new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
-        st.add_vertex(verts[1]);
+        st.addVertex(verts[1]);
         st.call("set_uv", new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
-        st.add_vertex(verts[2]);
+        st.addVertex(verts[2]);
         st.call("set_uv", new org.godot.math.Vector2(uvs[3][0], uvs[3][1]));
-        st.add_vertex(verts[3]);
+        st.addVertex(verts[3]);
 
         st.call("set_uv", new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
-        st.add_vertex(verts[2]);
+        st.addVertex(verts[2]);
         st.call("set_uv", new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
-        st.add_vertex(verts[1]);
+        st.addVertex(verts[1]);
         st.call("set_uv", new org.godot.math.Vector2(uvs[0][0], uvs[0][1]));
-        st.add_vertex(verts[0]);
+        st.addVertex(verts[0]);
     }
 
     /**
      * Regenerate a chunk after a block change.
      */
     public static void regenerate(VXVoxelWorld voxelWorld, ChunkData cd) {
-        voxelWorld.call("remove_child", cd.node);
+        voxelWorld.removeChild(cd.node);
 
-        Node[] children = cd.node.get_children(false);
+        Node[] children = cd.node.getChildren(false);
         for (Node child : children) {
-            cd.node.call("remove_child", child);
-            child.queue_free();
+            cd.node.removeChild(child);
+            child.queueFree();
         }
 
         generateChunkCollider(cd.node, cd.data);
         generateChunkMesh(cd, voxelWorld);
 
-        voxelWorld.call("add_child", cd.node);
+        voxelWorld.addChild(cd.node);
     }
 
     // ==================== Static utility methods ====================

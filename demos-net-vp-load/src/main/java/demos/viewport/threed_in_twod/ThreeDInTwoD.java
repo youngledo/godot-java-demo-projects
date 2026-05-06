@@ -7,6 +7,7 @@ import org.godot.math.Vector2i;
 import org.godot.node.Node2D;
 import org.godot.node.Sprite2D;
 import org.godot.node.SubViewport;
+import org.godot.node.Node;
 
 @GodotClass(name = "ThreeDInTwoD", parent = "Node2D")
 public class ThreeDInTwoD extends Node2D {
@@ -21,21 +22,21 @@ public class ThreeDInTwoD extends Node2D {
         if (initialized) return;
         initialized = true;
 
-        viewport = (SubViewport) call("get_node", "SubViewport");
-        viewportSprite = (Sprite2D) call("get_node", "ViewportSprite");
+        viewport = (SubViewport) getNode("SubViewport");
+        viewportSprite = (Sprite2D) getNode("ViewportSprite");
 
         if (viewport != null) {
             viewportInitialSize = (Vector2i) viewport.getProperty("size");
         }
 
         // Start animated sprite
-        org.godot.Godot animatedSprite = (org.godot.Godot) call("get_node", "AnimatedSprite2D");
+        org.godot.node.AnimatedSprite2D animatedSprite = (org.godot.node.AnimatedSprite2D) getNode("AnimatedSprite2D");
         if (animatedSprite != null) {
-            animatedSprite.call("play");
+            animatedSprite.play();
         }
 
         // Connect viewport size_changed signal
-        Object rootViewport = call("get_viewport");
+        Object rootViewport = getViewport();
         if (rootViewport != null) {
             ((org.godot.Godot) rootViewport).connect("size_changed", new Callable(this, "_rootViewportSizeChanged"), 0);
         }
@@ -43,7 +44,7 @@ public class ThreeDInTwoD extends Node2D {
 
     @org.godot.annotation.GodotMethod
     public void _rootViewportSizeChanged() {
-        Object rootViewport = call("get_viewport");
+        Object rootViewport = getViewport();
         if (rootViewport == null || viewport == null || viewportSprite == null || viewportInitialSize == null) return;
 
         Vector2i rootSize = (Vector2i) ((org.godot.Godot) rootViewport).getProperty("size");

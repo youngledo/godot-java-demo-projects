@@ -2,6 +2,7 @@ package demos.threed.voxel;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Control;
+import org.godot.node.Node;
 
 @GodotClass(name = "VXOptionButtons", parent = "Control")
 public class VXOptionButtons extends Control {
@@ -14,27 +15,27 @@ public class VXOptionButtons extends Control {
         initialized = true;
 
         // Connect slider signal
-        org.godot.Godot slider = (org.godot.Godot) call("get_node", "GridContainer/RenderDistance/Slider");
+        org.godot.node.Slider slider = (org.godot.node.Slider) getNode("GridContainer/RenderDistance/Slider");
         if (slider != null) {
-            slider.call("connect", "value_changed", this, "on_render_distance_changed");
+            slider.connect("value_changed", new org.godot.core.Callable(this, "on_render_distance_changed"), 0);
         }
 
-        org.godot.Godot checkbox = (org.godot.Godot) call("get_node", "GridContainer/Fog/CheckBox");
+        org.godot.node.CheckBox checkbox = (org.godot.node.CheckBox) getNode("GridContainer/Fog/CheckBox");
         if (checkbox != null) {
-            checkbox.call("connect", "toggled", this, "on_fog_toggled");
+            checkbox.connect("toggled", new org.godot.core.Callable(this, "on_fog_toggled"), 0);
         }
     }
 
-    public void on_render_distance_changed(double value) {
-        org.godot.Godot settings = (org.godot.Godot) call("get_node", "/root/Settings");
+    public void onRenderDistanceChanged(double value) {
+        org.godot.node.Node settings = getNode("/root/Settings");
         if (settings != null) {
             settings.setProperty("render_distance", (int) value);
             settings.call("save_settings");
         }
     }
 
-    public void on_fog_toggled(boolean enabled) {
-        org.godot.Godot settings = (org.godot.Godot) call("get_node", "/root/Settings");
+    public void onFogToggled(boolean enabled) {
+        org.godot.node.Node settings = getNode("/root/Settings");
         if (settings != null) {
             settings.setProperty("fog_enabled", enabled);
             settings.call("save_settings");

@@ -7,6 +7,7 @@ import org.godot.math.Vector2;
 import org.godot.node.Node2D;
 import org.godot.node.Sprite2D;
 import org.godot.singleton.Input;
+import org.godot.node.Node;
 
 @GodotClass(name = "VPPongGame", parent = "Node2D")
 public class VPPongGame extends Node2D {
@@ -38,9 +39,9 @@ public class VPPongGame extends Node2D {
             }
         }
 
-        ball = (Sprite2D) call("get_node", "Ball");
-        leftPaddle = (Sprite2D) call("get_node", "LeftPaddle");
-        rightPaddle = (Sprite2D) call("get_node", "RightPaddle");
+        ball = (Sprite2D) getNode("Ball");
+        leftPaddle = (Sprite2D) getNode("LeftPaddle");
+        rightPaddle = (Sprite2D) getNode("RightPaddle");
 
         if (leftPaddle != null) {
             Object tex = leftPaddle.call("get_texture");
@@ -58,9 +59,9 @@ public class VPPongGame extends Node2D {
         if (ball == null || leftPaddle == null || rightPaddle == null) return;
 
         // Get ball position and pad rectangles
-        Vector2 ballPos = (Vector2) ball.call("get_position");
-        Vector2 leftPos = (Vector2) leftPaddle.call("get_position");
-        Vector2 rightPos = (Vector2) rightPaddle.call("get_position");
+        Vector2 ballPos = (Vector2) ball.getPosition();
+        Vector2 leftPos = (Vector2) leftPaddle.getPosition();
+        Vector2 rightPos = (Vector2) rightPaddle.getPosition();
 
         // Integrate new ball position
         ballPos = new Vector2(
@@ -91,32 +92,32 @@ public class VPPongGame extends Node2D {
         }
 
         // Check gameover
-        if (ballPos.getX() < 0 || ballPos.getX() > screenSize.getX()) {
+        if (ballPos.getX() < 0 || ballPos.getX() > screenSize.getX() ) {
             ballPos = new Vector2(screenSize.getX() * 0.5, screenSize.getY() * 0.5);
             ballSpeed = INITIAL_BALL_SPEED;
             direction = new Vector2(-1, 0);
         }
 
-        ball.call("set_position", ballPos);
+        ball.setPosition(ballPos);
 
         // Move left pad
         Input input = Input.singleton();
-        if (leftPos.getY() > 0 && (boolean) input.call("is_action_pressed", "left_move_up", false)) {
+        if (leftPos.getY() > 0 && (boolean) input.isActionPressed("left_move_up")) {
             leftPos = new Vector2(leftPos.getX(), leftPos.getY() - PAD_SPEED * delta);
         }
-        if (leftPos.getY() < screenSize.getY() && (boolean) input.call("is_action_pressed", "left_move_down", false)) {
+        if (leftPos.getY() < screenSize.getY() && (boolean) input.isActionPressed("left_move_down")) {
             leftPos = new Vector2(leftPos.getX(), leftPos.getY() + PAD_SPEED * delta);
         }
-        leftPaddle.call("set_position", leftPos);
+        leftPaddle.setPosition(leftPos);
 
         // Move right pad
-        if (rightPos.getY() > 0 && (boolean) input.call("is_action_pressed", "right_move_up", false)) {
+        if (rightPos.getY() > 0 && (boolean) input.isActionPressed("right_move_up")) {
             rightPos = new Vector2(rightPos.getX(), rightPos.getY() - PAD_SPEED * delta);
         }
-        if (rightPos.getY() < screenSize.getY() && (boolean) input.call("is_action_pressed", "right_move_down", false)) {
+        if (rightPos.getY() < screenSize.getY() && (boolean) input.isActionPressed("right_move_down")) {
             rightPos = new Vector2(rightPos.getX(), rightPos.getY() + PAD_SPEED * delta);
         }
-        rightPaddle.call("set_position", rightPos);
+        rightPaddle.setPosition(rightPos);
     }
 
     private boolean pointInRect(Vector2 point, double rx, double ry, double rw, double rh) {

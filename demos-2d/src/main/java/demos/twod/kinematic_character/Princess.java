@@ -15,10 +15,10 @@ public class Princess extends Area2D {
 	}
 
 	@GodotMethod
-	public void _on_body_entered(Object body) {
+	public void OnBodyEntered(Object body) {
 		String name = (String) ((org.godot.Godot) body).call("get_name");
 		if ("KCPlayer".equals(name)) {
-			Node winText = (Node) call("get_node", "../WinText");
+			Node winText = (Node) getNode("../WinText");
 			if (winText != null) {
 				winText.call("show");
 			}

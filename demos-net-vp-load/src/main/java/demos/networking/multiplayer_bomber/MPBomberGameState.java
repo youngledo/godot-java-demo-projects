@@ -21,41 +21,41 @@ public class MPBomberGameState extends Node {
     public Map<Integer, String> players = new HashMap<>();
 
     @Signal
-    public void player_list_changed() {}
+    public void playerListChanged() {}
 
     @Signal
-    public void connection_succeeded() {}
+    public void connectionSucceeded() {}
 
     @Signal
-    public void connection_failed() {}
+    public void connectionFailed() {}
 
     @Signal
-    public void game_ended() {}
+    public void gameEnded() {}
 
     @Signal
-    public void game_error() {}
+    public void gameError() {}
 
     @Override
     public void _ready() {
-        Godot mp = (Godot) call("get_multiplayer");
-        mp.call("connect", "peer_connected", new org.godot.core.Callable(this, "_player_connected"));
-        mp.call("connect", "peer_disconnected", new org.godot.core.Callable(this, "_player_disconnected"));
-        mp.call("connect", "connected_to_server", new org.godot.core.Callable(this, "_connected_ok"));
-        mp.call("connect", "connection_failed", new org.godot.core.Callable(this, "_connected_fail"));
-        mp.call("connect", "server_disconnected", new org.godot.core.Callable(this, "_server_disconnected"));
+        Godot mp = (Godot) getMultiplayer();
+        mp.connect("peer_connected", new org.godot.core.Callable(this, "_player_connected"), 0);
+        mp.connect("peer_disconnected", new org.godot.core.Callable(this, "_player_disconnected"), 0);
+        mp.connect("connected_to_server", new org.godot.core.Callable(this, "_connected_ok"), 0);
+        mp.connect("connection_failed", new org.godot.core.Callable(this, "_connected_fail"), 0);
+        mp.connect("server_disconnected", new org.godot.core.Callable(this, "_server_disconnected"), 0);
     }
 
     @GodotMethod
-    public void _player_connected(long id) {
+    public void PlayerConnected(long id) {
         call("rpc_id", (int) id, "register_player", playerName);
     }
 
     @GodotMethod
-    public void _player_disconnected(long id) {
+    public void PlayerDisconnected(long id) {
         if ((boolean) call("has_node", "/root/World")) {
             if ((boolean) call("multiplayer.is_server")) {
-                call("emit_signal", "game_error", "Player " + players.get((int) id) + " disconnected");
-                end_game();
+                emitSignal("game_error", "Player " + players.get((int) id) + " disconnected");
+                endGame();
             }
         } else {
             unregisterPlayer((int) id);
@@ -63,40 +63,40 @@ public class MPBomberGameState extends Node {
     }
 
     @GodotMethod
-    public void _connected_ok() {
-        call("emit_signal", "connection_succeeded");
+    public void ConnectedOk() {
+        emitSignal("connection_succeeded");
     }
 
     @GodotMethod
-    public void _server_disconnected() {
-        call("emit_signal", "game_error", "Server disconnected");
-        end_game();
+    public void ServerDisconnected() {
+        emitSignal("game_error", "Server disconnected");
+        endGame();
     }
 
     @GodotMethod
-    public void _connected_fail() {
-        Godot mp = (Godot) call("get_multiplayer");
+    public void ConnectedFail() {
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
-        call("emit_signal", "connection_failed");
+        emitSignal("connection_failed");
     }
 
     @GodotMethod
-    public void register_player(String newPlayerName) {
+    public void registerPlayer(String newPlayerName) {
         long id = (long) call("multiplayer.get_remote_sender_id");
         players.put((int) id, newPlayerName);
-        call("emit_signal", "player_list_changed");
+        emitSignal("player_list_changed");
     }
 
     private void unregisterPlayer(int id) {
         players.remove(id);
-        call("emit_signal", "player_list_changed");
+        emitSignal("player_list_changed");
     }
 
     @GodotMethod
-    public void load_world() {
+    public void loadWorld() {
         Godot worldScene = (Godot) call("load", "res://world.tscn");
         Godot world = (Godot) worldScene.call("instantiate");
-        Godot tree = (Godot) call("get_tree");
+        Godot tree = (Godot) getTree();
         Godot root = (Godot) tree.call("get_root");
         root.call("add_child", world, false, 0);
         Godot lobby = (Godot) root.call("get_node", "Lobby");
@@ -105,7 +105,7 @@ public class MPBomberGameState extends Node {
         Godot score = (Godot) world.call("get_node", "Score");
         long uniqueId = (long) call("multiplayer.get_unique_id");
         score.call("add_player", (int) uniqueId, playerName);
-        for (int pn : players.keySet()) {
+        for (int pn : players.keySet() ) {
             score.call("add_player", pn, players.get(pn));
         }
 
@@ -113,34 +113,34 @@ public class MPBomberGameState extends Node {
     }
 
     @GodotMethod
-    public void host_game(String newPlayerName) {
+    public void hostGame(String newPlayerName) {
         playerName = newPlayerName;
         peer = (Godot) call("ENetMultiplayerPeer.new");
         peer.call("create_server", DEFAULT_PORT, MAX_PEERS);
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", peer);
     }
 
     @GodotMethod
-    public void join_game(String ip, String newPlayerName) {
+    public void joinGame(String ip, String newPlayerName) {
         playerName = newPlayerName;
         peer = (Godot) call("ENetMultiplayerPeer.new");
         peer.call("create_client", ip, DEFAULT_PORT);
-        Godot mp = (Godot) call("get_multiplayer");
+        Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", peer);
     }
 
     @GodotMethod
-    public Object get_player_list() {
+    public Object getPlayerList() {
         return players.values().toArray();
     }
 
     @GodotMethod
-    public void begin_game() {
+    public void beginGame() {
         assert (boolean) call("multiplayer.is_server");
         call("rpc", "load_world");
 
-        Godot tree2 = (Godot) call("get_tree");
+        Godot tree2 = (Godot) getTree();
         Godot root = (Godot) tree2.call("get_root");
         Godot world = (Godot) root.call("get_node", "World");
         Godot playerScene = (Godot) call("load", "res://player.tscn");
@@ -148,12 +148,12 @@ public class MPBomberGameState extends Node {
         Map<Integer, Integer> spawnPoints = new HashMap<>();
         spawnPoints.put(1, 0);
         int spawnPointIdx = 1;
-        for (int p : players.keySet()) {
+        for (int p : players.keySet() ) {
             spawnPoints.put(p, spawnPointIdx);
             spawnPointIdx++;
         }
 
-        for (Map.Entry<Integer, Integer> entry : spawnPoints.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : spawnPoints.entrySet() ) {
             int pId = entry.getKey();
             int spawnIdx = entry.getValue();
             Godot spawnPos = (Godot) world.call("get_node", "SpawnPoints/" + spawnIdx);
@@ -170,16 +170,16 @@ public class MPBomberGameState extends Node {
     }
 
     @GodotMethod
-    public void end_game() {
+    public void endGame() {
         if ((boolean) call("has_node", "/root/World")) {
-            ((Godot) call("get_node", "/root/World")).call("queue_free");
+            ((Godot) getNode("/root/World")).call("queue_free");
         }
-        call("emit_signal", "game_ended");
+        emitSignal("game_ended");
         players.clear();
     }
 
     @GodotMethod
-    public Object get_player_color(String pName) {
+    public Object getPlayerColor(String pName) {
         int hash = pName.hashCode();
         double hue = wrapF(hash * 0.001, 0.0, 1.0);
         return call("Color.from_hsv", hue, 0.6, 1.0);

@@ -3,6 +3,7 @@ package demos.loading.runtime_save_load;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.FileAccess;
 import org.godot.Godot;
 
 /**
@@ -36,23 +37,23 @@ public class RuntimeSaveLoad extends Control {
 
     @Override
     public void _ready() {
-        filePathEdit = (Godot) call("get_node", "MarginContainer/VBoxContainer/HBoxContainer/FilePath");
-        fileDialog = (Godot) call("get_node", "MarginContainer/VBoxContainer/HBoxContainer/FileDialog");
-        plainTextViewer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/PlainTextViewer");
-        plainTextViewerLabel = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/PlainTextViewer/Label");
-        textureViewer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/TextureViewer");
-        audioPlayer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/AudioPlayer");
-        audioPlayerInformation = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/AudioPlayer/Information");
-        audioStreamPlayer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/AudioPlayer/AudioStreamPlayer");
-        sceneViewer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/SceneViewer");
-        sceneViewerCamera = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/SceneViewer/SubViewport/Camera3D");
-        fontViewer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/FontViewer");
-        zipViewer = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/ZIPViewer");
-        zipViewerFileList = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/ZIPViewer/FileList");
-        zipViewerFilePreview = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/ZIPViewer/FilePreview");
-        errorLabel = (Godot) call("get_node", "MarginContainer/VBoxContainer/Result/ErrorLabel");
-        exportButton = (Godot) call("get_node", "MarginContainer/VBoxContainer/Export");
-        exportFileDialog = (Godot) call("get_node", "MarginContainer/VBoxContainer/Export/FileDialog");
+        filePathEdit = (Godot) getNode("MarginContainer/VBoxContainer/HBoxContainer/FilePath");
+        fileDialog = (Godot) getNode("MarginContainer/VBoxContainer/HBoxContainer/FileDialog");
+        plainTextViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/PlainTextViewer");
+        plainTextViewerLabel = (Godot) getNode("MarginContainer/VBoxContainer/Result/PlainTextViewer/Label");
+        textureViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/TextureViewer");
+        audioPlayer = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer");
+        audioPlayerInformation = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer/Information");
+        audioStreamPlayer = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer/AudioStreamPlayer");
+        sceneViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/SceneViewer");
+        sceneViewerCamera = (Godot) getNode("MarginContainer/VBoxContainer/Result/SceneViewer/SubViewport/Camera3D");
+        fontViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/FontViewer");
+        zipViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer");
+        zipViewerFileList = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer/FileList");
+        zipViewerFilePreview = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer/FilePreview");
+        errorLabel = (Godot) getNode("MarginContainer/VBoxContainer/Result/ErrorLabel");
+        exportButton = (Godot) getNode("MarginContainer/VBoxContainer/Export");
+        exportFileDialog = (Godot) getNode("MarginContainer/VBoxContainer/Export/FileDialog");
 
         // Create the ZIP reader instance.
         zipReader = (Godot) call("ZIPReader.new");
@@ -142,10 +143,10 @@ public class RuntimeSaveLoad extends Control {
     @GodotMethod
     public void _onExportFileDialogFileSelected(String path) {
         if (Boolean.TRUE.equals(plainTextViewer.getProperty("visible"))) {
-            Object fa = call("FileAccess.open", path, 2); // FileAccess.WRITE = 2
+            FileAccess fa = FileAccess.open(path, 2); // FileAccess.WRITE = 2
             if (fa != null) {
-                ((Godot) fa).call("store_string", plainTextViewerLabel.getProperty("text"));
-                ((Godot) fa).call("close");
+                fa.storeString((String) plainTextViewerLabel.getProperty("text"));
+                fa.close();
             }
         } else if (Boolean.TRUE.equals(textureViewer.getProperty("visible"))) {
             Object image = textureViewer.call("get_image");
@@ -335,8 +336,8 @@ public class RuntimeSaveLoad extends Control {
         }
         // Fallback - plain text.
         else {
-            Object fileContents = call("FileAccess.get_file_as_string", path);
-            if (fileContents == null || fileContents.toString().isEmpty()) {
+            String fileContents = FileAccess.getFileAsString(path);
+            if (fileContents == null || fileContents.isEmpty() ) {
                 showError("File is empty or is a binary file.");
             } else {
                 if (plainTextViewerLabel != null) {

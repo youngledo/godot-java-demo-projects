@@ -13,12 +13,12 @@ public class PLTouchScreenUI extends CanvasLayer {
 		if (initialized) return;
 		initialized = true;
 
-		call("hide");
+		hide();
 		org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
 		if (ds != null) {
 			Object available = ds.call("is_touchscreen_available");
 			if (available != null && (boolean) available) {
-				call("show");
+				show();
 			}
 		}
 	}

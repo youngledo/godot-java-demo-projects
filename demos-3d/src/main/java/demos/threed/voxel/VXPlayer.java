@@ -6,6 +6,8 @@ import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.math.Transform3D;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.Node;
+import org.godot.singleton.Input;
 
 /**
  * FPS player controller with mouse look, WASD, crouch, sprint, and block interaction.
@@ -28,17 +30,17 @@ public class VXPlayer extends CharacterBody3D {
     private Vector2 mouseMotion = new Vector2(0, 0);
     private int selectedBlock = 6;
 
-    private org.godot.Godot head;
+    private org.godot.node.Node head;
     private org.godot.Godot camera;
-    private org.godot.Godot raycast;
+    private org.godot.node.RayCast3D raycast;
     private org.godot.Godot cameraAttributes;
-    private org.godot.Godot selectedBlockTexture;
-    private org.godot.Godot crosshair;
-    private org.godot.Godot aimPreview;
+    private org.godot.node.Node selectedBlockTexture;
+    private org.godot.node.Node crosshair;
+    private org.godot.node.Node aimPreview;
     private double neutralFov = 70.0;
 
-    private org.godot.Godot voxelWorld;
-    private org.godot.Godot settings;
+    private org.godot.node.Node voxelWorld;
+    private org.godot.node.Node settings;
     private org.godot.singleton.Input input;
     private boolean initialized = false;
 
@@ -49,17 +51,17 @@ public class VXPlayer extends CharacterBody3D {
 
         input = org.godot.singleton.Input.singleton();
 
-        head = (org.godot.Godot) call("get_node", "Head");
+        head = getNode("Head");
         if (head != null) {
-            camera = (org.godot.Godot) head.call("get_node", "Camera3D");
-            raycast = (org.godot.Godot) head.call("get_node", "RayCast3D");
+            camera = (org.godot.Godot) head.getNode("Camera3D");
+            raycast = (org.godot.node.RayCast3D) head.getNode("RayCast3D");
         }
         if (camera != null) {
             cameraAttributes = (org.godot.Godot) camera.getProperty("attributes");
         }
-        selectedBlockTexture = (org.godot.Godot) call("get_node", "SelectedBlock");
-        crosshair = (org.godot.Godot) call("get_node", "../PauseMenu/Crosshair");
-        aimPreview = (org.godot.Godot) call("get_node", "AimPreview");
+        selectedBlockTexture = getNode("SelectedBlock");
+        crosshair = getNode("../PauseMenu/Crosshair");
+        aimPreview = getNode("AimPreview");
 
         if (camera != null) {
             Object fovObj = camera.getProperty("fov");
@@ -67,10 +69,10 @@ public class VXPlayer extends CharacterBody3D {
             else if (fovObj instanceof Long) neutralFov = ((Long) fovObj).doubleValue();
         }
 
-        voxelWorld = (org.godot.Godot) call("get_node", "../VoxelWorld");
-        settings = (org.godot.Godot) call("get_node", "/root/Settings");
+        voxelWorld = getNode("../VoxelWorld");
+        settings = getNode("/root/Settings");
 
-        input.call("set_mouse_mode", 2); // MOUSE_MODE_CAPTURED = 2
+        input.setMouseMode(2); // MOUSE_MODE_CAPTURED = 2
     }
 
     @Override
@@ -96,11 +98,11 @@ public class VXPlayer extends CharacterBody3D {
         }
 
         // Block selection via raycast.
-        if (raycast != null && (boolean) raycast.call("is_colliding")) {
-            Vector3 rayPosition = (Vector3) raycast.call("get_collision_point");
-            Vector3 rayNormal = (Vector3) raycast.call("get_collision_normal");
+        if (raycast != null && (boolean) raycast.isColliding()) {
+            Vector3 rayPosition = (Vector3) raycast.getCollisionPoint();
+            Vector3 rayNormal = (Vector3) raycast.getCollisionNormal();
 
-            if ((boolean) input.call("is_action_just_pressed", "pick_block")) {
+            if ((boolean) (boolean) input.isActionJustPressed("pick_block")) {
                 // Block picking - identify block the ray is pointing at.
                 Vector3 blockGlobal = new Vector3(
                         Math.floor(rayPosition.getX() - rayNormal.getX() / 2),
@@ -119,10 +121,10 @@ public class VXPlayer extends CharacterBody3D {
                     selectedBlock = (int) voxelWorld.call("get_block_in_chunk", cx, cy, cz, sx, sy, sz);
                 }
             } else {
-                if ((boolean) input.call("is_action_just_pressed", "prev_block")) {
+                if ((boolean) (boolean) input.isActionJustPressed("prev_block")) {
                     selectedBlock -= 1;
                 }
-                if ((boolean) input.call("is_action_just_pressed", "next_block")) {
+                if ((boolean) (boolean) input.isActionJustPressed("next_block")) {
                     selectedBlock += 1;
                 }
                 // Wrap within 1..29 range.
@@ -143,13 +145,13 @@ public class VXPlayer extends CharacterBody3D {
 
         // Block breaking/placing.
         boolean crosshairVisible = crosshair != null && (boolean) crosshair.call("is_visible");
-        boolean rayColliding = raycast != null && (boolean) raycast.call("is_colliding");
+        boolean rayColliding = raycast != null && (boolean) raycast.isColliding();
 
         if (crosshairVisible && rayColliding && raycast != null) {
             if (aimPreview != null) aimPreview.call("set_visible", true);
 
-            Vector3 rayPosition = (Vector3) raycast.call("get_collision_point");
-            Vector3 rayNormal = (Vector3) raycast.call("get_collision_normal");
+            Vector3 rayPosition = (Vector3) raycast.getCollisionPoint();
+            Vector3 rayNormal = (Vector3) raycast.getCollisionNormal();
 
             int rayBlockX = (int) Math.floor(rayPosition.getX() - rayNormal.getX() / 2);
             int rayBlockY = (int) Math.floor(rayPosition.getY() - rayNormal.getY() / 2);
@@ -160,8 +162,8 @@ public class VXPlayer extends CharacterBody3D {
                         new Vector3(rayBlockX + 0.5, rayBlockY + 0.5, rayBlockZ + 0.5));
             }
 
-            boolean breaking = (boolean) input.call("is_action_just_pressed", "break");
-            boolean placing = (boolean) input.call("is_action_just_pressed", "place");
+            boolean breaking = (boolean) (boolean) input.isActionJustPressed("break");
+            boolean placing = (boolean) (boolean) input.isActionJustPressed("place");
 
             // Either both buttons were pressed or neither is, so stop.
             if (breaking != placing) {
@@ -195,19 +197,19 @@ public class VXPlayer extends CharacterBody3D {
         }
 
         // Crouching.
-        boolean crouching = (boolean) input.call("is_action_pressed", "crouch");
-        boolean sprinting = (boolean) input.call("is_action_pressed", "move_sprint");
+        boolean crouching = (boolean) input.isActionPressed("crouch");
+        boolean sprinting = (boolean) input.isActionPressed("move_sprint");
 
         if (head != null) {
             Object headOriginObj = head.getProperty("position");
             Vector3 headOrigin = headOriginObj instanceof Vector3 ? (Vector3) headOriginObj : new Vector3(0, EYE_HEIGHT_STAND, 0);
             double targetY = crouching ? EYE_HEIGHT_CROUCH : EYE_HEIGHT_STAND;
-            double newY = headOrigin.getY() + (targetY - headOrigin.getY()) * (1.0 - Math.exp(-delta * 16.0));
+            double newY = headOrigin.getY() + (targetY - headOrigin.getY() * (1.0 - Math.exp(-delta * 16.0)));
             head.setProperty("position", new Vector3(headOrigin.getX(), newY, headOrigin.getZ()));
         }
 
         // Keyboard movement via get_vector.
-        Object moveVecObj = input.call("get_vector", "move_left", "move_right", "move_forward", "move_back");
+        Object moveVecObj = input.getVector("move_left", "move_right", "move_forward", "move_back");
         double moveX = 0, moveZ = 0;
         if (moveVecObj instanceof Vector2) {
             Vector2 mv = (Vector2) moveVecObj;
@@ -222,7 +224,7 @@ public class VXPlayer extends CharacterBody3D {
         Vector3 col2 = new Vector3(basis.zx, basis.zy, basis.zz);
         Vector3 movement = col0.mul(moveX).add(col2.mul(moveZ));
 
-        boolean onFloor = is_on_floor();
+        boolean onFloor = isOnFloor();
         if (onFloor) {
             movement = movement.mul(MOVEMENT_SPEED_GROUND);
         } else {
@@ -274,10 +276,10 @@ public class VXPlayer extends CharacterBody3D {
         vz *= frictionDelta;
 
         setVelocity(new Vector3(vx, vy, vz));
-        move_and_slide();
+        moveAndSlide();
 
         // Jumping.
-        if (is_on_floor() && (boolean) input.call("is_action_pressed", "jump")) {
+        if (isOnFloor() && (boolean) input.isActionPressed("jump")) {
             Vector3 curVel = getVelocity();
             setVelocity(new Vector3(curVel.getX(), MOVEMENT_JUMP_VELOCITY, curVel.getZ()));
         }
@@ -286,10 +288,10 @@ public class VXPlayer extends CharacterBody3D {
     @Override
     public boolean _input(Object inputEvent) {
         if (!(inputEvent instanceof org.godot.Godot)) return false;
-        org.godot.Godot ev = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
 
         if ((boolean) ev.call("is_class", "InputEventMouseMotion")) {
-            Object mode = input.call("get_mouse_mode");
+            Object mode = input.getMouseMode();
             // MOUSE_MODE_CAPTURED = 2
             long modeVal = mode instanceof Long ? (Long) mode : 0;
             if (modeVal == 2) {

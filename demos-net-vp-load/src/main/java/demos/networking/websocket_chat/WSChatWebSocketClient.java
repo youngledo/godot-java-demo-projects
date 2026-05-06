@@ -19,17 +19,17 @@ public class WSChatWebSocketClient extends Node {
     private long lastState = 3L; // STATE_CLOSED
 
     @Signal
-    public void connected_to_server() {}
+    public void connectedToServer() {}
 
     @Signal
-    public void connection_closed() {}
+    public void connectionClosed() {}
 
     @Signal
-    public void message_received() {}
+    public void messageReceived() {}
 
     @Override
     public void _ready() {
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketPeer");
+        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
         lastState = (long) socket.call("get_ready_state");
     }
 
@@ -67,7 +67,7 @@ public class WSChatWebSocketClient extends Node {
     }
 
     public void clear() {
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().instantiate("WebSocketPeer");
+        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
         lastState = (long) socket.call("get_ready_state");
     }
 
@@ -87,15 +87,15 @@ public class WSChatWebSocketClient extends Node {
         if (lastState != state) {
             lastState = state;
             if (state == 1L) { // STATE_OPEN
-                call("emit_signal", "connected_to_server");
+                emitSignal("connected_to_server");
             } else if (state == 3L) { // STATE_CLOSED
-                call("emit_signal", "connection_closed");
+                emitSignal("connection_closed");
             }
         }
 
         while ((long) socket.call("get_ready_state") == 1L && (long) socket.call("get_available_packet_count") > 0) {
             Object msg = getMessage();
-            call("emit_signal", "message_received", msg);
+            emitSignal("message_received", msg);
         }
     }
 }

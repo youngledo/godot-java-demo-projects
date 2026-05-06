@@ -7,6 +7,7 @@ import org.godot.math.Transform3D;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "OXOCPlayer", parent = "XROrigin3D")
 public class OXOCPlayer extends org.godot.Godot {
@@ -16,10 +17,10 @@ public class OXOCPlayer extends org.godot.Godot {
     private double movementAcceleration = 5.0;
     private double gravity;
 
-    private org.godot.Godot characterBody;
-    private org.godot.Godot cameraNode;
-    private org.godot.Godot neckPositionNode;
-    private org.godot.Godot blackOut;
+    private org.godot.node.Node characterBody;
+    private org.godot.node.Node cameraNode;
+    private org.godot.node.Node neckPositionNode;
+    private org.godot.node.Node blackOut;
 
     private boolean initialized = false;
 
@@ -30,10 +31,10 @@ public class OXOCPlayer extends org.godot.Godot {
 
         gravity = (double) call("get_setting", "physics/3d/default_gravity");
 
-        characterBody = (org.godot.Godot) call("get_node", "CharacterBody3D");
-        cameraNode = (org.godot.Godot) call("get_node", "XRCamera3D");
-        neckPositionNode = (org.godot.Godot) call("get_node", "XRCamera3D/Neck");
-        blackOut = (org.godot.Godot) call("get_node", "XRCamera3D/BlackOut");
+        characterBody = (org.godot.node.Node) call("get_node", "CharacterBody3D");
+        cameraNode = (org.godot.node.Node) call("get_node", "XRCamera3D");
+        neckPositionNode = (org.godot.node.Node) call("get_node", "XRCamera3D/Neck");
+        blackOut = (org.godot.node.Node) call("get_node", "XRCamera3D/BlackOut");
     }
 
     @GodotMethod
@@ -87,8 +88,8 @@ public class OXOCPlayer extends org.godot.Godot {
     private org.godot.math.Vector2 getMovementInput() {
         org.godot.math.Vector2 movement = new org.godot.math.Vector2(0, 0);
 
-        org.godot.Godot leftHand = (org.godot.Godot) call("get_node", "LeftHand");
-        org.godot.Godot rightHand = (org.godot.Godot) call("get_node", "RightHand");
+        org.godot.node.Node leftHand = (org.godot.node.Node) call("get_node", "LeftHand");
+        org.godot.node.Node rightHand = (org.godot.node.Node) call("get_node", "RightHand");
 
         if (leftHand != null) {
             Object leftVec = leftHand.call("get_vector2", "move");
@@ -137,10 +138,10 @@ public class OXOCPlayer extends org.godot.Godot {
         double locationOffset = movementLeft.length();
         if (locationOffset > 0.1) {
             double fadeValue = Math.max(0.0, Math.min(1.0, (locationOffset - 0.1) / 0.1));
-            if (blackOut != null) blackOut.call("set", "fade", fadeValue);
+            if (blackOut != null) blackOut.setProperty("fade", fadeValue);
             return true;
         } else {
-            if (blackOut != null) blackOut.call("set", "fade", 0.0);
+            if (blackOut != null) blackOut.setProperty("fade", 0.0);
             return false;
         }
     }
@@ -197,7 +198,7 @@ public class OXOCPlayer extends org.godot.Godot {
             // Orthonormalize: normalize the basis axes
             org.godot.math.Basis nb = newGlobal.getBasis();
             org.godot.math.Vector3 col0 = new org.godot.math.Vector3(nb.xx, nb.yx, nb.zx).normalized();
-            org.godot.math.Vector3 col1 = col0.cross(new org.godot.math.Vector3(nb.xz, nb.yz, nb.zz).normalized()).normalized();
+            org.godot.math.Vector3 col1 = col0.cross(new org.godot.math.Vector3(nb.xz, nb.yz, nb.zz).normalized().normalized());
             org.godot.math.Vector3 col2 = col0.cross(col1).normalized();
             org.godot.math.Basis orthoBasis = new org.godot.math.Basis(
                     col0.x, col1.x, col2.x,

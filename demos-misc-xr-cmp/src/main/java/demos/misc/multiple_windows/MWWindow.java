@@ -18,10 +18,10 @@ public class MWWindow extends Window {
     }
 
     @GodotMethod
-    public void _on_close_requested() {
+    public void OnCloseRequested() {
         String className = (String) call("get_class");
         String name = (String) getProperty("name");
         System.out.println(className + " " + name + " was hidden.");
-        call("hide");
+        hide();
     }
 }

@@ -23,15 +23,15 @@ public class PLFollowCamera extends Camera3D {
 	public void _ready() {
 		if (initialized) return;
 		initialized = true;
-		call("set_as_top_level", true);
+		setAsTopLevel(true);
 	}
 
 	@Override
 	public void _physicsProcess(double delta) {
-		org.godot.Godot parent = (org.godot.Godot) call("get_parent");
+		org.godot.node.Node3D parent = (org.godot.node.Node3D) getParent();
 		if (parent == null) return;
 
-		Object targetObj = parent.call("get_global_transform");
+		Object targetObj = parent.getGlobalTransform();
 		Object posObj = call("get_global_transform");
 		if (!(targetObj instanceof Transform3D) || !(posObj instanceof Transform3D)) return;
 
@@ -54,7 +54,7 @@ public class PLFollowCamera extends Camera3D {
 		}
 
 		pos = target.add(difference);
-		call("look_at_from_position", pos, target, Vector3.UP);
+		lookAtFromPosition(pos, target, Vector3.UP);
 
 		Object xformObj = getProperty("transform");
 		if (xformObj instanceof Transform3D) {

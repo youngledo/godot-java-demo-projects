@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
 import org.godot.math.Vector3;
+import org.godot.node.Node;
 
 /**
  * Port of compute/texture/main.gd
@@ -24,16 +25,16 @@ public class TextureMain extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        waterPlane = call("get_node", "WaterPlane");
+        waterPlane = getNode("WaterPlane");
 
         // Set slider values to match water plane defaults
-        Object rainSlider = call("get_node", "Container/RainSize/HSlider");
+        Object rainSlider = getNode("Container/RainSize/HSlider");
         if (rainSlider != null && waterPlane != null) {
             Object rainSize = callOn(waterPlane, "get", "rain_size");
             callOn(rainSlider, "set", "value", rainSize);
         }
 
-        Object mouseSlider = call("get_node", "Container/MouseSize/HSlider");
+        Object mouseSlider = getNode("Container/MouseSize/HSlider");
         if (mouseSlider != null && waterPlane != null) {
             Object mouseSize = callOn(waterPlane, "get", "mouse_size");
             callOn(mouseSlider, "set", "value", mouseSize);
@@ -42,7 +43,7 @@ public class TextureMain extends Node3D {
 
     @Override
     public void _process(double delta) {
-        Object rotateCheckbox = call("get_node", "Container/Rotate");
+        Object rotateCheckbox = getNode("Container/Rotate");
         if (rotateCheckbox != null) {
             boolean pressed = (boolean) callOn(rotateCheckbox, "get", "button_pressed");
             if (pressed && waterPlane != null) {
@@ -59,14 +60,14 @@ public class TextureMain extends Node3D {
     }
 
     @GodotMethod
-    public void _on_rain_size_changed(double value) {
+    public void OnRainSizeChanged(double value) {
         if (waterPlane != null) {
             callOn(waterPlane, "set", "rain_size", value);
         }
     }
 
     @GodotMethod
-    public void _on_mouse_size_changed(double value) {
+    public void OnMouseSizeChanged(double value) {
         if (waterPlane != null) {
             callOn(waterPlane, "set", "mouse_size", value);
         }

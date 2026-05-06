@@ -2,6 +2,7 @@ package demos.xr.openxr_origin_centric_movement.objects;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "OXOCBlackOut", parent = "Node3D")
 public class OXOCBlackOut extends Node3D {
@@ -22,7 +23,7 @@ public class OXOCBlackOut extends Node3D {
     }
 
     private void updateFade() {
-        org.godot.Godot meshInstance = (org.godot.Godot) call("get_node", "MeshInstance3D");
+        org.godot.node.MeshInstance3D meshInstance = (org.godot.node.MeshInstance3D) getNode("MeshInstance3D");
         if (meshInstance == null) return;
 
         if (fade == 0.0) {
@@ -41,7 +42,7 @@ public class OXOCBlackOut extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        org.godot.Godot meshInstance = (org.godot.Godot) call("get_node", "MeshInstance3D");
+        org.godot.node.MeshInstance3D meshInstance = (org.godot.node.MeshInstance3D) getNode("MeshInstance3D");
         if (meshInstance != null) {
             material = (org.godot.Godot) meshInstance.getProperty("material_override");
         }

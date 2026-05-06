@@ -2,6 +2,7 @@ package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "HandController", parent = "XRController3D")
 public class HandController extends org.godot.Godot {

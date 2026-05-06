@@ -18,7 +18,7 @@ public class RPHealth extends Node {
     public void dead() {}
 
     @Signal
-    public void health_changed() {}
+    public void healthChanged() {}
 
     @Override
     public void _ready() {
@@ -37,20 +37,20 @@ public class RPHealth extends Node {
     public void takeDamage(int damage) {
         life = life - damage + armor;
         if (life <= 0) {
-            call("emit_signal", "dead");
+            emitSignal("dead");
         } else {
-            call("emit_signal", "health_changed", (double) life);
+            emitSignal("health_changed", (double) life);
         }
     }
 
     public void heal(int amount) {
         life += amount;
         life = Math.max(life, Math.min(life, maxLife));
-        call("emit_signal", "health_changed", (double) life);
+        emitSignal("health_changed", (double) life);
     }
 
     @GodotMethod
-    public double get_health_ratio() {
+    public double getHealthRatio() {
         return (double) life / maxLife;
     }
 

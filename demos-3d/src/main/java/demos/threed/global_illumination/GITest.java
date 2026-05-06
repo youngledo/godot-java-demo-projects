@@ -3,6 +3,7 @@ package demos.threed.global_illumination;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
+import org.godot.node.Node;
 
 @GodotClass(name = "GITest", parent = "Node3D")
 public class GITest extends Node3D {
@@ -12,14 +13,14 @@ public class GITest extends Node3D {
 	private int ssilMode = 0;
 
 	private org.godot.Godot environment;
-	private org.godot.Godot giModeLabel;
-	private org.godot.Godot fpsLabel;
-	private org.godot.Godot reflectionProbeModeLabel;
-	private org.godot.Godot ssilModeLabel;
-	private org.godot.Godot reflectionProbe;
-	private org.godot.Godot voxelGI;
-	private org.godot.Godot lightmapGIAll;
-	private org.godot.Godot lightmapGIIndirect;
+	private org.godot.node.Node giModeLabel;
+	private org.godot.node.Node fpsLabel;
+	private org.godot.node.Node reflectionProbeModeLabel;
+	private org.godot.node.Node ssilModeLabel;
+	private org.godot.node.Node reflectionProbe;
+	private org.godot.node.Node voxelGI;
+	private org.godot.node.Node lightmapGIAll;
+	private org.godot.node.Node lightmapGIIndirect;
 	private boolean initialized = false;
 
 	private static final String[] GI_MODE_TEXTS = {
@@ -35,17 +36,17 @@ public class GITest extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		org.godot.Godot worldEnv = (org.godot.Godot) call("get_node", "WorldEnvironment");
+		org.godot.node.Node worldEnv = getNode("WorldEnvironment");
 		if (worldEnv != null) environment = (org.godot.Godot) worldEnv.getProperty("environment");
 
-		giModeLabel = (org.godot.Godot) call("get_node", "GIMode");
-		fpsLabel = (org.godot.Godot) call("get_node", "FPS");
-		reflectionProbeModeLabel = (org.godot.Godot) call("get_node", "ReflectionProbeMode");
-		ssilModeLabel = (org.godot.Godot) call("get_node", "SSILMode");
-		reflectionProbe = (org.godot.Godot) call("get_node", "Camera/ReflectiveSphere/ReflectionProbe");
-		voxelGI = (org.godot.Godot) call("get_node", "VoxelGI");
-		lightmapGIAll = (org.godot.Godot) call("get_node", "LightmapGIAll");
-		lightmapGIIndirect = (org.godot.Godot) call("get_node", "LightmapGIIndirect");
+		giModeLabel = getNode("GIMode");
+		fpsLabel = getNode("FPS");
+		reflectionProbeModeLabel = getNode("ReflectionProbeMode");
+		ssilModeLabel = getNode("SSILMode");
+		reflectionProbe = getNode("Camera/ReflectiveSphere/ReflectionProbe");
+		voxelGI = getNode("VoxelGI");
+		lightmapGIAll = getNode("LightmapGIAll");
+		lightmapGIIndirect = getNode("LightmapGIIndirect");
 
 		setGiMode(giMode);
 		setReflectionProbeMode(reflectionProbeMode);
@@ -54,16 +55,16 @@ public class GITest extends Node3D {
 
 	@Override
 	public boolean _input(Object inputEvent) {
-		org.godot.Godot ev = (org.godot.Godot) inputEvent;
-		if ((boolean) ev.call("is_action_pressed", "cycle_gi_mode")) {
+		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
+		if ((boolean) ev.isActionPressed("cycle_gi_mode")) {
 			giMode = (giMode + 1) % 5;
 			setGiMode(giMode);
 		}
-		if ((boolean) ev.call("is_action_pressed", "cycle_reflection_probe_mode")) {
+		if ((boolean) ev.isActionPressed("cycle_reflection_probe_mode")) {
 			reflectionProbeMode = (reflectionProbeMode + 1) % 3;
 			setReflectionProbeMode(reflectionProbeMode);
 		}
-		if ((boolean) ev.call("is_action_pressed", "cycle_ssil_mode")) {
+		if ((boolean) ev.isActionPressed("cycle_ssil_mode")) {
 			ssilMode = (ssilMode + 1) % 4;
 			setSsilMode(ssilMode);
 		}

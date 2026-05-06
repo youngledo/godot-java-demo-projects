@@ -2,6 +2,7 @@ package demos.gui.input_mapping;
 
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
+import org.godot.node.FileAccess;
 import org.godot.node.Node;
 
 @GodotClass(name = "KeyPersistence", parent = "Node")
@@ -36,15 +37,15 @@ public class KeyPersistence extends Node {
     public void loadKeymap() {
         org.godot.singleton.ResourceLoader resourceLoader = org.godot.singleton.ResourceLoader.singleton();
 
-        if (!(boolean) call("FileAccess.file_exists", KEYMAPS_PATH)) {
+        if (!FileAccess.fileExists(KEYMAPS_PATH)) {
             saveKeymap();
             return;
         }
 
-        Godot file = (Godot) call("FileAccess.open", KEYMAPS_PATH, 1); // FileAccess.READ = 1
+        FileAccess file = FileAccess.open(KEYMAPS_PATH, 1); // FileAccess.READ = 1
         if (file != null) {
-            Object tempKeymap = file.call("get_var", true);
-            file.call("close");
+            Object tempKeymap = file.getVar(true);
+            file.close();
 
             org.godot.singleton.InputMap inputMap = org.godot.singleton.InputMap.singleton();
 
@@ -66,10 +67,10 @@ public class KeyPersistence extends Node {
     }
 
     public void saveKeymap() {
-        Godot file = (Godot) call("FileAccess.open", KEYMAPS_PATH, 2); // FileAccess.WRITE = 2
+        FileAccess file = FileAccess.open(KEYMAPS_PATH, 2); // FileAccess.WRITE = 2
         if (file != null) {
-            file.call("store_var", keymaps, true);
-            file.call("close");
+            file.storeVar(keymaps, true);
+            file.close();
         }
     }
 }
