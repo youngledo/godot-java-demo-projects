@@ -47,7 +47,7 @@ public class BeachCave extends Node2D {
 						env.setProperty("glow_map", null);
 						env.setProperty("glow_intensity", 0.8);
 					} else {
-						Object map = call("load", "res://glow_map.webp");
+						Object map = org.godot.singleton.ResourceLoader.singleton().load("res://glow_map.webp");
 						env.setProperty("glow_map", map);
 						env.setProperty("glow_intensity", 1.6);
 					}

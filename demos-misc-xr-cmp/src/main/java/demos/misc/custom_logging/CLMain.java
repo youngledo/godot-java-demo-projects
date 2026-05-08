@@ -84,7 +84,7 @@ public class CLMain extends Control {
         String pathStr = String.valueOf(logPath);
         // Get base directory
         String baseDir = pathStr.substring(0, Math.max(0, pathStr.lastIndexOf('/')));
-        os.call("shell_open", call("ProjectSettings.globalize_path", baseDir));
+        os.shellOpen((String) call("ProjectSettings.globalize_path", baseDir));
     }
 
     @GodotMethod

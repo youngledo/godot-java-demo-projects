@@ -95,6 +95,6 @@ public class Regex extends VBoxContainer {
     @GodotMethod
     public void OnHelpMetaClicked(Object meta) {
         org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        os.call("shell_open", "https://regexr.com");
+        os.shellOpen("https://regexr.com");
     }
 }

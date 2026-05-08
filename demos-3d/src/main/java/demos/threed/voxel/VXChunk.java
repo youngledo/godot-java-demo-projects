@@ -105,7 +105,7 @@ public class VXChunk {
 
         MeshInstance3D mi = MeshInstance3D.create();
         mi.setProperty("mesh", arrayMesh);
-        java.lang.Object matObj = cd.node.call("load", "res://world/textures/material.tres");
+        java.lang.Object matObj = org.godot.singleton.ResourceLoader.singleton().load("res://world/textures/material.tres");
         if (matObj != null) {
             mi.setProperty("material_override", matObj);
         }

@@ -20,22 +20,21 @@ public class OSTest extends Panel {
         if (rtl != null) rtl.call("grab_focus");
 
         addHeader("Audio");
-        org.godot.Godot audioServer = (org.godot.Godot) call("AudioServer");
-        addLine("Mix rate", call("AudioServer.get_mix_rate") + " Hz");
-        addLine("Output latency", String.format("%f ms", ((double) call("AudioServer.get_output_latency")) * 1000));
-        addLine("Output device list", joinArray(call("AudioServer.get_output_device_list")));
-        addLine("Capture device list", joinArray(call("AudioServer.get_input_device_list")));
+        addLine("Mix rate", org.godot.singleton.AudioServer.singleton().getMixRate() + " Hz");
+        addLine("Output latency", String.format("%f ms", org.godot.singleton.AudioServer.singleton().getOutputLatency() * 1000));
+        addLine("Output device list", joinArray(org.godot.singleton.AudioServer.singleton().getOutputDeviceList()));
+        addLine("Capture device list", joinArray(org.godot.singleton.AudioServer.singleton().getInputDeviceList()));
         addLine("Connected MIDI inputs", scanMidiInputs());
 
         addHeader("Date and time");
-        addLine("Date and time (local)", call("Time.get_datetime_string_from_system", false, true));
-        addLine("Date and time (UTC)", call("Time.get_datetime_string_from_system", true, true));
-        addLine("Date (local)", call("Time.get_date_string_from_system", false));
-        addLine("Date (UTC)", call("Time.get_date_string_from_system", true));
-        addLine("Time (local)", call("Time.get_time_string_from_system", false));
-        addLine("Time (UTC)", call("Time.get_time_string_from_system", true));
-        addLine("Timezone", call("Time.get_time_zone_from_system"));
-        addLine("UNIX time", call("Time.get_unix_time_from_system"));
+        addLine("Date and time (local)", org.godot.singleton.Time.singleton().getDatetimeStringFromSystem(false, true));
+        addLine("Date and time (UTC)", org.godot.singleton.Time.singleton().getDatetimeStringFromSystem(true, true));
+        addLine("Date (local)", org.godot.singleton.Time.singleton().getDateStringFromSystem(false));
+        addLine("Date (UTC)", org.godot.singleton.Time.singleton().getDateStringFromSystem(true));
+        addLine("Time (local)", org.godot.singleton.Time.singleton().getTimeStringFromSystem(false));
+        addLine("Time (UTC)", org.godot.singleton.Time.singleton().getTimeStringFromSystem(true));
+        addLine("Timezone", org.godot.singleton.Time.singleton().getTimeZoneFromSystem());
+        addLine("UNIX time", org.godot.singleton.Time.singleton().getUnixTimeFromSystem());
 
         addHeader("Display");
         org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
@@ -54,30 +53,30 @@ public class OSTest extends Panel {
         addLine("Screen orientation", orientations[(int) Math.min(orientation, orientations.length - 1)]);
 
         addHeader("Engine");
-        Object versionInfo = call("Engine.get_version_info");
+        Object versionInfo = org.godot.singleton.Engine.singleton().getVersionInfo();
         addLine("Version", versionInfo instanceof java.util.Map ? ((java.util.Map<?, ?>) versionInfo).get("string") : String.valueOf(versionInfo));
-        addLine("Compiled for architecture", call("Engine.get_architecture_name"));
-        addLine("Command-line arguments", call("OS.get_cmdline_args"));
-        addLine("Is debug build", call("OS.is_debug_build"));
-        addLine("Executable path", call("OS.get_executable_path"));
-        addLine("User data directory", call("OS.get_user_data_dir"));
-        addLine("Filesystem is persistent", call("OS.is_userfs_persistent"));
-        addLine("Process ID (PID)", call("OS.get_process_id"));
-        addLine("Main thread ID", call("OS.get_main_thread_id"));
-        addLine("Thread caller ID", call("OS.get_thread_caller_id"));
-        addLine("Memory information", call("OS.get_memory_info"));
-        addLine("Static memory usage", call("OS.get_static_memory_usage"));
-        addLine("Static memory peak usage", call("OS.get_static_memory_peak_usage"));
+        addLine("Compiled for architecture", org.godot.singleton.Engine.singleton().getArchitectureName());
+        addLine("Command-line arguments", joinArray(org.godot.singleton.OS.singleton().getCmdlineArgs()));
+        addLine("Is debug build", org.godot.singleton.OS.singleton().isDebugBuild());
+        addLine("Executable path", org.godot.singleton.OS.singleton().getExecutablePath());
+        addLine("User data directory", org.godot.singleton.OS.singleton().getUserDataDir());
+        addLine("Filesystem is persistent", org.godot.singleton.OS.singleton().isUserfsPersistent());
+        addLine("Process ID (PID)", org.godot.singleton.OS.singleton().getProcessId());
+        addLine("Main thread ID", org.godot.singleton.OS.singleton().getMainThreadId());
+        addLine("Thread caller ID", org.godot.singleton.OS.singleton().getThreadCallerId());
+        addLine("Memory information", org.godot.singleton.OS.singleton().getMemoryInfo());
+        addLine("Static memory usage", org.godot.singleton.OS.singleton().getStaticMemoryUsage());
+        addLine("Static memory peak usage", org.godot.singleton.OS.singleton().getStaticMemoryPeakUsage());
 
         addHeader("Environment");
         addLine("Value of `PATH`", org.godot.singleton.OS.singleton().getEnvironment("PATH"));
         addLine("Value of `path`", org.godot.singleton.OS.singleton().getEnvironment("path"));
 
         addHeader("Hardware");
-        addLine("Model name", call("OS.get_model_name"));
-        addLine("Processor name", call("OS.get_processor_name"));
-        addLine("Processor count", call("OS.get_processor_count"));
-        addLine("Device unique ID", call("OS.get_unique_id"));
+        addLine("Model name", org.godot.singleton.OS.singleton().getName());
+        addLine("Processor name", org.godot.singleton.OS.singleton().getProcessorName());
+        addLine("Processor count", org.godot.singleton.OS.singleton().getProcessorCount());
+        addLine("Device unique ID", org.godot.singleton.OS.singleton().getUniqueId());
 
         addHeader("Input");
         addLine("Device has touch screen", ds.call("is_touchscreen_available"));
@@ -88,15 +87,15 @@ public class OSTest extends Panel {
         }
 
         addHeader("Localization");
-        addLine("Locale", call("OS.get_locale"));
-        addLine("Language", call("OS.get_locale_language"));
+        addLine("Locale", org.godot.singleton.OS.singleton().getLocale());
+        addLine("Language", org.godot.singleton.OS.singleton().getLocaleLanguage());
 
         addHeader("Mobile");
-        addLine("Granted permissions", call("OS.get_granted_permissions"));
+        addLine("Granted permissions", joinArray(org.godot.singleton.OS.singleton().getGrantedPermissions()));
 
         addHeader("Software");
-        addLine("OS name", call("OS.get_name"));
-        addLine("OS version", call("OS.get_version"));
+        addLine("OS name", org.godot.singleton.OS.singleton().getName());
+        addLine("OS version", org.godot.singleton.OS.singleton().getVersion());
         addLine("Distribution name", call("OS.get_distribution_name"));
         addLine("System dark mode supported", ds.call("is_dark_mode_supported"));
         addLine("System dark mode enabled", ds.call("is_dark_mode"));

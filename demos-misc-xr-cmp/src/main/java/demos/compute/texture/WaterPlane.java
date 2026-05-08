@@ -194,7 +194,7 @@ public class WaterPlane extends Area3D {
         rd = call("RenderingServer.get_rendering_device");
 
         // Load shader
-        Object shaderFile = call("load", "res://water_plane/water_compute.glsl");
+        Object shaderFile = org.godot.singleton.ResourceLoader.singleton().load("res://water_plane/water_compute.glsl");
         Object shaderSpirv = callOn(shaderFile, "get_spirv");
         shader = callOn(rd, "shader_create_from_spirv", shaderSpirv);
         pipeline = callOn(rd, "compute_pipeline_create", shader);

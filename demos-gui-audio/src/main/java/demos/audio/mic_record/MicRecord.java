@@ -181,6 +181,6 @@ public class MicRecord extends Control {
 
     @GodotMethod
     public void _onOpenUserFolderButtonPressed() {
-        org.godot.singleton.OS.singleton().call("shell_open", org.godot.singleton.ProjectSettings.singleton().call("globalize_path", "user://"));
+        org.godot.singleton.OS.singleton().shellOpen((String) org.godot.singleton.ProjectSettings.singleton().call("globalize_path", "user://"));
     }
 }

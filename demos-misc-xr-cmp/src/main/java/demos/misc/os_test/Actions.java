@@ -46,9 +46,9 @@ public class Actions extends Node {
     @GodotMethod
     public void OnOpenShellFolderPressed() {
         org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        String path = (String) os.call("get_environment", "HOME");
+        String path = os.getEnvironment("HOME");
         if (path == null || path.isEmpty() ) {
-            path = (String) os.call("get_environment", "USERPROFILE");
+            path = os.getEnvironment("USERPROFILE");
         }
         String osName = (String) os.getName();
         if ("macOS".equals(osName)) {
@@ -201,6 +201,6 @@ public class Actions extends Node {
 
     @GodotMethod
     public void OnKillCurrentProcessPressed() {
-        org.godot.singleton.OS.singleton().call("kill", call("OS.get_process_id"));
+        org.godot.singleton.OS.singleton().kill(org.godot.singleton.OS.singleton().getProcessId());
     }
 }

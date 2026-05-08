@@ -151,6 +151,6 @@ public class LWCControls extends VBoxContainer {
 
     @GodotMethod
     public void OnOpenDocumentationPressed() {
-        org.godot.singleton.OS.singleton().call("shell_open", "https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
+        org.godot.singleton.OS.singleton().shellOpen("https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
     }
 }

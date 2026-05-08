@@ -84,7 +84,7 @@ public class TweenDemo extends Node2D {
 		}
 
 		// Loop back
-		tween.tweenCallback(new org.godot.core.Callable(this, "showIcon"));
+		tween.call("tween_callback", new org.godot.core.Callable(this, "showIcon"));
 	}
 
 	@org.godot.annotation.GodotMethod

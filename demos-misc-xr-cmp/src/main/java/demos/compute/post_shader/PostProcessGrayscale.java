@@ -56,7 +56,7 @@ public class PostProcessGrayscale extends CompositorEffect {
         if (rd == null) return;
 
         // Load the shader file
-        Object shaderFile = call("load", "res://post_process_grayscale.glsl");
+        Object shaderFile = org.godot.singleton.ResourceLoader.singleton().load("res://post_process_grayscale.glsl");
         Object shaderSpirv = callOn(shaderFile, "get_spirv");
 
         shader = callOn(rd, "shader_create_from_spirv", shaderSpirv);

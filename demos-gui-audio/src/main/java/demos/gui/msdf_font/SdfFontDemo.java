@@ -22,9 +22,9 @@ public class SdfFontDemo extends Control {
                     if (currentFont != null) {
                         boolean isMsdf = (boolean) currentFont.getProperty("multichannel_signed_distance_field");
                         if (isMsdf) {
-                            fontLabel.call("add_theme_font_override", "font", call("load", "res://montserrat_semibold.ttf"));
+                            fontLabel.call("add_theme_font_override", "font", org.godot.singleton.ResourceLoader.singleton().load("res://montserrat_semibold.ttf"));
                         } else {
-                            fontLabel.call("add_theme_font_override", "font", call("load", "res://montserrat_semibold_msdf.ttf"));
+                            fontLabel.call("add_theme_font_override", "font", org.godot.singleton.ResourceLoader.singleton().load("res://montserrat_semibold_msdf.ttf"));
                         }
                     }
                 }

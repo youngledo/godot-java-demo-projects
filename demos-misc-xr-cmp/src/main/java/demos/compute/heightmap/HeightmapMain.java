@@ -88,7 +88,7 @@ public class HeightmapMain extends Control {
 
         // Append GPU and CPU model names
         String gpuName = (String) call("RenderingServer.get_video_adapter_name");
-        String cpuName = (String) call("OS.get_processor_name");
+        String cpuName = org.godot.singleton.OS.singleton().getProcessorName();
         Godot gpuButton = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonGPU");
         Godot cpuButton = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonCPU");
         if (gpuButton != null) {

@@ -34,7 +34,7 @@ public class TCCOptions extends VBoxContainer {
 		org.godot.Godot oldEnv = worldEnvironment;
 
 		if (scenePaths != null && index < scenePaths.length) {
-			Object sceneObj = call("load", scenePaths[index]);
+			Object sceneObj = org.godot.singleton.ResourceLoader.singleton().load(scenePaths[index]);
 			if (sceneObj instanceof org.godot.node.PackedScene sceneRes) {
 				org.godot.node.Node instance = (org.godot.node.Node) sceneRes.instantiate();
 				if (instance != null) {

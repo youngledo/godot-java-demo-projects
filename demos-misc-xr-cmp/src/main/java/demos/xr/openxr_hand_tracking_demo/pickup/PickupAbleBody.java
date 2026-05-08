@@ -24,7 +24,7 @@ public class PickupAbleBody extends RigidBody3D {
         initialized = true;
 
         // Load highlight material.
-        highlightMaterial = (org.godot.Godot) call("load", "res://shaders/highlight_material.tres");
+        highlightMaterial = (org.godot.Godot) org.godot.singleton.ResourceLoader.singleton().load("res://shaders/highlight_material.tres");
     }
 
     public void addIsClosest(org.godot.Godot area) {

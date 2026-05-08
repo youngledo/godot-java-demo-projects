@@ -11,7 +11,7 @@ public class RichTextBBCode extends Control {
     @GodotMethod
     public void OnRichTextLabelMetaClicked(Object meta) {
         org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        long err = (long) os.call("shell_open", String.valueOf(meta));
+        long err = os.shellOpen(String.valueOf(meta));
         if (err == 0) {
             System.out.println("Opened link '" + meta + "' successfully!");
         } else {
