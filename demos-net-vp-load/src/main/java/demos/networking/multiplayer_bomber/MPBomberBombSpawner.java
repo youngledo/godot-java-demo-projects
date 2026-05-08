@@ -4,6 +4,8 @@ import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.MultiplayerSpawner;
+import org.godot.node.Node;
+import org.godot.node.PackedScene;
 
 @GodotClass(name = "MPBomberBombSpawner", parent = "MultiplayerSpawner")
 public class MPBomberBombSpawner extends MultiplayerSpawner {
@@ -25,7 +27,7 @@ public class MPBomberBombSpawner extends MultiplayerSpawner {
         if (!(idData instanceof Number)) return null;
 
         Godot scene = (Godot) call("load", "res://bomb.tscn");
-        Godot bomb = (Godot) scene.call("instantiate");
+        Node bomb = ((PackedScene) scene).instantiate();
         bomb.setProperty("position", data[0]);
         bomb.setProperty("from_player", ((Number) data[1]).intValue());
         return bomb;

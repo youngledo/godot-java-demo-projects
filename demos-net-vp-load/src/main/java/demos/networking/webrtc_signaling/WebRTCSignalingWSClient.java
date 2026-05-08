@@ -6,6 +6,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
 import org.godot.node.Node;
+import org.godot.node.WebSocketPeer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,52 +60,52 @@ public class WebRTCSignalingWSClient extends Node {
     @Signal
     public void candidateReceived() {}
 
-    private Godot ws;
+    private WebSocketPeer ws;
     long code = 1000;
     String reason = "Unknown";
     private long oldState = 3L; // STATE_CLOSED
 
     @Override
     public void _ready() {
-        ws = (Godot) call("WebSocketPeer.new");
+        ws = WebSocketPeer.create();
     }
 
     public void connectToUrl(String url) {
         close();
         code = 1000;
         reason = "Unknown";
-        ws.call("connect_to_url", url);
+        ws.connectToUrl(url);
     }
 
     public void close() {
-        ws.call("close");
+        ws.close();
     }
 
     @Override
     public void _process(double delta) {
-        ws.call("poll");
-        long state = (long) ws.call("get_ready_state");
+        ws.poll();
+        int state = ws.getReadyState();
 
         if (state != oldState && state == 1L && autojoin) { // STATE_OPEN
             joinLobby(lobby);
         }
 
-        while (state == 1L && (long) ws.call("get_available_packet_count") > 0) {
+        while (state == 1L && ws.getAvailablePacketCount() > 0) {
             if (!parseMsg() ) {
                 System.out.println("Error parsing message from server.");
             }
         }
 
         if (state != oldState && state == 3L) { // STATE_CLOSED
-            code = (long) ws.call("get_close_code");
-            reason = (String) ws.call("get_close_reason");
+            code = ws.getCloseCode();
+            reason = ws.getCloseReason();
             emitSignal("disconnected");
         }
         oldState = state;
     }
 
     private boolean parseMsg() {
-        byte[] pkt = (byte[]) ws.call("get_packet");
+        byte[] pkt = ws.getPacket();
         String pktStr = new String(pkt);
         Object parsed = call("JSON.parse_string", pktStr);
 
@@ -177,6 +178,6 @@ public class WebRTCSignalingWSClient extends Node {
         msg.put("id", id);
         msg.put("data", data);
         String json = (String) call("JSON.stringify", msg);
-        return (long) ws.call("send_text", json);
+        return ws.sendText(json);
     }
 }

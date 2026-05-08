@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.node.Control;
+import org.godot.node.WebSocketMultiplayerPeer;
 
 @GodotClass(name = "WSMPMain", parent = "Control")
 public class WSMPMain extends Control {
@@ -17,7 +18,7 @@ public class WSMPMain extends Control {
     private Godot nameEdit;
     private Godot hostEdit;
     private Godot game;
-    private Godot peer;
+    private WebSocketMultiplayerPeer peer;
 
     @Override
     public void _ready() {
@@ -28,7 +29,7 @@ public class WSMPMain extends Control {
         hostEdit = (Godot) getNode("Panel/VBoxContainer/HBoxContainer2/Hostname");
         game = (Godot) getNode("Panel/VBoxContainer/Game");
 
-        peer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketMultiplayerPeer");
+        peer = WebSocketMultiplayerPeer.create();
 
         Godot mp = (Godot) getMultiplayer();
         mp.connect("peer_connected", new Callable(this, "_peer_connected"), 0);
@@ -76,7 +77,7 @@ public class WSMPMain extends Control {
         okBtn.call("grab_focus");
         Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
-        peer.call("close");
+        peer.close();
     }
 
     @GodotMethod
@@ -98,7 +99,7 @@ public class WSMPMain extends Control {
     public void OnHostPressed() {
         Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
-        peer.call("create_server", DEF_PORT);
+        peer.createServer(DEF_PORT);
         mp.setProperty("multiplayer_peer", peer);
         game.call("add_player", 1, nameEdit.getProperty("text"));
         startGame();
@@ -114,7 +115,7 @@ public class WSMPMain extends Control {
         Godot mp = (Godot) getMultiplayer();
         mp.setProperty("multiplayer_peer", null);
         String hostText = (String) hostEdit.getProperty("text");
-        peer.call("create_client", "ws://" + hostText + ":" + DEF_PORT);
+        peer.createClient("ws://" + hostText + ":" + DEF_PORT);
         mp.setProperty("multiplayer_peer", peer);
         startGame();
     }

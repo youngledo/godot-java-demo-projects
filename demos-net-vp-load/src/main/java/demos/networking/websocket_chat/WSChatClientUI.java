@@ -1,43 +1,45 @@
 package demos.networking.websocket_chat;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.LineEdit;
+import org.godot.node.RichTextLabel;
+import org.godot.node.WebSocketPeer;
 
 @GodotClass(name = "WSChatClientUI", parent = "Control")
 public class WSChatClientUI extends Control {
 
     private WSChatWebSocketClient client;
-    private Godot logDest;
-    private Godot lineEdit;
-    private Godot host;
+    private RichTextLabel logDest;
+    private LineEdit lineEdit;
+    private LineEdit host;
 
     @Override
     public void _ready() {
-        client = (WSChatWebSocketClient) getNode("WebSocketClient");
-        logDest = (Godot) getNode("Panel/VBoxContainer/RichTextLabel");
-        lineEdit = (Godot) getNode("Panel/VBoxContainer/Send/LineEdit");
-        host = (Godot) getNode("Panel/VBoxContainer/Connect/Host");
+        client = getNodeAs("WebSocketClient", WSChatWebSocketClient.class);
+        logDest = getNodeAs("Panel/VBoxContainer/RichTextLabel", RichTextLabel.class);
+        lineEdit = getNodeAs("Panel/VBoxContainer/Send/LineEdit", LineEdit.class);
+        host = getNodeAs("Panel/VBoxContainer/Connect/Host", LineEdit.class);
     }
 
     private void info(String msg) {
         System.out.println(msg);
-        logDest.call("add_text", msg + "\n");
+        logDest.addText(msg + "\n");
     }
 
     @GodotMethod
     public void OnWebSocketClientConnectionClosed() {
-        Godot ws = client.getSocket();
-        long code = (long) ws.call("get_close_code");
-        String reason = (String) ws.call("get_close_reason");
+        WebSocketPeer ws = client.getSocket();
+        int code = ws.getCloseCode();
+        String reason = ws.getCloseReason();
         info("Client just disconnected with code: " + code + ", reason: " + reason);
     }
 
     @GodotMethod
     public void OnWebSocketClientConnectedToServer() {
-        Godot ws = client.getSocket();
-        String protocol = (String) ws.call("get_selected_protocol");
+        WebSocketPeer ws = client.getSocket();
+        String protocol = ws.getSelectedProtocol();
         info("Client just connected with protocol: " + protocol);
     }
 
@@ -48,12 +50,12 @@ public class WSChatClientUI extends Control {
 
     @GodotMethod
     public void OnSendPressed() {
-        String text = (String) lineEdit.getProperty("text");
+        String text = lineEdit.getText();
         if (text == null || text.isEmpty()) return;
 
         info("Sending message: " + text);
         client.send(text);
-        lineEdit.setProperty("text", "");
+        lineEdit.setText("");
     }
 
     @GodotMethod
@@ -63,7 +65,7 @@ public class WSChatClientUI extends Control {
             return;
         }
 
-        String hostText = (String) host.getProperty("text");
+        String hostText = host.getText();
         if (hostText == null || hostText.isEmpty()) return;
 
         info("Connecting to host: " + hostText);

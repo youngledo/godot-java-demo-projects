@@ -5,7 +5,11 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
+import org.godot.node.AnimationPlayer;
 import org.godot.node.CharacterBody2D;
+import org.godot.node.Label;
+import org.godot.node.MultiplayerAPI;
+import org.godot.node.MultiplayerSynchronizer;
 
 @GodotClass(name = "MPBomberPlayer", parent = "CharacterBody2D")
 public class MPBomberPlayer extends CharacterBody2D {
@@ -32,30 +36,30 @@ public class MPBomberPlayer extends CharacterBody2D {
         String nameStr = (String) getProperty("name");
         try {
             int nameInt = Integer.parseInt(nameStr);
-            Godot inputsSync = (Godot) getNode("Inputs/InputsSync");
-            inputsSync.call("set_multiplayer_authority", nameInt);
+            MultiplayerSynchronizer inputsSync = getNodeAs("Inputs/InputsSync", MultiplayerSynchronizer.class);
+            inputsSync.setMultiplayerAuthority(nameInt);
         } catch (NumberFormatException ignored) {
         }
     }
 
     @Override
     public void _physicsProcess(double delta) {
-        Godot mp = (Godot) getMultiplayer();
+        MultiplayerAPI mp = getMultiplayer();
         Object mpPeer = mp.getProperty("multiplayer_peer");
         String nameStr = (String) getProperty("name");
-        long uniqueId = (long) mp.call("get_unique_id");
+        int uniqueId = mp.getUniqueId();
 
         if (mpPeer == null || String.valueOf(uniqueId).equals(nameStr)) {
             inputs.call("update");
         }
 
-        if (mpPeer == null || (boolean) call("is_multiplayer_authority")) {
+        if (mpPeer == null || isMultiplayerAuthority()) {
             Vector2 pos = (Vector2) getProperty("position");
             syncedPosition = pos;
             lastBombTime += delta;
 
             boolean isBombing = (boolean) inputs.getProperty("bombing");
-            if (!stunned && (boolean) call("is_multiplayer_authority") && isBombing && lastBombTime >= BOMB_RATE) {
+            if (!stunned && isMultiplayerAuthority() && isBombing && lastBombTime >= BOMB_RATE) {
                 lastBombTime = 0.0;
                 Godot bombSpawner = (Godot) getNode("../../BombSpawner");
                 Vector2 position = (Vector2) getProperty("position");
@@ -74,7 +78,6 @@ public class MPBomberPlayer extends CharacterBody2D {
             moveAndSlide();
         }
 
-        // Update animation
         Vector2 motion = (Vector2) inputs.getProperty("motion");
         double mx = motion != null ? motion.getX() : 0;
         double my = motion != null ? motion.getY() : 0;
@@ -89,29 +92,27 @@ public class MPBomberPlayer extends CharacterBody2D {
 
         if (!newAnim.equals(currentAnim)) {
             currentAnim = newAnim;
-            Godot anim = (Godot) getNode("anim");
-            anim.call("play", currentAnim);
+            AnimationPlayer anim = getNodeAs("anim", AnimationPlayer.class);
+            anim.play(currentAnim);
         }
     }
 
     @GodotMethod
     public void setPlayerName(String value) {
-        Godot label = (Godot) getNode("label");
-        label.setProperty("text", value);
-        Godot gamestate = (Godot) getNode("/root/gamestate");
-        Object color = gamestate.call("get_player_color", value);
+        Label label = getNodeAs("label", Label.class);
+        label.setText(value);
+        MPBomberGameState gamestate = getNodeAs("/root/gamestate", MPBomberGameState.class);
+        Object color = gamestate.getPlayerColor(value);
         label.setProperty("modulate", color);
         Godot sprite = (Godot) getNode("sprite");
-        Godot modColor = (Godot) call("Color", 0.5, 0.5, 0.5);
-        // Add gamestate color to gray
-        sprite.setProperty("modulate", modColor);
+        sprite.setProperty("modulate", new org.godot.math.Color(0.5, 0.5, 0.5));
     }
 
     @GodotMethod
     public void exploded(int byWho) {
         if (stunned) return;
         stunned = true;
-        Godot anim = (Godot) getNode("anim");
-        anim.call("play", "stunned");
+        AnimationPlayer anim = getNodeAs("anim", AnimationPlayer.class);
+        anim.play("stunned");
     }
 }

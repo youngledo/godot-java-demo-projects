@@ -5,7 +5,11 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
 import org.godot.math.Vector2;
+import org.godot.node.ENetMultiplayerPeer;
+import org.godot.node.MultiplayerAPI;
 import org.godot.node.Node;
+import org.godot.node.PackedScene;
+import org.godot.node.SceneTree;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +20,7 @@ public class MPBomberGameState extends Node {
     private static final int DEFAULT_PORT = 10567;
     private static final int MAX_PEERS = 12;
 
-    private Godot peer;
+    private ENetMultiplayerPeer peer;
     public String playerName = "The Warrior";
     public Map<Integer, String> players = new HashMap<>();
 
@@ -37,7 +41,7 @@ public class MPBomberGameState extends Node {
 
     @Override
     public void _ready() {
-        Godot mp = (Godot) getMultiplayer();
+        MultiplayerAPI mp = getMultiplayer();
         mp.connect("peer_connected", new org.godot.core.Callable(this, "_player_connected"), 0);
         mp.connect("peer_disconnected", new org.godot.core.Callable(this, "_player_disconnected"), 0);
         mp.connect("connected_to_server", new org.godot.core.Callable(this, "_connected_ok"), 0);
@@ -52,8 +56,8 @@ public class MPBomberGameState extends Node {
 
     @GodotMethod
     public void PlayerDisconnected(long id) {
-        if ((boolean) call("has_node", "/root/World")) {
-            if ((boolean) call("multiplayer.is_server")) {
+        if (hasNode("/root/World")) {
+            if (getMultiplayer().isServer()) {
                 emitSignal("game_error", "Player " + players.get((int) id) + " disconnected");
                 endGame();
             }
@@ -75,15 +79,14 @@ public class MPBomberGameState extends Node {
 
     @GodotMethod
     public void ConnectedFail() {
-        Godot mp = (Godot) getMultiplayer();
-        mp.setProperty("multiplayer_peer", null);
+        getMultiplayer().setProperty("multiplayer_peer", null);
         emitSignal("connection_failed");
     }
 
     @GodotMethod
     public void registerPlayer(String newPlayerName) {
-        long id = (long) call("multiplayer.get_remote_sender_id");
-        players.put((int) id, newPlayerName);
+        int id = getMultiplayer().getRemoteSenderId();
+        players.put(id, newPlayerName);
         emitSignal("player_list_changed");
     }
 
@@ -95,18 +98,17 @@ public class MPBomberGameState extends Node {
     @GodotMethod
     public void loadWorld() {
         Godot worldScene = (Godot) call("load", "res://world.tscn");
-        Godot world = (Godot) worldScene.call("instantiate");
-        Godot tree = (Godot) getTree();
-        Godot root = (Godot) tree.call("get_root");
-        root.call("add_child", world, false, 0);
-        Godot lobby = (Godot) root.call("get_node", "Lobby");
-        lobby.call("hide");
+        Node world = ((PackedScene) worldScene).instantiate();
+        SceneTree tree = getTree();
+        Node root = tree.getRoot();
+        root.addChild(world);
+        root.getNode("Lobby").setProperty("visible", false);
 
-        Godot score = (Godot) world.call("get_node", "Score");
-        long uniqueId = (long) call("multiplayer.get_unique_id");
-        score.call("add_player", (int) uniqueId, playerName);
+        MPBomberScore score = world.getNodeAs("Score", MPBomberScore.class);
+        int uniqueId = getMultiplayer().getUniqueId();
+        score.addPlayer(uniqueId, playerName);
         for (int pn : players.keySet() ) {
-            score.call("add_player", pn, players.get(pn));
+            score.addPlayer(pn, players.get(pn));
         }
 
         tree.setProperty("paused", false);
@@ -115,19 +117,17 @@ public class MPBomberGameState extends Node {
     @GodotMethod
     public void hostGame(String newPlayerName) {
         playerName = newPlayerName;
-        peer = (Godot) call("ENetMultiplayerPeer.new");
-        peer.call("create_server", DEFAULT_PORT, MAX_PEERS);
-        Godot mp = (Godot) getMultiplayer();
-        mp.setProperty("multiplayer_peer", peer);
+        peer = ENetMultiplayerPeer.create();
+        peer.createServer(DEFAULT_PORT, MAX_PEERS);
+        getMultiplayer().setProperty("multiplayer_peer", peer);
     }
 
     @GodotMethod
     public void joinGame(String ip, String newPlayerName) {
         playerName = newPlayerName;
-        peer = (Godot) call("ENetMultiplayerPeer.new");
-        peer.call("create_client", ip, DEFAULT_PORT);
-        Godot mp = (Godot) getMultiplayer();
-        mp.setProperty("multiplayer_peer", peer);
+        peer = ENetMultiplayerPeer.create();
+        peer.createClient(ip, DEFAULT_PORT);
+        getMultiplayer().setProperty("multiplayer_peer", peer);
     }
 
     @GodotMethod
@@ -137,12 +137,12 @@ public class MPBomberGameState extends Node {
 
     @GodotMethod
     public void beginGame() {
-        assert (boolean) call("multiplayer.is_server");
-        call("rpc", "load_world");
+        assert getMultiplayer().isServer();
+        rpc("load_world");
 
-        Godot tree2 = (Godot) getTree();
-        Godot root = (Godot) tree2.call("get_root");
-        Godot world = (Godot) root.call("get_node", "World");
+        SceneTree tree = getTree();
+        Node root = tree.getRoot();
+        Node world = root.getNode("World");
         Godot playerScene = (Godot) call("load", "res://player.tscn");
 
         Map<Integer, Integer> spawnPoints = new HashMap<>();
@@ -156,23 +156,23 @@ public class MPBomberGameState extends Node {
         for (Map.Entry<Integer, Integer> entry : spawnPoints.entrySet() ) {
             int pId = entry.getKey();
             int spawnIdx = entry.getValue();
-            Godot spawnPos = (Godot) world.call("get_node", "SpawnPoints/" + spawnIdx);
+            Node spawnPos = world.getNode("SpawnPoints/" + spawnIdx);
             Vector2 pos = (Vector2) spawnPos.getProperty("position");
-            Godot player = (Godot) playerScene.call("instantiate");
+            Node player = ((PackedScene) playerScene).instantiate();
             player.setProperty("synced_position", pos);
             player.setProperty("name", String.valueOf(pId));
-            Godot playersNode = (Godot) world.call("get_node", "Players");
-            playersNode.call("add_child", player, false, 0);
-            long uniqueId = (long) call("multiplayer.get_unique_id");
-            String pName = pId == (int) uniqueId ? playerName : players.get(pId);
+            Node playersNode = world.getNode("Players");
+            playersNode.addChild(player);
+            int uniqueId = getMultiplayer().getUniqueId();
+            String pName = pId == uniqueId ? playerName : players.get(pId);
             player.call("rpc", "set_player_name", pName);
         }
     }
 
     @GodotMethod
     public void endGame() {
-        if ((boolean) call("has_node", "/root/World")) {
-            ((Godot) getNode("/root/World")).call("queue_free");
+        if (hasNode("/root/World")) {
+            getNode("/root/World").queueFree();
         }
         emitSignal("game_ended");
         players.clear();

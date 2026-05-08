@@ -5,6 +5,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Signal;
 import org.godot.node.Node;
+import org.godot.node.WebSocketPeer;
 
 @GodotClass(name = "WSChatWebSocketClient", parent = "Node")
 public class WSChatWebSocketClient extends Node {
@@ -15,7 +16,7 @@ public class WSChatWebSocketClient extends Node {
     @Export
     public String[] supportedProtocols = new String[0];
 
-    private Godot socket;
+    private WebSocketPeer socket;
     private long lastState = 3L; // STATE_CLOSED
 
     @Signal
@@ -29,37 +30,37 @@ public class WSChatWebSocketClient extends Node {
 
     @Override
     public void _ready() {
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
-        lastState = (long) socket.call("get_ready_state");
+        socket = WebSocketPeer.create();
+        lastState = socket.getReadyState();
     }
 
     public long connectToUrl(String url) {
-        socket.setProperty("supported_protocols", supportedProtocols);
-        socket.setProperty("handshake_headers", handshakeHeaders);
+        socket.setSupportedProtocols(supportedProtocols);
+        socket.setHandshakeHeaders(handshakeHeaders);
 
-        long err = (long) socket.call("connect_to_url", url, (Object) null);
+        int err = socket.connectToUrl(url);
         if (err != 0) return err;
 
-        lastState = (long) socket.call("get_ready_state");
+        lastState = socket.getReadyState();
         return 0; // OK
     }
 
     public long send(String message) {
-        return (long) socket.call("send_text", message);
+        return socket.sendText(message);
     }
 
     public Object getMessage() {
-        if ((long) socket.call("get_available_packet_count") < 1) return null;
-        Object pkt = socket.call("get_packet");
-        if ((boolean) socket.call("was_string_packet")) {
-            return new String((byte[]) pkt);
+        if (socket.getAvailablePacketCount() < 1) return null;
+        byte[] pkt = socket.getPacket();
+        if (socket.wasStringPacket()) {
+            return new String(pkt);
         }
         return call("bytes_to_var", pkt);
     }
 
     public void close(int code, String reason) {
-        socket.call("close", code, reason);
-        lastState = (long) socket.call("get_ready_state");
+        socket.close(code, reason);
+        lastState = socket.getReadyState();
     }
 
     public void closeConnection() {
@@ -67,22 +68,22 @@ public class WSChatWebSocketClient extends Node {
     }
 
     public void clear() {
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
-        lastState = (long) socket.call("get_ready_state");
+        socket = WebSocketPeer.create();
+        lastState = socket.getReadyState();
     }
 
-    public Godot getSocket() {
+    public WebSocketPeer getSocket() {
         return socket;
     }
 
     @Override
     public void _process(double delta) {
-        long currentState = (long) socket.call("get_ready_state");
+        int currentState = socket.getReadyState();
         if (currentState != 3L) { // Not STATE_CLOSED
-            socket.call("poll");
+            socket.poll();
         }
 
-        long state = (long) socket.call("get_ready_state");
+        int state = socket.getReadyState();
 
         if (lastState != state) {
             lastState = state;
@@ -93,7 +94,7 @@ public class WSChatWebSocketClient extends Node {
             }
         }
 
-        while ((long) socket.call("get_ready_state") == 1L && (long) socket.call("get_available_packet_count") > 0) {
+        while (socket.getReadyState() == 1L && socket.getAvailablePacketCount() > 0) {
             Object msg = getMessage();
             emitSignal("message_received", msg);
         }

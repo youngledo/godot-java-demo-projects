@@ -5,33 +5,38 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.node.Control;
+import org.godot.node.LineEdit;
+import org.godot.node.CheckBox;
+import org.godot.node.TextEdit;
+import org.godot.node.MultiplayerAPI;
+import org.godot.node.WebRTCMultiplayerPeer;
 
 @GodotClass(name = "WebRTCSignalingClientUI", parent = "Control")
 public class WebRTCSignalingClientUI extends Control {
 
-    private Godot client;
-    private Godot host;
-    private Godot room;
-    private Godot meshCheckBox;
+    private WebRTCSignalingMultiplayerClient client;
+    private LineEdit host;
+    private LineEdit room;
+    private CheckBox meshCheckBox;
 
     @Override
     public void _ready() {
-        client = (Godot) getNode("Client");
-        host = (Godot) getNode("VBoxContainer/Connect/Host");
-        room = (Godot) getNode("VBoxContainer/Connect/RoomSecret");
-        meshCheckBox = (Godot) getNode("VBoxContainer/Connect/Mesh");
+        client = getNodeAs("Client", WebRTCSignalingMultiplayerClient.class);
+        host = getNodeAs("VBoxContainer/Connect/Host", LineEdit.class);
+        room = getNodeAs("VBoxContainer/Connect/RoomSecret", LineEdit.class);
+        meshCheckBox = getNodeAs("VBoxContainer/Connect/Mesh", CheckBox.class);
 
-        client.call("connect", "lobby_joined", new Callable(this, "_lobby_joined"), 0);
-        client.call("connect", "lobby_sealed", new Callable(this, "_lobby_sealed"), 0);
-        client.call("connect", "connected", new Callable(this, "_connected"), 0);
-        client.call("connect", "disconnected", new Callable(this, "_disconnected"), 0);
+        client.connect("lobby_joined", new Callable(this, "_lobby_joined"), 0);
+        client.connect("lobby_sealed", new Callable(this, "_lobby_sealed"), 0);
+        client.connect("connected", new Callable(this, "_connected"), 0);
+        client.connect("disconnected", new Callable(this, "_disconnected"), 0);
 
-        Godot mp = (Godot) getMultiplayer();
-        mp.call("connect", "connected_to_server", new Callable(this, "_mp_server_connected"), 0);
-        mp.call("connect", "connection_failed", new Callable(this, "_mp_server_disconnect"), 0);
-        mp.call("connect", "server_disconnected", new Callable(this, "_mp_server_disconnect"), 0);
-        mp.call("connect", "peer_connected", new Callable(this, "_mp_peer_connected"), 0);
-        mp.call("connect", "peer_disconnected", new Callable(this, "_mp_peer_disconnected"), 0);
+        MultiplayerAPI mp = getMultiplayer();
+        mp.connect("connected_to_server", new Callable(this, "_mp_server_connected"), 0);
+        mp.connect("connection_failed", new Callable(this, "_mp_server_disconnect"), 0);
+        mp.connect("server_disconnected", new Callable(this, "_mp_server_disconnect"), 0);
+        mp.connect("peer_connected", new Callable(this, "_mp_peer_connected"), 0);
+        mp.connect("peer_disconnected", new Callable(this, "_mp_peer_disconnected"), 0);
     }
 
     @GodotMethod
@@ -42,14 +47,14 @@ public class WebRTCSignalingClientUI extends Control {
 
     @GodotMethod
     public void MpServerConnected() {
-        Godot rtcMp = (Godot) client.getProperty("rtc_mp");
-        logMsg("[Multiplayer] Server connected (I am " + rtcMp.call("get_unique_id") + ")");
+        WebRTCMultiplayerPeer rtcMp = (WebRTCMultiplayerPeer) client.getProperty("rtc_mp");
+        logMsg("[Multiplayer] Server connected (I am " + rtcMp.getUniqueId() + ")");
     }
 
     @GodotMethod
     public void MpServerDisconnect() {
-        Godot rtcMp = (Godot) client.getProperty("rtc_mp");
-        logMsg("[Multiplayer] Server disconnected (I am " + rtcMp.call("get_unique_id") + ")");
+        WebRTCMultiplayerPeer rtcMp = (WebRTCMultiplayerPeer) client.getProperty("rtc_mp");
+        logMsg("[Multiplayer] Server disconnected (I am " + rtcMp.getUniqueId() + ")");
     }
 
     @GodotMethod
@@ -84,14 +89,14 @@ public class WebRTCSignalingClientUI extends Control {
 
     private void logMsg(String msg) {
         System.out.println(msg);
-        Godot textEdit = (Godot) getNode("VBoxContainer/TextEdit");
-        textEdit.setProperty("text", textEdit.getProperty("text") + msg + "\n");
+        TextEdit textEdit = getNodeAs("VBoxContainer/TextEdit", TextEdit.class);
+        textEdit.setText(textEdit.getText() + msg + "\n");
     }
 
     @GodotMethod
     public void OnPeersPressed() {
-        Godot mp = (Godot) getMultiplayer();
-        logMsg(String.valueOf(mp.call("get_peers")));
+        MultiplayerAPI mp = getMultiplayer();
+        logMsg(String.valueOf(mp.getPeers()));
     }
 
     @GodotMethod
@@ -102,19 +107,19 @@ public class WebRTCSignalingClientUI extends Control {
 
     @GodotMethod
     public void OnSealPressed() {
-        client.call("seal_lobby");
+        client.sealLobby();
     }
 
     @GodotMethod
     public void OnStartPressed() {
-        String hostText = (String) host.getProperty("text");
-        String roomText = (String) room.getProperty("text");
-        boolean meshVal = (boolean) meshCheckBox.getProperty("button_pressed");
-        client.call("start", hostText, roomText, meshVal);
+        String hostText = host.getText();
+        String roomText = room.getText();
+        boolean meshVal = meshCheckBox.isPressed();
+        client.start(hostText, roomText, meshVal);
     }
 
     @GodotMethod
     public void OnStopPressed() {
-        client.call("stop");
+        client.stop();
     }
 }

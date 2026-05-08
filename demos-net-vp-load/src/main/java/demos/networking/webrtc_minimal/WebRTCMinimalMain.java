@@ -3,6 +3,9 @@ package demos.networking.webrtc_minimal;
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node;
+import org.godot.node.PackedScene;
+import org.godot.node.SceneTree;
+import org.godot.node.SceneTreeTimer;
 
 @GodotClass(name = "WebRTCMinimalMain", parent = "Node")
 public class WebRTCMinimalMain extends Node {
@@ -11,36 +14,35 @@ public class WebRTCMinimalMain extends Node {
     public void _ready() {
         Godot chatScene = (Godot) call("load", "res://chat.tscn");
         if (chatScene == null) return;
-        Godot p1 = (Godot) chatScene.call("instantiate");
-        Godot p2 = (Godot) chatScene.call("instantiate");
-        if (p1 != null) call("add_child", p1, false, 0);
-        if (p2 != null) call("add_child", p2, false, 0);
+        PackedScene scene = (PackedScene) chatScene;
+        Node p1 = scene.instantiate();
+        Node p2 = scene.instantiate();
+        if (p1 != null) addChild(p1);
+        if (p2 != null) addChild(p2);
 
-        // Wait one second and send message from P1.
-        Godot tree = (Godot) getTree();
-        Godot timer1 = (Godot) tree.call("create_timer", 1.0);
+        SceneTree tree = getTree();
+        SceneTreeTimer timer1 = tree.createTimer(1.0);
         timer1.connect("timeout", new org.godot.core.Callable(this, "_send_p1"), 0);
 
-        // Wait two seconds and send message from P2.
-        Godot timer2 = (Godot) tree.call("create_timer", 2.0);
+        SceneTreeTimer timer2 = tree.createTimer(2.0);
         timer2.connect("timeout", new org.godot.core.Callable(this, "_send_p2"), 0);
     }
 
     @org.godot.annotation.GodotMethod
     public void SendP1() {
-        Godot p1 = (Godot) getChild(0);
+        WebRTCMinimalChat p1 = (WebRTCMinimalChat) getChild(0);
         if (p1 != null) {
-            String path = String.valueOf(p1.call("get_path"));
-            p1.call("send_message", "Hi from " + path);
+            String path = p1.getPath().toString();
+            p1.sendMessage("Hi from " + path);
         }
     }
 
     @org.godot.annotation.GodotMethod
     public void SendP2() {
-        Godot p2 = (Godot) getChild(1);
+        WebRTCMinimalChat p2 = (WebRTCMinimalChat) getChild(1);
         if (p2 != null) {
-            String path = String.valueOf(p2.call("get_path"));
-            p2.call("send_message", "Hi from " + path);
+            String path = p2.getPath().toString();
+            p2.sendMessage("Hi from " + path);
         }
     }
 }

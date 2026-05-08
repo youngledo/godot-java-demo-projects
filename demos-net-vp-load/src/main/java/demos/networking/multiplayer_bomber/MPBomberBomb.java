@@ -23,7 +23,7 @@ public class MPBomberBomb extends Area2D {
 
     @GodotMethod
     public void explode() {
-        if (!(boolean) call("is_multiplayer_authority")) return;
+        if (!isMultiplayerAuthority()) return;
 
         for (Godot p : inArea) {
             if ((boolean) p.call("has_method", "exploded")) {

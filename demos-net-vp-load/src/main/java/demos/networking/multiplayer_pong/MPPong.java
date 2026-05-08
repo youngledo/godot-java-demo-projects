@@ -3,8 +3,11 @@ package demos.networking.multiplayer_pong;
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
-import org.godot.node.Node2D;
+import org.godot.node.Button;
+import org.godot.node.Label;
+import org.godot.node.MultiplayerAPI;
 import org.godot.node.Node;
+import org.godot.node.Node2D;
 
 @GodotClass(name = "MPPong", parent = "Node2D")
 public class MPPong extends Node2D {
@@ -14,58 +17,55 @@ public class MPPong extends Node2D {
     private int scoreLeft = 0;
     private int scoreRight = 0;
 
-    private Godot player2;
-    private Godot scoreLeftNode;
-    private Godot scoreRightNode;
-    private Godot winnerLeft;
-    private Godot winnerRight;
+    private Node player2;
+    private Label scoreLeftNode;
+    private Label scoreRightNode;
+    private Node winnerLeft;
+    private Node winnerRight;
 
     @Override
     public void _ready() {
-        player2 = (Godot) getNode("Player2");
-        scoreLeftNode = (Godot) getNode("ScoreLeft");
-        scoreRightNode = (Godot) getNode("ScoreRight");
-        winnerLeft = (Godot) getNode("WinnerLeft");
-        winnerRight = (Godot) getNode("WinnerRight");
+        player2 = getNode("Player2");
+        scoreLeftNode = getNodeAs("ScoreLeft", Label.class);
+        scoreRightNode = getNodeAs("ScoreRight", Label.class);
+        winnerLeft = getNode("WinnerLeft");
+        winnerRight = getNode("WinnerRight");
 
-        Godot mp = (Godot) getMultiplayer();
-        if ((boolean) mp.call("is_server")) {
-            Object peers = mp.call("get_peers");
-            // Get first peer - peers is an array/dictionary
-            Object[] peerArray = (Object[]) peers;
-            if (peerArray.length > 0) {
-                long firstPeer = (long) peerArray[0];
-                player2.call("set_multiplayer_authority", (int) firstPeer);
+        MultiplayerAPI mp = getMultiplayer();
+        if (mp.isServer()) {
+            int[] peers = mp.getPeers();
+            if (peers.length > 0) {
+                player2.setMultiplayerAuthority(peers[0]);
             }
         } else {
-            long uniqueId = (long) mp.call("get_unique_id");
-            player2.call("set_multiplayer_authority", (int) uniqueId);
+            int uniqueId = mp.getUniqueId();
+            player2.setMultiplayerAuthority(uniqueId);
         }
 
-        System.out.println("Unique id: " + mp.call("get_unique_id"));
+        System.out.println("Unique id: " + mp.getUniqueId());
     }
 
     @GodotMethod
     public void updateScore(boolean addToLeft) {
         if (addToLeft) {
             scoreLeft += 1;
-            scoreLeftNode.call("set_text", String.valueOf(scoreLeft));
+            scoreLeftNode.setText(String.valueOf(scoreLeft));
         } else {
             scoreRight += 1;
-            scoreRightNode.call("set_text", String.valueOf(scoreRight));
+            scoreRightNode.setText(String.valueOf(scoreRight));
         }
 
         boolean gameEnded = false;
         if (scoreLeft == SCORE_TO_WIN) {
-            winnerLeft.call("show");
+            winnerLeft.setProperty("visible", true);
             gameEnded = true;
         } else if (scoreRight == SCORE_TO_WIN) {
-            winnerRight.call("show");
+            winnerRight.setProperty("visible", true);
             gameEnded = true;
         }
 
         if (gameEnded) {
-            ((Godot) getNode("ExitGame")).call("show");
+            getNode("ExitGame").setProperty("visible", true);
             Godot ball = (Godot) getNode("Ball");
             ball.call("rpc", "stop");
         }

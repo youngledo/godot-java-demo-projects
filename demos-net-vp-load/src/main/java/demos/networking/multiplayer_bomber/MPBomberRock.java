@@ -1,8 +1,8 @@
 package demos.networking.multiplayer_bomber;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.AnimationPlayer;
 import org.godot.node.CharacterBody2D;
 
 @GodotClass(name = "MPBomberRock", parent = "CharacterBody2D")
@@ -10,9 +10,9 @@ public class MPBomberRock extends CharacterBody2D {
 
     @GodotMethod
     public void exploded(int byWho) {
-        Godot score = (Godot) getNode("../../Score");
-        score.call("increase_score", byWho);
-        Godot animPlayer = (Godot) getNode("AnimationPlayer");
-        animPlayer.call("play", "explode");
+        MPBomberScore score = getNodeAs("../../Score", MPBomberScore.class);
+        score.increaseScore(byWho);
+        AnimationPlayer animPlayer = getNodeAs("AnimationPlayer", AnimationPlayer.class);
+        animPlayer.play("explode");
     }
 }

@@ -3,7 +3,12 @@ package demos.networking.webrtc_signaling;
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotDictionary;
+import org.godot.node.JSON;
 import org.godot.node.Node;
+import org.godot.node.TCPServer;
+import org.godot.node.WebSocketPeer;
+import org.godot.node.StreamPeerTCP;
 
 import java.util.*;
 
@@ -25,29 +30,29 @@ public class WebRTCSignalingServer extends Node {
 
     private Random rand = new Random();
     private Map<String, Lobby> lobbies = new LinkedHashMap<>();
-    private Godot tcpServer;
+    private TCPServer tcpServer;
     private Map<Integer, Peer> peers = new LinkedHashMap<>();
 
     private class Peer {
         int id;
         String lobby = "";
         long time;
-        Godot ws;
+        WebSocketPeer ws;
 
-        Peer(int peerId, Godot tcp) {
+        Peer(int peerId, StreamPeerTCP tcp) {
             id = peerId;
-            ws = (Godot) WebRTCSignalingServer.this.call("WebSocketPeer.new");
-            ws.call("accept_stream", tcp);
+            ws = WebSocketPeer.create();
+            ws.acceptStream(tcp);
             time = System.currentTimeMillis();
         }
 
         boolean isWsOpen() {
-            return (long) ws.call("get_ready_state") == 1L;
+            return ws.getReadyState() == 1L;
         }
 
         void send(int type, int idVal, String data) {
             String json = "{\"type\":" + type + ",\"id\":" + idVal + ",\"data\":\"" + data.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
-            ws.call("send_text", json);
+            ws.sendText(json);
         }
     }
 
@@ -85,7 +90,7 @@ public class WebRTCSignalingServer extends Node {
             for (Peer p : peers.values() ) {
                 if (!p.isWsOpen()) continue;
                 if (close) {
-                    p.ws.call("close");
+                    p.ws.close();
                 } else {
                     p.send(MSG_PEER_DISCONNECT, peer.id, "");
                 }
@@ -108,19 +113,19 @@ public class WebRTCSignalingServer extends Node {
 
     @Override
     public void _ready() {
-        tcpServer = (Godot) call("TCPServer.new");
+        tcpServer = TCPServer.create();
     }
 
     @GodotMethod
     public void listen(int port) {
         stop();
         rand.setSeed(System.currentTimeMillis());
-        tcpServer.call("listen", port);
+        tcpServer.listen(port);
     }
 
     @GodotMethod
     public void stop() {
-        tcpServer.call("stop");
+        tcpServer.stop();
         peers.clear();
     }
 
@@ -130,11 +135,11 @@ public class WebRTCSignalingServer extends Node {
     }
 
     private void poll() {
-        if (!(boolean) tcpServer.call("is_listening")) return;
+        if (!tcpServer.isListening()) return;
 
-        if ((boolean) tcpServer.call("is_connection_available")) {
+        if (tcpServer.isConnectionAvailable()) {
             int id = rand.nextInt(Integer.MAX_VALUE);
-            Godot conn = (Godot) tcpServer.call("take_connection");
+            StreamPeerTCP conn = tcpServer.takeConnection();
             peers.put(id, new Peer(id, conn));
         }
 
@@ -142,18 +147,18 @@ public class WebRTCSignalingServer extends Node {
         for (Map.Entry<Integer, Peer> entry : peers.entrySet() ) {
             Peer p = entry.getValue();
             if (p.lobby.isEmpty() && System.currentTimeMillis() - p.time > TIMEOUT) {
-                p.ws.call("close");
+                p.ws.close();
             }
-            p.ws.call("poll");
-            while (p.isWsOpen() && (long) p.ws.call("get_available_packet_count") > 0) {
+            p.ws.poll();
+            while (p.isWsOpen() && p.ws.getAvailablePacketCount() > 0) {
                 if (!parseMsg(p)) {
                     System.out.println("Parse message failed from peer " + p.id);
                     toRemove.add(p.id);
-                    p.ws.call("close");
+                    p.ws.close();
                     break;
                 }
             }
-            long state = (long) p.ws.call("get_ready_state");
+            int state = p.ws.getReadyState();
             if (state == 3L) {
                 System.out.println("Peer " + p.id + " disconnected from lobby: '" + p.lobby + "'");
                 if (lobbies.containsKey(p.lobby) && lobbies.get(p.lobby).leave(p)) {
@@ -171,7 +176,7 @@ public class WebRTCSignalingServer extends Node {
                 for (Integer pid : lobby.peers.keySet() ) {
                     Peer p = peers.get(pid);
                     if (p != null) {
-                        p.ws.call("close");
+                        p.ws.close();
                         toRemove.add(pid);
                     }
                 }
@@ -202,14 +207,14 @@ public class WebRTCSignalingServer extends Node {
     }
 
     private boolean parseMsg(Peer peer) {
-        byte[] pkt = (byte[]) peer.ws.call("get_packet");
+        byte[] pkt = peer.ws.getPacket();
         String pktStr = new String(pkt);
-        Object parsedObj = call("JSON.parse_string", pktStr);
-        if (!(parsedObj instanceof Godot)) return false;
-        Godot parsed = (Godot) parsedObj;
-        if (!(boolean) parsed.call("has", "type")) return false;
-        if (!(boolean) parsed.call("has", "id")) return false;
-        if (!(boolean) parsed.call("has", "data")) return false;
+        Object parsedObj = JSON.parseString(pktStr);
+        if (!(parsedObj instanceof GodotDictionary)) return false;
+        GodotDictionary parsed = (GodotDictionary) parsedObj;
+        if (!parsed.containsKey("type")) return false;
+        if (!parsed.containsKey("id")) return false;
+        if (!parsed.containsKey("data")) return false;
 
         int msgType = ((Number) parsed.getProperty("type")).intValue();
         int msgId = ((Number) parsed.getProperty("id")).intValue();

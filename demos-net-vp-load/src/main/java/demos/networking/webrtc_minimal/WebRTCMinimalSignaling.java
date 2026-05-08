@@ -4,6 +4,7 @@ import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node;
+import org.godot.node.WebRTCPeerConnection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +20,8 @@ public class WebRTCMinimalSignaling extends Node {
         peers.add(path);
         if (peers.size() == 2) {
             Godot node = (Godot) getNode(peers.get(0));
-            Godot peerObj = (Godot) node.getProperty("peer");
-            peerObj.call("create_offer");
+            WebRTCPeerConnection peerObj = (WebRTCPeerConnection) node.getProperty("peer");
+            peerObj.createOffer();
         }
     }
 
@@ -36,8 +37,8 @@ public class WebRTCMinimalSignaling extends Node {
         String other = findOther(path);
         assert !other.isEmpty();
         Godot node = (Godot) getNode(other);
-        Godot peerObj = (Godot) node.getProperty("peer");
-        peerObj.call("set_remote_description", type, sdp);
+        WebRTCPeerConnection peerObj = (WebRTCPeerConnection) node.getProperty("peer");
+        peerObj.setRemoteDescription(type, sdp);
     }
 
     @GodotMethod
@@ -45,7 +46,7 @@ public class WebRTCMinimalSignaling extends Node {
         String other = findOther(path);
         assert !other.isEmpty();
         Godot node = (Godot) getNode(other);
-        Godot peerObj = (Godot) node.getProperty("peer");
-        peerObj.call("add_ice_candidate", media, index, sdp);
+        WebRTCPeerConnection peerObj = (WebRTCPeerConnection) node.getProperty("peer");
+        peerObj.addIceCandidate(media, index, sdp);
     }
 }

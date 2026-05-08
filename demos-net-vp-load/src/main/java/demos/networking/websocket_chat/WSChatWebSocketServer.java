@@ -5,6 +5,10 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Signal;
 import org.godot.node.Node;
+import org.godot.node.TCPServer;
+import org.godot.node.WebSocketPeer;
+import org.godot.node.StreamPeerTCP;
+import org.godot.node.StreamPeerSocket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,17 +39,17 @@ public class WSChatWebSocketServer extends Node {
     @Signal
     public void messageReceived() {}
 
-    private Godot tcpServer;
+    private TCPServer tcpServer;
     private List<PendingPeer> pendingPeers = new ArrayList<>();
-    private Map<Integer, Godot> peers = new HashMap<>();
+    private Map<Integer, WebSocketPeer> peers = new HashMap<>();
 
     private static class PendingPeer {
         long connectTime;
-        Godot tcp;
-        Godot connection;
-        Godot ws;
+        StreamPeerTCP tcp;
+        StreamPeerTCP connection;
+        WebSocketPeer ws;
 
-        PendingPeer(Godot tcp) {
+        PendingPeer(StreamPeerTCP tcp) {
             this.tcp = tcp;
             this.connection = tcp;
             this.connectTime = System.currentTimeMillis();
@@ -54,45 +58,49 @@ public class WSChatWebSocketServer extends Node {
 
     @Override
     public void _ready() {
-        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "TCPServer");
+        tcpServer = TCPServer.create();
     }
 
     public long listen(int port) {
-        return (long) tcpServer.call("listen", port);
+        return tcpServer.listen(port);
     }
 
     public void stop() {
-        tcpServer.call("stop");
+        tcpServer.stop();
         pendingPeers.clear();
         peers.clear();
     }
 
+    public WebSocketPeer getPeer(int peerId) {
+        return peers.get(peerId);
+    }
+
     public int send(int peerId, String message) {
         if (peerId <= 0) {
-            for (Map.Entry<Integer, Godot> entry : peers.entrySet() ) {
+            for (Map.Entry<Integer, WebSocketPeer> entry : peers.entrySet() ) {
                 if (entry.getKey() == -peerId) continue;
-                entry.getValue().call("send_text", message);
+                entry.getValue().sendText(message);
             }
             return 0; // OK
         }
 
-        Godot socket = peers.get(peerId);
+        WebSocketPeer socket = peers.get(peerId);
         if (socket == null) return -1;
-        return (int) socket.call("send_text", message);
+        return socket.sendText(message);
     }
 
-    private Godot createPeer() {
-        Godot ws = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
-        ws.setProperty("supported_protocols", supportedProtocols);
-        ws.setProperty("handshake_headers", handshakeHeaders);
+    private WebSocketPeer createPeer() {
+        WebSocketPeer ws = WebSocketPeer.create();
+        ws.setSupportedProtocols(supportedProtocols);
+        ws.setHandshakeHeaders(handshakeHeaders);
         return ws;
     }
 
     public void poll() {
-        if (!(boolean) tcpServer.call("is_listening")) return;
+        if (!tcpServer.isListening()) return;
 
-        while (!useRefuseNewConnections && (boolean) tcpServer.call("is_connection_available")) {
-            Godot conn = (Godot) tcpServer.call("take_connection");
+        while (!useRefuseNewConnections && tcpServer.isConnectionAvailable()) {
+            StreamPeerTCP conn = tcpServer.takeConnection();
             pendingPeers.add(new PendingPeer(conn));
         }
 
@@ -110,22 +118,22 @@ public class WSChatWebSocketServer extends Node {
         toRemove.clear();
 
         List<Integer> peersToRemove = new ArrayList<>();
-        for (Map.Entry<Integer, Godot> entry : peers.entrySet() ) {
-            Godot p = entry.getValue();
-            p.call("poll");
+        for (Map.Entry<Integer, WebSocketPeer> entry : peers.entrySet() ) {
+            WebSocketPeer p = entry.getValue();
+            p.poll();
 
-            long state = (long) p.call("get_ready_state");
+            int state = p.getReadyState();
             if (state != 1L) { // Not STATE_OPEN
                 emitSignal("client_disconnected", entry.getKey());
                 peersToRemove.add(entry.getKey());
                 continue;
             }
 
-            while ((long) p.call("get_available_packet_count") > 0) {
-                Object pkt = p.call("get_packet");
+            while (p.getAvailablePacketCount() > 0) {
+                byte[] pkt = p.getPacket();
                 String msg;
-                if ((boolean) p.call("was_string_packet")) {
-                    msg = new String((byte[]) pkt);
+                if (p.wasStringPacket()) {
+                    msg = new String(pkt);
                 } else {
                     msg = (String) call("bytes_to_var", pkt);
                 }
@@ -139,8 +147,8 @@ public class WSChatWebSocketServer extends Node {
 
     private boolean connectPending(PendingPeer p) {
         if (p.ws != null) {
-            p.ws.call("poll");
-            long state = (long) p.ws.call("get_ready_state");
+            p.ws.poll();
+            int state = p.ws.getReadyState();
             if (state == 1L) { // STATE_OPEN
                 int id = (int) (Math.random() * (Integer.MAX_VALUE - 2)) + 2;
                 peers.put(id, p.ws);
@@ -151,12 +159,12 @@ public class WSChatWebSocketServer extends Node {
             }
             return false;
         } else {
-            long status = (long) p.tcp.call("get_status");
+            int status = p.tcp.getStatus();
             if (status != 2L) { // Not STATUS_CONNECTED
                 return true;
             }
             p.ws = createPeer();
-            p.ws.call("accept_stream", p.tcp);
+            p.ws.acceptStream(p.tcp);
             return false;
         }
     }

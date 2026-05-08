@@ -4,47 +4,49 @@ import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
+import org.godot.node.Node;
+import org.godot.node.SceneTree;
+import org.godot.node.SpinBox;
+import org.godot.singleton.OS;
 
 @GodotClass(name = "WebRTCSignalingMain", parent = "Control")
 public class WebRTCSignalingMain extends Control {
 
     @Override
     public void _enterTree() {
-        Godot clients = (Godot) getNode("VBoxContainer/Clients");
-        Godot[] children = (Godot[]) clients.call("get_children");
+        Node clients = getNodeAs("VBoxContainer/Clients", Node.class);
+        Godot[] children = (Godot[]) clients.getChildren();
         for (Godot c : children) {
-            Godot path = (Godot) call("get_path");
+            String path = getPath().toString();
             String cName = (String) c.getProperty("name");
-            Godot nodePath = (Godot) call("NodePath", path + "/VBoxContainer/Clients/" + cName);
-            Godot tree = (Godot) getTree();
-            Godot newMp = (Godot) call("MultiplayerAPI.create_default_interface");
-            tree.call("set_multiplayer", newMp, nodePath);
+            String nodePath = path + "/VBoxContainer/Clients/" + cName;
+            SceneTree tree = getTree();
+            tree.setMultiplayer(tree.getMultiplayer(nodePath), nodePath);
         }
     }
 
     @Override
     public void _ready() {
-        String osName = (String) call("OS.get_name");
+        String osName = OS.singleton().getName();
         if ("Web".equals(osName)) {
-            Godot signaling = (Godot) getNode("VBoxContainer/Signaling");
-            signaling.call("hide");
+            getNode("VBoxContainer/Signaling").setProperty("visible", false);
         }
     }
 
     @GodotMethod
     public void OnListenToggled(boolean buttonPressed) {
-        Godot server = (Godot) getNode("Server");
+        WebRTCSignalingServer server = getNodeAs("Server", WebRTCSignalingServer.class);
         if (buttonPressed) {
-            Godot portSpinBox = (Godot) getNode("VBoxContainer/Signaling/Port");
-            int port = (int) (long) portSpinBox.call("get_value");
-            server.call("listen", port);
+            SpinBox portSpinBox = getNodeAs("VBoxContainer/Signaling/Port", SpinBox.class);
+            int port = (int) portSpinBox.getValue();
+            server.listen(port);
         } else {
-            server.call("stop");
+            server.stop();
         }
     }
 
     @GodotMethod
     public void OnLinkButtonPressed() {
-        call("OS.shell_open", "https://github.com/godotengine/webrtc-native/releases");
+        OS.singleton().shellOpen("https://github.com/godotengine/webrtc-native/releases");
     }
 }

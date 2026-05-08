@@ -1,24 +1,28 @@
 package demos.networking.websocket_minimal;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node;
+import org.godot.node.RichTextLabel;
+import org.godot.node.TCPServer;
+import org.godot.node.WebSocketPeer;
+import org.godot.node.StreamPeerTCP;
+import org.godot.singleton.Time;
 
 @GodotClass(name = "WSMinimalServer", parent = "Node")
 public class WSMinimalServer extends Node {
 
     private static final int PORT = 9080;
 
-    private Godot tcpServer;
-    private Godot socket;
+    private TCPServer tcpServer;
+    private WebSocketPeer socket;
 
     @Override
     public void _ready() {
-        tcpServer = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "TCPServer");
-        socket = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "WebSocketPeer");
+        tcpServer = TCPServer.create();
+        socket = WebSocketPeer.create();
 
-        long err = (long) tcpServer.call("listen", PORT);
+        int err = tcpServer.listen(PORT);
         if (err != 0) {
             logMessage("Unable to start server.");
             setProcess(false);
@@ -27,17 +31,17 @@ public class WSMinimalServer extends Node {
 
     @Override
     public void _process(double delta) {
-        while ((boolean) tcpServer.call("is_connection_available")) {
-            Godot conn = (Godot) tcpServer.call("take_connection");
-            socket.call("accept_stream", conn);
+        while (tcpServer.isConnectionAvailable()) {
+            StreamPeerTCP conn = tcpServer.takeConnection();
+            socket.acceptStream(conn);
         }
 
-        socket.call("poll");
+        socket.poll();
 
-        long state = (long) socket.call("get_ready_state");
+        int state = socket.getReadyState();
         if (state == 1L) { // WebSocketPeer.STATE_OPEN
-            while ((long) socket.call("get_available_packet_count") > 0) {
-                byte[] pkt = (byte[]) socket.call("get_packet");
+            while (socket.getAvailablePacketCount() > 0) {
+                byte[] pkt = socket.getPacket();
                 String msg = new String(pkt);
                 logMessage(msg);
             }
@@ -46,19 +50,19 @@ public class WSMinimalServer extends Node {
 
     @Override
     public void _exitTree() {
-        socket.call("close");
-        tcpServer.call("stop");
+        socket.close();
+        tcpServer.stop();
     }
 
     @GodotMethod
     public void OnButtonPongPressed() {
-        socket.call("send_text", "Pong");
+        socket.sendText("Pong");
     }
 
     private void logMessage(String message) {
-        String time = (String) call("Time.get_time_string_from_system");
+        String time = Time.singleton().getTimeStringFromSystem();
         String formatted = "[color=#aaaaaa] " + time + " |[/color] " + message + "\n";
-        Godot textServer = (Godot) getNode("%TextServer");
-        textServer.call("append_text", formatted);
+        RichTextLabel textServer = getNodeAs("%TextServer", RichTextLabel.class);
+        textServer.appendText(formatted);
     }
 }
