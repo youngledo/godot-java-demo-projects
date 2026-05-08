@@ -10,9 +10,9 @@ import java.util.Map;
 @GodotClass(name = "FSStateMachine", parent = "Node")
 public class FSStateMachine extends Node {
 
-    protected Map<String, org.godot.Godot> statesMap = new HashMap<>();
-    protected ArrayList<org.godot.Godot> statesStack = new ArrayList<>();
-    protected org.godot.Godot currentState = null;
+    protected Map<String, FSState> statesMap = new HashMap<>();
+    protected ArrayList<FSState> statesStack = new ArrayList<>();
+    protected FSState currentState = null;
     protected boolean active = false;
     private boolean initialized = false;
 
@@ -28,9 +28,11 @@ public class FSStateMachine extends Node {
         Object children = getChildren();
         if (children instanceof org.godot.Godot[]) {
             for (org.godot.Godot child : (org.godot.Godot[]) children) {
-                Object nameObj = child.getProperty("name");
-                String name = nameObj != null ? nameObj.toString() : "";
-                statesMap.put(name, child);
+                if (child instanceof FSState) {
+                    Object nameObj = child.getProperty("name");
+                    String name = nameObj != null ? nameObj.toString() : "";
+                    statesMap.put(name, (FSState) child);
+                }
             }
         }
 
@@ -43,35 +45,34 @@ public class FSStateMachine extends Node {
 
     public void initialize(String initialStateName) {
         active = true;
-        org.godot.Godot state = statesMap.get(initialStateName);
+        FSState state = statesMap.get(initialStateName);
         if (state == null) return;
         statesStack.add(0, state);
         currentState = state;
-        currentState.call("enter");
+        currentState.enter();
     }
 
     @Override
     public void _physicsProcess(double delta) {
         if (!active || currentState == null) return;
-        currentState.call("update", delta);
+        currentState.update(delta);
     }
 
     @Override
     public boolean _unhandledInput(Object inputEvent) {
         if (!active || currentState == null) return false;
-        return currentState.call("handle_input", inputEvent) instanceof Boolean ?
-                (Boolean) currentState.call("handle_input", inputEvent) : false;
+        return currentState.handleInput(inputEvent);
     }
 
     public void changeState(String stateName) {
         if (!active || currentState == null) return;
 
-        currentState.call("exit");
+        currentState.exit();
 
         if (FSState.PREVIOUS.equals(stateName)) {
             if (statesStack.size() > 1) statesStack.remove(0);
         } else {
-            org.godot.Godot newState = statesMap.get(stateName);
+            FSState newState = statesMap.get(stateName);
             if (newState != null) {
                 statesStack.set(0, newState);
             }
@@ -82,16 +83,16 @@ public class FSStateMachine extends Node {
             emitSignal("state_changed", currentState);
             updateStateNameDisplayer();
             if (!FSState.PREVIOUS.equals(stateName)) {
-                currentState.call("enter");
+                currentState.enter();
             }
         }
     }
 
     public void pushState(String stateName) {
         if (!active || currentState == null) return;
-        currentState.call("exit");
+        currentState.exit();
 
-        org.godot.Godot newState = statesMap.get(stateName);
+        FSState newState = statesMap.get(stateName);
         if (newState != null) {
             statesStack.add(0, newState);
         }
@@ -99,7 +100,7 @@ public class FSStateMachine extends Node {
         currentState = statesStack.get(0);
         emitSignal("state_changed", currentState);
         updateStateNameDisplayer();
-        currentState.call("enter");
+        currentState.enter();
     }
 
     private void updateStateNameDisplayer() {
@@ -114,6 +115,6 @@ public class FSStateMachine extends Node {
         }
     }
 
-    public org.godot.Godot getCurrentState() { return currentState; }
-    public ArrayList<org.godot.Godot> getStatesStack() { return statesStack; }
+    public FSState getCurrentState() { return currentState; }
+    public ArrayList<FSState> getStatesStack() { return statesStack; }
 }

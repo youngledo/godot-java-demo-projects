@@ -23,7 +23,7 @@ public class FSPlayerStateMachine extends FSStateMachine {
             for (org.godot.Godot child : (org.godot.Godot[]) children) {
                 Object nameObj = child.getProperty("name");
                 String name = nameObj != null ? nameObj.toString() : "";
-                statesMap.put(name, child);
+                statesMap.put(name, (FSState) child);
             }
         }
 
@@ -42,7 +42,7 @@ public class FSPlayerStateMachine extends FSStateMachine {
     @GodotMethod
     public void OnAnimationFinished(String animName) {
         if (!active || currentState == null) return;
-        currentState.call("_on_animation_finished", animName);
+        currentState.onAnimationFinished(animName);
     }
 
     @Override
@@ -64,7 +64,6 @@ public class FSPlayerStateMachine extends FSStateMachine {
             }
         }
 
-        return currentState.call("handle_input", inputEvent) instanceof Boolean ?
-                (Boolean) currentState.call("handle_input", inputEvent) : false;
+        return currentState.handleInput(inputEvent);
     }
 }
