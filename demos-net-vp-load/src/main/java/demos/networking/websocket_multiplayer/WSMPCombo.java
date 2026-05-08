@@ -3,6 +3,7 @@ package demos.networking.websocket_multiplayer;
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Control;
+import org.godot.node.SceneTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,26 +15,25 @@ public class WSMPCombo extends Control {
 
     @Override
     public void _enterTree() {
-        // The combo.tscn has 4 Main instances as children of GridContainer
         String[] childNames = {"Main", "Main2", "Main3", "Main4"};
-        String selfPath = String.valueOf(call("get_path"));
+        String selfPath = getPath().toString();
         for (String chName : childNames) {
             paths.add(selfPath + "/GridContainer/" + chName);
         }
 
         org.godot.singleton.ClassDB classDB = org.godot.singleton.ClassDB.singleton();
-        Godot tree = (Godot) getTree();
+        SceneTree tree = getTree();
         for (String path : paths) {
             Godot newMp = (Godot) classDB.classCallStatic("MultiplayerAPI", "create_default_interface");
-            tree.call("set_multiplayer", newMp, path);
+            tree.setMultiplayer(tree.getMultiplayer(path), path);
         }
     }
 
     @Override
     public void _exitTree() {
-        Godot tree = (Godot) getTree();
+        SceneTree tree = getTree();
         for (String path : paths) {
-            tree.call("set_multiplayer", null, path);
+            tree.setMultiplayer(null, path);
         }
     }
 }

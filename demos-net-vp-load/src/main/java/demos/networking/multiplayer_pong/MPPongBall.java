@@ -18,8 +18,8 @@ public class MPPongBall extends Area2D {
 
     @Override
     public void _ready() {
-        Godot rect = (Godot) call("get_viewport_rect");
-        screenSize = (Vector2) rect.getProperty("size");
+        org.godot.math.Rect2 rect = getViewport().getVisibleRect();
+        screenSize = rect.size;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class MPPongBall extends Area2D {
             direction = new Vector2(direction.getX(), -direction.getY());
         }
 
-        if ((boolean) call("is_multiplayer_authority")) {
+        if (isMultiplayerAuthority()) {
             if (ballPos.getX() < 0) {
                 Godot parent = (Godot) getParent();
                 parent.call("rpc", "update_score", false);

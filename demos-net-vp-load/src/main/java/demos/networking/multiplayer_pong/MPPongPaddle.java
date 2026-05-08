@@ -21,18 +21,17 @@ public class MPPongPaddle extends Area2D {
 
     @Override
     public void _ready() {
-        Godot rect = (Godot) call("get_viewport_rect");
-        Vector2 size = (Vector2) rect.getProperty("size");
-        screenSizeY = size.getY();
+        org.godot.math.Rect2 rect = getViewport().getVisibleRect();
+        screenSizeY = rect.size.getY();
     }
 
     @Override
     public void _process(double delta) {
         org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
 
-        if ((boolean) call("is_multiplayer_authority")) {
+        if (isMultiplayerAuthority()) {
             double upVal = (double) input.getAxis("move_up", "move_down");
-            motion = -upVal; // get_axis returns positive for first arg
+            motion = -upVal;
 
             if (!youHidden && motion != 0) {
                 hideYouLabel();
@@ -40,7 +39,6 @@ public class MPPongPaddle extends Area2D {
 
             motion *= MOTION_SPEED;
 
-            // Using unreliable RPC
             Vector2 pos = (Vector2) getProperty("position");
             call("rpc", "set_pos_and_motion", pos, motion);
         } else {
@@ -63,13 +61,12 @@ public class MPPongPaddle extends Area2D {
 
     private void hideYouLabel() {
         youHidden = true;
-        Godot youLabel = (Godot) getNode("You");
-        youLabel.call("hide");
+        getNode("You").setProperty("visible", false);
     }
 
     @GodotMethod
     public void OnPaddleAreaEnter(Object area) {
-        if ((boolean) call("is_multiplayer_authority")) {
+        if (isMultiplayerAuthority()) {
             double randVal = Math.random();
             ((Godot) area).call("rpc", "bounce", left, randVal);
         }

@@ -20,14 +20,14 @@ public class WSMPGame extends Control {
 
     @Override
     public void _ready() {
-        list = (Godot) getNode("HBoxContainer/VBoxContainer/ItemList");
-        action = (Godot) getNode("HBoxContainer/VBoxContainer/Action");
+        list = getNodeAs("HBoxContainer/VBoxContainer/ItemList", org.godot.node.ItemList.class);
+        action = getNode("HBoxContainer/VBoxContainer/Action");
     }
 
     @GodotMethod
     public void _log(String message) {
-        Godot rtl = (Godot) getNode("HBoxContainer/RichTextLabel");
-        rtl.call("add_text", message + "\n");
+        org.godot.node.RichTextLabel rtl = getNodeAs("HBoxContainer/RichTextLabel", org.godot.node.RichTextLabel.class);
+        rtl.addText(message + "\n");
     }
 
     @GodotMethod
