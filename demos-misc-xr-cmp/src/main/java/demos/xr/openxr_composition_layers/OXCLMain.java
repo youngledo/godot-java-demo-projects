@@ -146,7 +146,7 @@ public class OXCLMain extends Node3D {
         if (tween != null) {
             tween.call("kill");
         }
-        tween = (org.godot.Godot) call("create_tween");
+        tween = (org.godot.Godot) createTween();
         if (tween != null) {
             org.godot.core.Callable updateCb = new org.godot.core.Callable(this, "_update_energy");
             tween.call("tween_method", updateCb, 5.0, 1.0, 0.5);

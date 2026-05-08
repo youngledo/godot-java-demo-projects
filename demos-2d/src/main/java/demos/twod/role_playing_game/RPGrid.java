@@ -7,7 +7,7 @@ import org.godot.math.Vector2i;
 @GodotClass(name = "RPGrid", parent = "TileMapLayer")
 public class RPGrid extends TileMapLayer {
 
-    private org.godot.Godot dialogueUI;
+    private RPDialogueUI dialogueUI;
     private boolean initialized = false;
 
     @Override
@@ -15,7 +15,7 @@ public class RPGrid extends TileMapLayer {
         if (initialized) return;
         initialized = true;
 
-        dialogueUI = (org.godot.Godot) getProperty("dialogue_ui");
+        dialogueUI = (RPDialogueUI) getProperty("dialogue_ui");
 
         Object children = getChildren();
         if (children instanceof org.godot.Godot[]) {
@@ -61,7 +61,7 @@ public class RPGrid extends TileMapLayer {
 
                 org.godot.Godot dialoguePlayer = (org.godot.Godot) ((org.godot.node.Node) targetPawn).getNode("DialoguePlayer");
                 if (dialogueUI != null && dialoguePlayer != null) {
-                    dialogueUI.call("show_dialogue", pawn, dialoguePlayer);
+                    dialogueUI.showDialogue(pawn, dialoguePlayer);
                 }
             }
         }

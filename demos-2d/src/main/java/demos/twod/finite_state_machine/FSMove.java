@@ -28,8 +28,8 @@ public class FSMove extends FSOnGround {
     public void update(double delta) {
         Vector2 inputDir = getInputDirection();
         if (inputDir.x == 0 && inputDir.y == 0) {
-            org.godot.Godot sm = getParent();
-            if (sm != null) sm.call("change_state", IDLE);
+            FSStateMachine sm = (FSStateMachine) getParent();
+            if (sm != null) sm.changeState(IDLE);
             return;
         }
         updateLookDirection(inputDir);

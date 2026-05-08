@@ -25,7 +25,7 @@ public class PFPlayer extends CharacterBody2D {
 	private org.godot.node.Node platformDetector;
 	private org.godot.node.Node camera;
 	private org.godot.Godot gun;
-	private org.godot.node.Node jumpSound;
+	private org.godot.node.AudioStreamPlayer jumpSound;
 	private double gravity = 980.0;
 	private boolean initialized = false;
 
@@ -39,7 +39,7 @@ public class PFPlayer extends CharacterBody2D {
 		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
 		platformDetector = getNode("PlatformDetector");
 		camera = getNode("Camera");
-		jumpSound = getNode("Jump");
+		jumpSound = (org.godot.node.AudioStreamPlayer) getNode("Jump");
 
 		if (sprite != null) {
 			gun = (org.godot.Godot) sprite.getNode("Gun");
@@ -50,7 +50,7 @@ public class PFPlayer extends CharacterBody2D {
 
 	@Override
 	public void _exitTree() {
-		if (jumpSound != null) jumpSound.call("stop");
+		if (jumpSound != null) jumpSound.stop();
 		jumpSound = null;
 		sprite = null;
 		animationPlayer = null;
@@ -111,7 +111,7 @@ public class PFPlayer extends CharacterBody2D {
 		if ((boolean) isOnFloor()) {
 			Vector2 vel = (Vector2) getProperty("velocity");
 			setProperty("velocity", new Vector2(vel != null ? vel.getX() : 0, JUMP_VELOCITY));
-			if (jumpSound != null) jumpSound.call("play");
+			if (jumpSound != null) jumpSound.play();
 		} else if (doubleJumpCharged) {
 			doubleJumpCharged = false;
 			Vector2 vel = (Vector2) getProperty("velocity");
@@ -119,7 +119,7 @@ public class PFPlayer extends CharacterBody2D {
 			setProperty("velocity", new Vector2(vx, JUMP_VELOCITY));
 			if (jumpSound != null) {
 				jumpSound.setProperty("pitch_scale", 1.5);
-				jumpSound.call("play");
+				jumpSound.play();
 			}
 		}
 	}

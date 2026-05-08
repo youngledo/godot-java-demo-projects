@@ -116,7 +116,7 @@ public class FSSword extends Area2D {
 
     @GodotMethod
     public void onBodyEntered(org.godot.Godot body) {
-        boolean hasHealth = (boolean) body.call("has_node", "Health");
+        boolean hasHealth = ((org.godot.node.Node) body).hasNode("Health");
         if (!hasHealth) return;
 
         Object ridObj = body.call("get_rid");

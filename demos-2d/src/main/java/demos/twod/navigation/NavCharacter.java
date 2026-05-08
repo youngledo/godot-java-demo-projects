@@ -44,7 +44,7 @@ public class NavCharacter extends CharacterBody2D {
 		if (finished) {
 			return;
 		}
-		Vector2 currentPos = (Vector2) call("get_global_position");
+		Vector2 currentPos = getGlobalPosition();
 		Vector2 nextPos = (Vector2) navigationAgent.call("get_next_path_position");
 		double dx = nextPos.getX() - currentPos.getX();
 		double dy = nextPos.getY() - currentPos.getY();

@@ -32,7 +32,7 @@ public class RPPlayer extends RPWalker {
 
         org.godot.math.Vector2i dir = new org.godot.math.Vector2i(ix, iy);
         if (grid != null) {
-            Object result = grid.call("request_move", this, dir);
+            Object result = grid.requestMove(this, dir);
             if (result instanceof Vector2) {
                 Vector2 targetPos = (Vector2) result;
                 if (targetPos.x != 0 || targetPos.y != 0) {

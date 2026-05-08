@@ -9,7 +9,7 @@ import org.godot.singleton.Input;
 @GodotClass(name = "TTCarSelect", parent = "Control")
 public class TTCarSelect extends Control {
 
-	private org.godot.Godot town;
+	private TTTownScene town;
 	private boolean initialized = false;
 
 	@Override
@@ -48,12 +48,12 @@ public class TTCarSelect extends Control {
 
 		org.godot.node.PackedScene townSceneObj = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://town/town_scene.tscn");
 		if (townSceneObj == null) return;
-		town = townSceneObj.instantiate();
+		town = (TTTownScene) townSceneObj.instantiate();
 
 		if (town != null) {
-			town.call("setup", car, null, false);
+			town.setup(car, null, false);
 			org.godot.node.Node parent = (org.godot.node.Node) getParent();
-			if (parent != null) parent.addChild((org.godot.node.Node) town);
+			if (parent != null) parent.addChild(town);
 			hide();
 		}
 	}
@@ -61,7 +61,7 @@ public class TTCarSelect extends Control {
 	@GodotMethod
 	public void onBackPressed() {
 		if (town != null) {
-			town.call("queue_free");
+			town.queueFree();
 			town = null;
 			show();
 		} else {

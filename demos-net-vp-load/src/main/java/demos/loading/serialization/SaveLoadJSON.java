@@ -22,15 +22,15 @@ public class SaveLoadJSON extends Button {
         FileAccess file = fileObj;
 
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) getNode(playerPath);
-        Godot sprite = (Godot) player.call("getSprite");
+        SerPlayer player = (SerPlayer) getNode(playerPath);
+        Godot sprite = player.getSprite();
 
         // Build save dictionary. JSON doesn't support Vector2, so use var_to_str.
         Godot saveDict = (Godot) call("Dictionary.new");
 
         Godot playerDict = (Godot) call("Dictionary.new");
         playerDict.setProperty("position", call("var_to_str", player.getProperty("position")));
-        playerDict.setProperty("health", call("var_to_str", player.call("getHealth")));
+        playerDict.setProperty("health", call("var_to_str", player.getHealth()));
         if (sprite != null) {
             playerDict.setProperty("rotation", call("var_to_str", sprite.getProperty("rotation")));
         }
@@ -71,8 +71,8 @@ public class SaveLoadJSON extends Button {
         Godot saveDict = (Godot) json.call("get_data");
 
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) getNode(playerPath);
-        Godot sprite = (Godot) player.call("getSprite");
+        SerPlayer player = (SerPlayer) getNode(playerPath);
+        Godot sprite = player.getSprite();
 
         // Restore player data using str_to_var for type conversion.
         Godot playerDict = (Godot) saveDict.getProperty("player");
@@ -80,7 +80,7 @@ public class SaveLoadJSON extends Button {
         player.setProperty("position", posObj);
         Object healthObj = call("str_to_var", playerDict.getProperty("health"));
         if (healthObj instanceof Number) {
-            player.call("setHealth", ((Number) healthObj).doubleValue());
+            player.setHealth(((Number) healthObj).doubleValue());
         }
         if (sprite != null) {
             Object rotObj = call("str_to_var", playerDict.getProperty("rotation"));

@@ -19,8 +19,8 @@ public class FSIdle extends FSOnGround {
     public void update(double delta) {
         Vector2 inputDir = getInputDirection();
         if (inputDir.x != 0 || inputDir.y != 0) {
-            org.godot.Godot sm = getParent();
-            if (sm != null) sm.call("change_state", MOVE);
+            FSStateMachine sm = (FSStateMachine) getParent();
+            if (sm != null) sm.changeState(MOVE);
         }
     }
 }

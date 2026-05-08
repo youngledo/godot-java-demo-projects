@@ -8,14 +8,14 @@ import org.godot.node.Control;
 @GodotClass(name = "WSChatClientUI", parent = "Control")
 public class WSChatClientUI extends Control {
 
-    private Godot client;
+    private WSChatWebSocketClient client;
     private Godot logDest;
     private Godot lineEdit;
     private Godot host;
 
     @Override
     public void _ready() {
-        client = (Godot) getNode("WebSocketClient");
+        client = (WSChatWebSocketClient) getNode("WebSocketClient");
         logDest = (Godot) getNode("Panel/VBoxContainer/RichTextLabel");
         lineEdit = (Godot) getNode("Panel/VBoxContainer/Send/LineEdit");
         host = (Godot) getNode("Panel/VBoxContainer/Connect/Host");
@@ -28,7 +28,7 @@ public class WSChatClientUI extends Control {
 
     @GodotMethod
     public void OnWebSocketClientConnectionClosed() {
-        Godot ws = (Godot) client.call("get_socket");
+        Godot ws = client.getSocket();
         long code = (long) ws.call("get_close_code");
         String reason = (String) ws.call("get_close_reason");
         info("Client just disconnected with code: " + code + ", reason: " + reason);
@@ -36,7 +36,7 @@ public class WSChatClientUI extends Control {
 
     @GodotMethod
     public void OnWebSocketClientConnectedToServer() {
-        Godot ws = (Godot) client.call("get_socket");
+        Godot ws = client.getSocket();
         String protocol = (String) ws.call("get_selected_protocol");
         info("Client just connected with protocol: " + protocol);
     }
@@ -52,14 +52,14 @@ public class WSChatClientUI extends Control {
         if (text == null || text.isEmpty()) return;
 
         info("Sending message: " + text);
-        client.call("send", text);
+        client.send(text);
         lineEdit.setProperty("text", "");
     }
 
     @GodotMethod
     public void OnConnectToggled(boolean pressed) {
         if (!pressed) {
-            client.call("closeConnection");
+            client.closeConnection();
             return;
         }
 
@@ -67,7 +67,7 @@ public class WSChatClientUI extends Control {
         if (hostText == null || hostText.isEmpty()) return;
 
         info("Connecting to host: " + hostText);
-        long err = (long) client.call("connect_to_url", hostText);
+        long err = client.connectToUrl(hostText);
         if (err != 0) {
             info("Error connecting to host: " + hostText);
         }

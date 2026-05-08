@@ -179,7 +179,7 @@ public class OXCCPlayer extends CharacterBody3D {
             setProperty("rotation:y", rotY);
 
             // Handle forward/backward movement.
-            Transform3D globalTf = (Transform3D) call("get_global_transform");
+            Transform3D globalTf = getGlobalTransform();
             Basis globalBasis = globalTf.getBasis();
             Vector3 direction = new Vector3(
                     globalBasis.xx * 0.0 + globalBasis.yx * 0.0 + globalBasis.zx * (-movementInput.y),

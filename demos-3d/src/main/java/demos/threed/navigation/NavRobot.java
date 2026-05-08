@@ -38,7 +38,7 @@ public class NavRobot extends Marker3D {
 		if (finished) return;
 
 		Vector3 nextPosition = (Vector3) navAgent.call("get_next_path_position");
-		Vector3 globalPos = (Vector3) call("get_global_position");
+		Vector3 globalPos = getGlobalPosition();
 
 		if (nextPosition == null || globalPos == null) return;
 
@@ -66,7 +66,7 @@ public class NavRobot extends Marker3D {
 		Vector3 flatOffset = new Vector3(offset.getX(), 0, offset.getZ());
 		double flatLen = Math.sqrt(flatOffset.getX() * flatOffset.getX() + flatOffset.getZ() * flatOffset.getZ());
 		if (flatLen > 0.001) {
-			Vector3 globalPos2 = (Vector3) call("get_global_position");
+			Vector3 globalPos2 = getGlobalPosition();
 			lookAt(new Vector3(globalPos2.getX() + flatOffset.getX(), globalPos2.getY(), globalPos2.getZ() + flatOffset.getZ()), new Vector3(0, 1, 0));
 		}
 	}

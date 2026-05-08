@@ -21,12 +21,12 @@ public class SaveLoadConfigFile extends Button {
 
         // Get the player node.
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) getNode(playerPath);
+        SerPlayer player = (SerPlayer) getNode(playerPath);
 
         // Save player data.
         config.call("set_value", "player", "position", player.getProperty("position"));
-        config.call("set_value", "player", "health", player.call("getHealth"));
-        Godot sprite = (Godot) player.call("getSprite");
+        config.call("set_value", "player", "health", player.getHealth());
+        Godot sprite = player.getSprite();
         if (sprite != null) {
             config.call("set_value", "player", "rotation", sprite.getProperty("rotation"));
         }
@@ -58,12 +58,12 @@ public class SaveLoadConfigFile extends Button {
         config.call("load", SAVE_PATH);
 
         String playerPath = (String) getProperty("player_node");
-        Godot player = (Godot) getNode(playerPath);
+        SerPlayer player = (SerPlayer) getNode(playerPath);
 
         // Restore player data.
         player.setProperty("position", config.call("get_value", "player", "position"));
-        player.call("setHealth", config.call("get_value", "player", "health"));
-        Godot sprite = (Godot) player.call("getSprite");
+        player.setHealth(((Number) config.call("get_value", "player", "health")).doubleValue());
+        Godot sprite = player.getSprite();
         if (sprite != null) {
             sprite.setProperty("rotation", config.call("get_value", "player", "rotation"));
         }

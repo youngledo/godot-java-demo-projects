@@ -7,9 +7,9 @@ public class FSDie extends FSState {
 
     @Override
     public void enter() {
-        org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
+        FSPlayerController owner = (FSPlayerController) getProperty("owner");
         if (owner != null) {
-            owner.call("set_dead", true);
+            owner.setDead(true);
             org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) owner.getNode("AnimationPlayer");
             if (animPlayer != null) animPlayer.play(DIE);
         }
@@ -17,7 +17,7 @@ public class FSDie extends FSState {
 
     @Override
     public void onAnimationFinished(String animName) {
-        org.godot.Godot sm = getParent();
-        if (sm != null) sm.call("change_state", DEAD);
+        FSStateMachine sm = (FSStateMachine) getParent();
+        if (sm != null) sm.changeState(DEAD);
     }
 }

@@ -138,7 +138,7 @@ public class WaterPlane extends Area3D {
         boolean empty = (boolean) callOn(result, "is_empty");
         if (!empty) {
             Object position = callOn(result, "get", "position");
-            Object globalTransform = call("get_global_transform");
+            Object globalTransform = getGlobalTransform();
             Object pos = callOn(globalTransform, "affine_inverse");
             if (position instanceof Vector3 && pos instanceof org.godot.math.Transform3D) {
                 Vector3 pos3d = ((org.godot.math.Transform3D) pos).apply((Vector3) position);

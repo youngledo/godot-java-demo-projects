@@ -51,7 +51,7 @@ public class TweenDemo extends Node2D {
 	private void startAnimation() {
 		reset();
 
-		tween = (org.godot.node.Tween) call("create_tween");
+		tween = createTween();
 		if (tween == null) return;
 
 		if (progress != null) {

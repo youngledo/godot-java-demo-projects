@@ -66,8 +66,8 @@ public class MPBomberScore extends HBoxContainer {
         label.setProperty("horizontal_alignment", 1);
         label.setProperty("text", newPlayerName + "\n0");
 
-        Godot gamestate = (Godot) getNode("/root/gamestate");
-        Godot color = (Godot) gamestate.call("get_player_color", newPlayerName);
+        MPBomberGameState gamestate = (MPBomberGameState) getNode("/root/gamestate");
+        Godot color = (Godot) gamestate.getPlayerColor(newPlayerName);
         label.setProperty("modulate", color);
         label.setProperty("size_flags_horizontal", 3);
 
@@ -88,7 +88,7 @@ public class MPBomberScore extends HBoxContainer {
 
     @GodotMethod
     public void OnExitGamePressed() {
-        Godot gamestate = (Godot) getNode("/root/gamestate");
-        gamestate.call("end_game");
+        MPBomberGameState gamestate = (MPBomberGameState) getNode("/root/gamestate");
+        gamestate.endGame();
     }
 }

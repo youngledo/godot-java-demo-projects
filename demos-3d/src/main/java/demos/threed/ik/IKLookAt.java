@@ -73,7 +73,7 @@ public class IKLookAt extends Node3D {
     private void setupSkeletonPath() {
         Object skelPathObj = getProperty("skeleton_path");
         if (skelPathObj == null) return;
-        org.godot.node.Node temp = (org.godot.node.Node) call("get_node", skelPathObj);
+        org.godot.node.Node temp = getNode((String) skelPathObj);
         if (temp != null) {
             Object hasMethod = temp.hasMethod("get_bone_global_pose");
             if (hasMethod instanceof Boolean && (Boolean) hasMethod) {
@@ -131,7 +131,7 @@ public class IKLookAt extends Node3D {
 
         Vector3 restEuler = rest.getBasis().toEuler();
         Vector3 selfEuler = new Vector3();
-        Object selfTransObj = call("get_global_transform");
+        Object selfTransObj = getGlobalTransform();
         if (selfTransObj instanceof Transform3D) {
             selfEuler = ((Transform3D) selfTransObj).getBasis().toEuler();
         }

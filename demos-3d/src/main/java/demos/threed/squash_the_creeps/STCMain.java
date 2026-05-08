@@ -10,7 +10,7 @@ import org.godot.node.SceneTree;
 @GodotClass(name = "STCMain", parent = "Node")
 public class STCMain extends Node {
 
-	private org.godot.node.Node mobTimer;
+	private org.godot.node.Timer mobTimer;
 	private org.godot.node.Control retry;
 	private org.godot.node.Label scoreLabel;
 	private org.godot.node.Node player;
@@ -21,7 +21,7 @@ public class STCMain extends Node {
 		if (initialized) return;
 		initialized = true;
 
-		mobTimer = getNode("MobTimer");
+		mobTimer = (org.godot.node.Timer) getNode("MobTimer");
 		retry = (org.godot.node.Control) getNode("UserInterface/Retry");
 		scoreLabel = (org.godot.node.Label) getNode("UserInterface/ScoreLabel");
 		player = getNode("Player");
@@ -42,7 +42,7 @@ public class STCMain extends Node {
 
 	@Override
 	public void _exitTree() {
-		if (mobTimer != null) mobTimer.call("stop");
+		if (mobTimer != null) mobTimer.stop();
 		mobTimer = null;
 		retry = null;
 		scoreLabel = null;
@@ -93,7 +93,7 @@ public class STCMain extends Node {
 
 	@GodotMethod
 	public void OnPlayerHit() {
-		if (mobTimer != null) mobTimer.call("stop");
+		if (mobTimer != null) mobTimer.stop();
 		if (retry != null) retry.show();
 	}
 

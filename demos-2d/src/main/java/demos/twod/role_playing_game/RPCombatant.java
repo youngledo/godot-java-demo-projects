@@ -52,11 +52,11 @@ public class RPCombatant extends Node {
 
     @GodotMethod
     public void attack(Object target) {
-        if (target instanceof org.godot.Godot) {
+        if (target instanceof org.godot.node.Node) {
             org.godot.node.Node tgt = (org.godot.node.Node) target;
-            org.godot.Godot targetHealth = (org.godot.node.Node) tgt.getNode("Health");
+            RPHealth targetHealth = tgt.getNodeAs("Health", RPHealth.class);
             if (targetHealth != null) {
-                targetHealth.call("take_damage", damage);
+                targetHealth.takeDamage(damage);
             }
             org.godot.Godot targetAnimTree = (org.godot.node.Node) tgt.getNode("Sprite2D/AnimationTree");
             if (targetAnimTree != null) {

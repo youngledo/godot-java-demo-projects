@@ -51,7 +51,7 @@ public class PickupAbleBody extends RigidBody3D {
 
         // Remember state.
         originalParent = (org.godot.node.Node) getParent();
-        org.godot.math.Transform3D currentTransform = (org.godot.math.Transform3D) call("get_global_transform");
+        org.godot.math.Transform3D currentTransform = getGlobalTransform();
 
         // Remove from old parent.
         originalParent.removeChild(this);
@@ -66,7 +66,7 @@ public class PickupAbleBody extends RigidBody3D {
         if (tween != null) {
             tween.kill();
         }
-        tween = (org.godot.node.Tween) call("create_tween");
+        tween = createTween();
 
         // Snap to transform (identity for now).
         org.godot.math.Transform3D snapTo = new org.godot.math.Transform3D();
@@ -82,7 +82,7 @@ public class PickupAbleBody extends RigidBody3D {
             tween = null;
         }
 
-        org.godot.math.Transform3D currentTransform = (org.godot.math.Transform3D) call("get_global_transform");
+        org.godot.math.Transform3D currentTransform = getGlobalTransform();
 
         pickedUpBy.removeChild(this);
         pickedUpBy = null;

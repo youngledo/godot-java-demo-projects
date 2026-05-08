@@ -9,7 +9,7 @@ import org.godot.node.SceneTree;
 @GodotClass(name = "PFPauseMenu", parent = "Control")
 public class PFPauseMenu extends Control {
 
-	private org.godot.Godot coinsCounter;
+	private PFCoinsCounter coinsCounter;
 	private boolean initialized = false;
 
 	@Override
@@ -20,7 +20,7 @@ public class PFPauseMenu extends Control {
 		hide();
 		org.godot.node.ColorRect colorRect = (org.godot.node.ColorRect) getNode("ColorRect");
 		if (colorRect != null) {
-			coinsCounter = (org.godot.Godot) colorRect.getNode("CoinsCounter");
+			coinsCounter = (PFCoinsCounter) colorRect.getNode("CoinsCounter");
 		}
 	}
 
@@ -38,7 +38,7 @@ public class PFPauseMenu extends Control {
 
 	@GodotMethod
 	public void OnCoinCollected() {
-		if (coinsCounter != null) coinsCounter.call("collect_coin");
+		if (coinsCounter != null) coinsCounter.collectCoin();
 	}
 
 	@GodotMethod

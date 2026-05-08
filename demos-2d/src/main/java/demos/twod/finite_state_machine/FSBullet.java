@@ -42,7 +42,7 @@ public class FSBullet extends CharacterBody2D {
         }
 
         Vector2 motion = direction.mul(speed * delta);
-        Object collisionInfo = call("move_and_collide", motion);
+        Object collisionInfo = moveAndCollide(motion);
         if (collisionInfo != null) {
             queueFree();
         }

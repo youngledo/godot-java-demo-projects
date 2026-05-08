@@ -143,8 +143,8 @@ public class MainScene extends Control {
         if (index == 0) {
             draggableWindow.setProperty("mouse_passthrough_polygon", new Object[0]);
         } else if (index == 1) {
-            org.godot.Godot gen = (org.godot.Godot) draggableWindow.getNode("PassthroughGenerator");
-            if (gen != null) gen.call("generate_polygon");
+            SpritePolygonPassthrough gen = (SpritePolygonPassthrough) draggableWindow.getNode("PassthroughGenerator");
+            if (gen != null) gen.generatePolygon();
         } else if (index == 2) {
             draggableWindow.setProperty("mouse_passthrough_polygon", new org.godot.math.Vector2[] {
                 new org.godot.math.Vector2(16, 0), new org.godot.math.Vector2(16, 128),

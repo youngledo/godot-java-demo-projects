@@ -113,8 +113,8 @@ public class PLEnemy extends RigidBody3D {
 			animationPlayer.play("impact");
 			animationPlayer.queue("extra/explode");
 		}
-		org.godot.node.Node soundWalk = getNode("SoundWalkLoop");
-		if (soundWalk != null) soundWalk.call("stop");
+		org.godot.node.AudioStreamPlayer soundWalk = (org.godot.node.AudioStreamPlayer) getNode("SoundWalkLoop");
+		if (soundWalk != null) soundWalk.stop();
 		org.godot.node.Node soundHit = getNode("SoundHit");
 		if (soundHit != null) soundHit.call("play");
 	}

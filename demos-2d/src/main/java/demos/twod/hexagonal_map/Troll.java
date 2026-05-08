@@ -24,7 +24,7 @@ public class Troll extends CharacterBody2D {
 			motionY /= len;
 		}
 
-		Vector2 vel = (Vector2) call("get_velocity");
+		Vector2 vel = (Vector2) getVelocity();
 		double vx = vel.getX() + motionX * MOTION_SPEED;
 		double vy = vel.getY() + motionY * MOTION_SPEED;
 		vx *= FRICTION_FACTOR;

@@ -10,7 +10,7 @@ public class RPGame extends Node {
     private static final String PLAYER_WIN = "res://dialogue/dialogue_data/player_won.json";
     private static final String PLAYER_LOSE = "res://dialogue/dialogue_data/player_lose.json";
 
-    private org.godot.node.Node combatScreen;
+    private RPCombat combatScreen;
     private org.godot.node.Node explorationScreen;
     private boolean initialized = false;
 
@@ -19,7 +19,7 @@ public class RPGame extends Node {
         if (initialized) return;
         initialized = true;
 
-        combatScreen = (org.godot.node.Node) getProperty("combat_screen");
+        combatScreen = (RPCombat) getProperty("combat_screen");
         explorationScreen = (org.godot.node.Node) getProperty("exploration_screen");
 
         if (combatScreen != null) {
@@ -48,7 +48,7 @@ public class RPGame extends Node {
         }
 
         if (combatScreen != null) {
-            removeChild((org.godot.node.Node) combatScreen);
+            removeChild(combatScreen);
         }
     }
 
@@ -107,11 +107,11 @@ public class RPGame extends Node {
         org.godot.node.Node exploration = getNode("Exploration");
         if (exploration != null) removeChild(exploration);
         if (combatScreen != null) {
-            addChild((org.godot.node.Node) combatScreen);
+            addChild(combatScreen);
             combatScreen.call("show");
             Object actorsObj = getProperty("_pending_combat_actors");
             if (actorsObj instanceof Object[]) {
-                combatScreen.call("initialize", (Object[]) actorsObj);
+                combatScreen.initialize((Object[]) actorsObj);
             }
         }
         if (animPlayer != null) animPlayer.playBackwards("fade_to_black");
@@ -119,7 +119,7 @@ public class RPGame extends Node {
 
     @GodotMethod
     public void onCombatFinished(org.godot.Godot winner, org.godot.Godot loser) {
-        if (combatScreen != null) removeChild((org.godot.node.Node) combatScreen);
+        if (combatScreen != null) removeChild(combatScreen);
 
         org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
         if (animPlayer != null) animPlayer.playBackwards("fade_to_black");
@@ -158,16 +158,16 @@ public class RPGame extends Node {
         org.godot.Godot dialogue = (org.godot.Godot) dialogueObj;
 
         org.godot.node.Node player = getNode("Exploration/Grid/Player");
-        org.godot.Godot dialogueUI = null;
+        RPDialogueUI dialogueUI = null;
         if (explorationScreen != null) {
-            dialogueUI = (org.godot.Godot) explorationScreen.getNode("DialogueCanvas/DialogueUI");
+            dialogueUI = explorationScreen.getNodeAs("DialogueCanvas/DialogueUI", RPDialogueUI.class);
         }
 
         if (dialogueUI != null && player != null) {
-            dialogueUI.call("show_dialogue", player, dialogue);
+            dialogueUI.showDialogue(player, dialogue);
         }
 
-        if (combatScreen != null) combatScreen.call("clear_combat");
+        if (combatScreen != null) combatScreen.clearCombat();
 
         dialogue.connect("dialogue_finished", new org.godot.core.Callable(this, "on_result_dialogue_finished"), 0);
     }

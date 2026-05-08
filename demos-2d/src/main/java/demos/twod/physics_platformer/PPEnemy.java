@@ -101,9 +101,9 @@ public class PPEnemy extends RigidBody2D {
 		if (state == 1) return;
 		state = 1;
 
-		org.godot.Godot collider = (org.godot.Godot) colliderObj;
+		PPBullet collider = (PPBullet) colliderObj;
 		if (collider != null) {
-			collider.call("disable");
+			collider.disable();
 		}
 
 		org.godot.node.AudioStreamPlayer soundHit = (org.godot.node.AudioStreamPlayer) getNode("SoundHit");

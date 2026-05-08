@@ -47,8 +47,8 @@ public class FSJump extends FSMotion {
         animateJumpHeight(delta);
 
         if (height <= 0) {
-            org.godot.Godot sm = getParent();
-            if (sm != null) sm.call("change_state", PREVIOUS);
+            FSStateMachine sm = (FSStateMachine) getParent();
+            if (sm != null) sm.changeState(PREVIOUS);
         }
     }
 

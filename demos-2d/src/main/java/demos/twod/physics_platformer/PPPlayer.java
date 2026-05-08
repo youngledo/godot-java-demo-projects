@@ -35,8 +35,8 @@ public class PPPlayer extends RigidBody2D {
 	private org.godot.node.Sprite2D sprite;
 	private org.godot.node.AnimationPlayer animationPlayer;
 	private org.godot.node.Node bulletShoot;
-	private org.godot.node.Node soundJump;
-	private org.godot.node.Node soundShoot;
+	private org.godot.node.AudioStreamPlayer soundJump;
+	private org.godot.node.AudioStreamPlayer soundShoot;
 	private boolean initialized = false;
 
 	@Override
@@ -47,8 +47,8 @@ public class PPPlayer extends RigidBody2D {
 		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
 		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
 		bulletShoot = getNode("BulletShoot");
-		soundJump = getNode("SoundJump");
-		soundShoot = getNode("SoundShoot");
+		soundJump = (org.godot.node.AudioStreamPlayer) getNode("SoundJump");
+		soundShoot = (org.godot.node.AudioStreamPlayer) getNode("SoundShoot");
 	}
 
 	@Override
@@ -120,7 +120,7 @@ public class PPPlayer extends RigidBody2D {
 				vx = vel.getX();
 				jumping = true;
 				stoppingJump = false;
-				if (soundJump != null) soundJump.call("play");
+				if (soundJump != null) soundJump.play();
 			}
 
 			if (vx < 0 && moveLeft) newSidingLeft = true;
@@ -162,8 +162,8 @@ public class PPPlayer extends RigidBody2D {
 
 	@Override
 	public void _exitTree() {
-		if (soundJump != null) soundJump.call("stop");
-		if (soundShoot != null) soundShoot.call("stop");
+		if (soundJump != null) soundJump.stop();
+		if (soundShoot != null) soundShoot.stop();
 		soundJump = null;
 		soundShoot = null;
 		sprite = null;
@@ -194,6 +194,6 @@ public class PPPlayer extends RigidBody2D {
 		if (parent != null) parent.addChild(bullet);
 
 		bullet.setProperty("linear_velocity", new Vector2(400.0 * speedScale, -40));
-		if (soundShoot != null) soundShoot.call("play");
+		if (soundShoot != null) soundShoot.play();
 	}
 }

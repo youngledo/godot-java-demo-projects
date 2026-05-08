@@ -29,9 +29,9 @@ public class PianoKeyColor extends ColorRect {
         if ("InputEventMouseButton".equals(className)) {
             boolean pressed = (boolean) event.getProperty("pressed");
             if (pressed) {
-                Godot parent = (Godot) getParent();
+                PianoKey parent = (PianoKey) getParent();
                 if (parent != null) {
-                    parent.call("activate");
+                    parent.activate();
                 }
             }
         }

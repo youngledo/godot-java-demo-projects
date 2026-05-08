@@ -82,35 +82,32 @@ public class RPCombatUI extends Control {
 
     public void OnAttackButtonUp() {
         if (combatantsNode == null) return;
-        org.godot.Godot player = (org.godot.node.Node) combatantsNode.call("get_node", "Player");
+        RPCombatant player = combatantsNode.getNodeAs("Player", RPCombatant.class);
         if (player == null) return;
-        Object activeObj = player.getProperty("active");
-        if (!(activeObj instanceof Boolean && (Boolean) activeObj)) return;
+        if (!player.active) return;
 
-        org.godot.Godot opponent = (org.godot.node.Node) combatantsNode.call("get_node", "Opponent");
-        if (opponent != null) player.call("attack", opponent);
+        RPCombatant opponent = combatantsNode.getNodeAs("Opponent", RPCombatant.class);
+        if (opponent != null) player.attack(opponent);
     }
 
     public void OnDefendButtonUp() {
         if (combatantsNode == null) return;
-        org.godot.Godot player = (org.godot.node.Node) combatantsNode.call("get_node", "Player");
+        RPCombatant player = combatantsNode.getNodeAs("Player", RPCombatant.class);
         if (player == null) return;
-        Object activeObj = player.getProperty("active");
-        if (!(activeObj instanceof Boolean && (Boolean) activeObj)) return;
+        if (!player.active) return;
 
-        player.call("defend");
+        player.defend();
     }
 
     public void OnFleeButtonUp() {
         if (combatantsNode == null) return;
-        org.godot.Godot player = (org.godot.node.Node) combatantsNode.call("get_node", "Player");
+        RPCombatant player = combatantsNode.getNodeAs("Player", RPCombatant.class);
         if (player == null) return;
-        Object activeObj = player.getProperty("active");
-        if (!(activeObj instanceof Boolean && (Boolean) activeObj)) return;
+        if (!player.active) return;
 
-        player.call("flee");
-        org.godot.Godot loser = (org.godot.node.Node) combatantsNode.call("get_node", "Player");
-        org.godot.Godot winner = (org.godot.node.Node) combatantsNode.call("get_node", "Opponent");
+        player.flee();
+        RPCombatant loser = combatantsNode.getNodeAs("Player", RPCombatant.class);
+        RPCombatant winner = combatantsNode.getNodeAs("Opponent", RPCombatant.class);
         emitSignal("flee", winner, loser);
     }
 }

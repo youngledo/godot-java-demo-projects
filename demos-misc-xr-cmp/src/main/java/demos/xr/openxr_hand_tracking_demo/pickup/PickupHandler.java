@@ -10,8 +10,8 @@ public class PickupHandler extends Area3D {
     private double detectRange = 0.3;
     private String pickupAction = "pickup";
 
-    private org.godot.Godot closestBody;
-    private org.godot.Godot pickedUpBody;
+    private PickupAbleBody closestBody;
+    private PickupAbleBody pickedUpBody;
     private boolean wasPickupPressed = false;
 
     private boolean initialized = false;
@@ -38,31 +38,27 @@ public class PickupHandler extends Area3D {
         // Don't check if we've picked something up.
         if (pickedUpBody != null) {
             if (closestBody != null) {
-                closestBody.call("remove_is_closest", this);
+                closestBody.removeIsClosest(this);
                 closestBody = null;
             }
             return;
         }
 
-        org.godot.Godot newClosestBody = null;
+        PickupAbleBody newClosestBody = null;
         double closestDistance = 1000000.0;
 
-        Object[] bodies = (Object[]) call("get_overlapping_bodies");
+        Object[] bodies = getOverlappingBodies();
         if (bodies != null) {
-            org.godot.math.Vector3 globalPos = (org.godot.math.Vector3) call("get_global_position");
+            org.godot.math.Vector3 globalPos = getGlobalPosition();
             for (Object bodyObj : bodies) {
-                if (bodyObj instanceof org.godot.Godot) {
-                    org.godot.Godot body = (org.godot.Godot) bodyObj;
-                    String className = (String) body.call("get_class");
-                    if ("PickupAbleBody3D".equals(className) || body instanceof PickupAbleBody) {
-                        boolean isPickedUp = (boolean) body.call("is_picked_up");
-                        if (!isPickedUp) {
-                            org.godot.math.Vector3 bodyPos = (org.godot.math.Vector3) body.call("get_global_position");
-                            double distSq = bodyPos.distanceSquaredTo(globalPos);
-                            if (distSq < closestDistance) {
-                                newClosestBody = body;
-                                closestDistance = distSq;
-                            }
+                if (bodyObj instanceof PickupAbleBody) {
+                    PickupAbleBody body = (PickupAbleBody) bodyObj;
+                    if (!body.isPickedUp()) {
+                        org.godot.math.Vector3 bodyPos = (org.godot.math.Vector3) body.getGlobalPosition();
+                        double distSq = bodyPos.distanceSquaredTo(globalPos);
+                        if (distSq < closestDistance) {
+                            newClosestBody = body;
+                            closestDistance = distSq;
                         }
                     }
                 }
@@ -72,12 +68,12 @@ public class PickupHandler extends Area3D {
         if (closestBody == newClosestBody) return;
 
         if (closestBody != null) {
-            closestBody.call("remove_is_closest", this);
+            closestBody.removeIsClosest(this);
         }
 
         closestBody = newClosestBody;
         if (closestBody != null) {
-            closestBody.call("add_is_closest", this);
+            closestBody.addIsClosest(this);
         }
     }
 
@@ -108,14 +104,14 @@ public class PickupHandler extends Area3D {
 
         // Do we need to let go?
         if (pickedUpBody != null && !pickupPressed) {
-            pickedUpBody.call("let_go");
+            pickedUpBody.letGo();
             pickedUpBody = null;
         }
 
         // Do we need to pick something up?
         if (pickedUpBody == null && !wasPickupPressed && pickupPressed && closestBody != null) {
             pickedUpBody = closestBody;
-            pickedUpBody.call("pick_up", this);
+            pickedUpBody.pickUp(this);
         }
 
         wasPickupPressed = pickupPressed;

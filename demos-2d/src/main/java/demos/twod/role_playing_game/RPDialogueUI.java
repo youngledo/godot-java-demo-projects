@@ -8,8 +8,8 @@ import org.godot.node.Node;
 @GodotClass(name = "RPDialogueUI", parent = "Control")
 public class RPDialogueUI extends Control {
 
-    private org.godot.Godot dialogueNode = null;
-    private org.godot.Godot playerPawn = null;
+    private RPDialoguePlayer dialogueNode = null;
+    private RPCombatant playerPawn = null;
     private boolean initialized = false;
 
     @Override
@@ -31,21 +31,21 @@ public class RPDialogueUI extends Control {
         org.godot.node.Button button = (org.godot.node.Button) getNode("Button");
         if (button != null) button.grabFocus();
 
-        dialogueNode = dialogue;
-        playerPawn = player;
+        dialogueNode = (RPDialoguePlayer) dialogue;
+        playerPawn = (RPCombatant) player;
 
         // Connect signals
-        dialogue.connect("dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"), 0);
-        dialogue.connect("dialogue_finished", new org.godot.core.Callable(this, "hide"), 0);
-        player.call("set_active", false);
+        dialogueNode.connect("dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"), 0);
+        dialogueNode.connect("dialogue_finished", new org.godot.core.Callable(this, "hide"), 0);
+        playerPawn.setActive(false);
 
-        dialogue.call("start_dialogue");
+        dialogueNode.startDialogue();
         updateDialogueText();
     }
 
     public void OnButtonButtonUp() {
         if (dialogueNode == null) return;
-        dialogueNode.call("next_dialogue");
+        dialogueNode.nextDialogue();
         updateDialogueText();
     }
 
@@ -56,7 +56,7 @@ public class RPDialogueUI extends Control {
             dialogueNode.call("disconnect", "dialogue_finished", new org.godot.core.Callable(this, "hide"));
         }
         if (playerPawn != null) {
-            playerPawn.call("set_active", true);
+            playerPawn.setActive(true);
         }
         setProperty("visible", false);
     }

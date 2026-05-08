@@ -11,7 +11,7 @@ public class RPWalker extends RPPawn {
 
     protected boolean lost = false;
     protected double gridSize = 64.0;
-    protected org.godot.Godot grid;
+    protected RPGrid grid;
     protected org.godot.node.Node animationTree;
     protected org.godot.node.AnimationPlayer animationPlayer;
     protected org.godot.node.Node pose;
@@ -26,7 +26,7 @@ public class RPWalker extends RPPawn {
         initialized = true;
         super._ready();
 
-        grid = getParent();
+        grid = (RPGrid) getParent();
 
         animationTree = getNode("AnimationTree");
         animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
@@ -89,7 +89,7 @@ public class RPWalker extends RPPawn {
         Vector2 end = pivotPos.add(moveDirection.mul(gridSize));
 
         // Create tween for movement
-        org.godot.node.Tween tween = (org.godot.node.Tween) call("create_tween");
+        org.godot.node.Tween tween = createTween();
         if (tween != null) {
             tween.setEase(1); // EASE_IN
             tween.call("tween_property", pivot, "position", end, walkAnimationTime);

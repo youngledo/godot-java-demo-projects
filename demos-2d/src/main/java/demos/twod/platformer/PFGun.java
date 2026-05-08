@@ -9,7 +9,7 @@ import org.godot.node.Node;
 public class PFGun extends Marker2D {
 
 	private static final double BULLET_VELOCITY = 850.0;
-	private org.godot.node.Node cooldownTimer;
+	private org.godot.node.Timer cooldownTimer;
 	private boolean initialized = false;
 
 	@Override
@@ -17,12 +17,12 @@ public class PFGun extends Marker2D {
 		if (initialized) return;
 		initialized = true;
 
-		cooldownTimer = getNode("Cooldown");
+		cooldownTimer = (org.godot.node.Timer) getNode("Cooldown");
 	}
 
 	@GodotMethod
 	public boolean shoot(double direction) {
-		if (cooldownTimer != null && !(boolean) cooldownTimer.call("is_stopped")) {
+		if (cooldownTimer != null && !(boolean) cooldownTimer.isStopped()) {
 			return false;
 		}
 
@@ -38,13 +38,13 @@ public class PFGun extends Marker2D {
 
 		addChild((org.godot.node.Node) bullet);
 
-		if (cooldownTimer != null) cooldownTimer.call("start");
+		if (cooldownTimer != null) cooldownTimer.start();
 		return true;
 	}
 
 	@Override
 	public void _exitTree() {
-		if (cooldownTimer != null) cooldownTimer.call("stop");
+		if (cooldownTimer != null) cooldownTimer.stop();
 		cooldownTimer = null;
 	}
 }

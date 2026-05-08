@@ -18,7 +18,7 @@ public class Piano extends Control {
     private org.godot.node.Node blackKeys;
 
     // Maps pitch index to PianoKey node.
-    private final java.util.Map<Integer, org.godot.Godot> pianoKeyDict = new java.util.HashMap<>();
+    private final java.util.Map<Integer, PianoKey> pianoKeyDict = new java.util.HashMap<>();
 
     private boolean initialized = false;
 
@@ -94,14 +94,14 @@ public class Piano extends Control {
 
         printMidiInfo(event);
 
-        org.godot.Godot key = pianoKeyDict.get(pitch);
+        PianoKey key = pianoKeyDict.get(pitch);
         if (key == null) return false;
 
         int message = ((Number) event.getProperty("message")).intValue();
         if (message == 7) { // MIDI_MESSAGE_NOTE_ON = 7
-            key.call("activate");
+            key.activate();
         } else {
-            key.call("deactivate");
+            key.deactivate();
         }
         return false;
     }
@@ -115,25 +115,25 @@ public class Piano extends Control {
         container.addChild((org.godot.node.Node) placeholder);
     }
 
-    private org.godot.Godot createPianoKey(int pitchIndex) {
+    private PianoKey createPianoKey(int pitchIndex) {
         int noteIndex = pitchIndexToNoteIndex(pitchIndex);
-        org.godot.Godot pianoKey;
+        PianoKey pianoKey;
 
         if (isNoteIndexSharp(noteIndex)) {
             // Black key
             org.godot.node.PackedScene blackKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/black_piano_key.tscn", "", 1);
-            pianoKey = blackKeyScene.instantiate();
-            if (blackKeys != null) blackKeys.addChild((org.godot.node.Node) pianoKey);
+            pianoKey = (PianoKey) blackKeyScene.instantiate();
+            if (blackKeys != null) blackKeys.addChild(pianoKey);
         } else {
             // White key
             org.godot.node.PackedScene whiteKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/white_piano_key.tscn", "", 1);
-            pianoKey = whiteKeyScene.instantiate();
-            if (whiteKeys != null) whiteKeys.addChild((org.godot.node.Node) pianoKey);
+            pianoKey = (PianoKey) whiteKeyScene.instantiate();
+            if (whiteKeys != null) whiteKeys.addChild(pianoKey);
             if (isNoteIndexLackingSharp(noteIndex)) {
                 addPlaceholderKey(blackKeys);
             }
         }
-        pianoKey.call("setup", pitchIndex);
+        pianoKey.setup(pitchIndex);
         return pianoKey;
     }
 

@@ -10,7 +10,7 @@ import org.godot.node.Node;
 public class DTCHUD extends CanvasLayer {
 
 	private org.godot.node.Label messageLabel;
-	private org.godot.node.Node messageTimer;
+	private org.godot.node.Timer messageTimer;
 	private org.godot.node.Button startButton;
 	private org.godot.node.Label scoreLabel;
 	private boolean initialized = false;
@@ -22,7 +22,7 @@ public class DTCHUD extends CanvasLayer {
 
 		call("add_user_signal", "start_game");
 		messageLabel = (org.godot.node.Label) getNode("MessageLabel");
-		messageTimer = getNode("MessageTimer");
+		messageTimer = (org.godot.node.Timer) getNode("MessageTimer");
 		startButton = (org.godot.node.Button) getNode("StartButton");
 		scoreLabel = (org.godot.node.Label) getNode("ScoreLabel");
 
@@ -40,7 +40,7 @@ public class DTCHUD extends CanvasLayer {
 			messageLabel.setProperty("text", text);
 			messageLabel.show();
 		}
-		if (messageTimer != null) messageTimer.call("start");
+		if (messageTimer != null) messageTimer.start();
 	}
 
 	@GodotMethod

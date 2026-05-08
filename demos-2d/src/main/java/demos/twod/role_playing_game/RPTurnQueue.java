@@ -9,8 +9,8 @@ import java.util.ArrayList;
 @GodotClass(name = "RPTurnQueue", parent = "Node")
 public class RPTurnQueue extends Node {
 
-    private ArrayList<org.godot.Godot> queue = new ArrayList<>();
-    private org.godot.Godot activeCombatant = null;
+    private ArrayList<RPCombatant> queue = new ArrayList<>();
+    private RPCombatant activeCombatant = null;
     private boolean waitingForTurn = false;
     private boolean initialized = false;
 
@@ -30,16 +30,17 @@ public class RPTurnQueue extends Node {
         Object children = combatantsList.getChildren();
         queue.clear();
         if (children instanceof org.godot.Godot[]) {
-            for (org.godot.Godot node : (org.godot.node.Node[]) children) {
-                queue.add(node);
-                node.call("set_active", false);
+            for (org.godot.Godot node : (org.godot.Godot[]) children) {
+                RPCombatant combatant = (RPCombatant) node;
+                queue.add(combatant);
+                combatant.setActive(false);
             }
         }
 
         if (!queue.isEmpty()) {
             activeCombatant = queue.get(0);
             connectTurnSignal();
-            activeCombatant.call("set_active", true);
+            activeCombatant.setActive(true);
             emitSignal("active_combatant_changed", activeCombatant);
         }
     }
@@ -60,14 +61,14 @@ public class RPTurnQueue extends Node {
 
         disconnectTurnSignal();
 
-        org.godot.Godot current = queue.remove(0);
-        current.call("set_active", false);
+        RPCombatant current = queue.remove(0);
+        current.setActive(false);
         queue.add(current);
 
         if (!queue.isEmpty()) {
             activeCombatant = queue.get(0);
             connectTurnSignal();
-            activeCombatant.call("set_active", true);
+            activeCombatant.setActive(true);
             emitSignal("active_combatant_changed", activeCombatant);
         }
     }

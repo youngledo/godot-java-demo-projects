@@ -33,11 +33,11 @@ public class FSBulletSpawner extends Node2D {
     }
 
     private void fire() {
-        org.godot.node.Node cooldownTimer = getNode("CooldownTimer");
+        org.godot.node.Timer cooldownTimer = (org.godot.node.Timer) getNode("CooldownTimer");
         if (cooldownTimer != null) {
             Object stopped = cooldownTimer.call("is_stopped");
             if (!(stopped instanceof Boolean && (Boolean) stopped)) return;
-            cooldownTimer.call("start");
+            cooldownTimer.start();
         }
 
         if (bulletScene == null) return;

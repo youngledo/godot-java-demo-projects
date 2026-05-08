@@ -16,7 +16,7 @@ public class FSStagger extends FSState {
 
     @Override
     public void onAnimationFinished(String animName) {
-        org.godot.Godot sm = getParent();
-        if (sm != null) sm.call("change_state", PREVIOUS);
+        FSStateMachine sm = (FSStateMachine) getParent();
+        if (sm != null) sm.changeState(PREVIOUS);
     }
 }

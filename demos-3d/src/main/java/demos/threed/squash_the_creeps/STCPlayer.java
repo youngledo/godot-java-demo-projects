@@ -93,7 +93,7 @@ public class STCPlayer extends CharacterBody3D {
 				// dot product with UP
 				double dot = normal.getY(); // UP.y = 1
 				if (dot > 0.1) {
-					collider.call("squash");
+					((STCMob) collider).squash();
 					Vector3 curVel = (Vector3) getProperty("velocity");
 					setProperty("velocity", new Vector3(curVel.getX(), bounceImpulse, curVel.getZ()));
 					break;

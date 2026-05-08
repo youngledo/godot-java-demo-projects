@@ -8,11 +8,11 @@ import org.godot.node.Control;
 @GodotClass(name = "MPBomberLobby", parent = "Control")
 public class MPBomberLobby extends Control {
 
-    private Godot gamestate;
+    private MPBomberGameState gamestate;
 
     @Override
     public void _ready() {
-        gamestate = (Godot) getNode("/root/gamestate");
+        gamestate = (MPBomberGameState) getNode("/root/gamestate");
 
         gamestate.connect("connection_failed", new org.godot.core.Callable(this, "_on_connection_failed"), 0);
         gamestate.connect("connection_succeeded", new org.godot.core.Callable(this, "_on_connection_success"), 0);
@@ -60,7 +60,7 @@ public class MPBomberLobby extends Control {
         Godot errorLabel = (Godot) getNode("Connect/ErrorLabel");
         errorLabel.setProperty("text", "");
 
-        gamestate.call("host_game", name);
+        gamestate.hostGame(name);
         Godot window = (Godot) getWindow();
         String projectName = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", projectName + ": Server (" + name + ")");
@@ -90,7 +90,7 @@ public class MPBomberLobby extends Control {
         ((Godot) getNode("Connect/Host")).setProperty("disabled", true);
         ((Godot) getNode("Connect/Join")).setProperty("disabled", true);
 
-        gamestate.call("join_game", ip, name);
+        gamestate.joinGame(ip, name);
         Godot window = (Godot) getWindow();
         String projectName = (String) call("ProjectSettings.get_setting", "application/config/name");
         window.setProperty("title", projectName + ": Client (" + name + ")");
@@ -130,12 +130,12 @@ public class MPBomberLobby extends Control {
 
     @GodotMethod
     public void refreshLobby() {
-        Object[] playerList = (Object[]) gamestate.call("get_player_list");
+        Object[] playerList = (Object[]) gamestate.getPlayerList();
         // Sort players
         java.util.Arrays.sort(playerList);
         Godot list = (Godot) getNode("Players/List");
         list.call("clear");
-        list.call("add_item", gamestate.getProperty("playerName") + " (you)");
+        list.call("add_item", gamestate.playerName + " (you)");
         for (Object p : playerList) {
             list.call("add_item", p);
         }
@@ -146,7 +146,7 @@ public class MPBomberLobby extends Control {
 
     @GodotMethod
     public void OnStartPressed() {
-        gamestate.call("begin_game");
+        gamestate.beginGame();
     }
 
     @GodotMethod

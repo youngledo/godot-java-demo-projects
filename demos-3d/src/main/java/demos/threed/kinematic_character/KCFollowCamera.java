@@ -36,7 +36,7 @@ public class KCFollowCamera extends Camera3D {
 		if (targetNode == null) return;
 
 		Vector3 targetPos = (Vector3) targetNode.getGlobalPosition();
-		Vector3 cameraPos = (Vector3) call("get_global_position");
+		Vector3 cameraPos = (Vector3) getGlobalPosition();
 
 		if (targetPos == null || cameraPos == null) return;
 

@@ -32,7 +32,7 @@ public class PLFollowCamera extends Camera3D {
 		if (parent == null) return;
 
 		Object targetObj = parent.getGlobalTransform();
-		Object posObj = call("get_global_transform");
+		Object posObj = getGlobalTransform();
 		if (!(targetObj instanceof Transform3D) || !(posObj instanceof Transform3D)) return;
 
 		Vector3 target = ((Transform3D) targetObj).getOrigin();

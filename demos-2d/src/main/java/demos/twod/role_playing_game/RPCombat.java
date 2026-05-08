@@ -8,7 +8,7 @@ import org.godot.node.Node;
 @GodotClass(name = "RPCombat", parent = "Node")
 public class RPCombat extends Node {
 
-    private org.godot.node.Node ui;
+    private RPCombatUI ui;
     private boolean initialized = false;
 
     @Signal
@@ -19,7 +19,7 @@ public class RPCombat extends Node {
         if (initialized) return;
         initialized = true;
 
-        ui = getNode("CombatCanvas/UI");
+        ui = (RPCombatUI) getNode("CombatCanvas/UI");
         if (ui != null) {
             ui.connect("flee", new org.godot.core.Callable(this, "on_flee"), 0);
         }
@@ -49,9 +49,9 @@ public class RPCombat extends Node {
             }
         }
 
-        if (ui != null) ui.call("initialize");
-        org.godot.node.Node turnQueue = getNode("TurnQueue");
-        if (turnQueue != null) turnQueue.call("initialize");
+        if (ui != null) ui.initialize();
+        RPTurnQueue turnQueue = (RPTurnQueue) getNode("TurnQueue");
+        if (turnQueue != null) turnQueue.initialize();
     }
 
     public void clearCombat() {

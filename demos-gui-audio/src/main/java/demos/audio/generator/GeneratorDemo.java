@@ -20,7 +20,7 @@ public class GeneratorDemo extends Node {
     // Actual playback stream, assigned in _ready().
     private org.godot.node.AudioStreamPlayback playback;
 
-    private org.godot.node.Node player;
+    private org.godot.node.AudioStreamPlayer player;
 
     private void fillBuffer() {
         if (playback == null) {
@@ -49,7 +49,7 @@ public class GeneratorDemo extends Node {
 
     @Override
     public void _ready() {
-        player = getNode("Player");
+        player = (org.godot.node.AudioStreamPlayer) getNode("Player");
         if (player == null) return;
 
         // Setting mix rate is only possible before play().
@@ -92,7 +92,7 @@ public class GeneratorDemo extends Node {
     @Override
     public void _exitTree() {
         if (player != null) {
-            player.call("stop");
+            player.stop();
         }
         playback = null;
         player = null;

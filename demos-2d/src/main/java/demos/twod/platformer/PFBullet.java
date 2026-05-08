@@ -21,7 +21,7 @@ public class PFBullet extends RigidBody2D {
 
 	@Override
 	public void _exitTree() {
-		call("set_deferred", "monitoring", false);
+		setDeferred("monitoring", false);
 	}
 
 	@GodotMethod
@@ -29,7 +29,7 @@ public class PFBullet extends RigidBody2D {
 		org.godot.Godot b = (org.godot.Godot) body;
 		String cls = (String) b.call("get_class");
 		if ("PFEnemy".equals(cls)) {
-			b.call("destroy");
+			((demos.twod.platformer.PFEnemy) b).destroy();
 		}
 
 		org.godot.node.AnimationPlayer anim = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");

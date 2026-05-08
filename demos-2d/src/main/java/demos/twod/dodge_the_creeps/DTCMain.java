@@ -11,13 +11,13 @@ import org.godot.node.SceneTree;
 public class DTCMain extends Node {
 
 	private int score = 0;
-	private org.godot.node.Node player;
-	private org.godot.node.Node scoreTimer;
-	private org.godot.node.Node mobTimer;
-	private org.godot.node.Node startTimer;
-	private org.godot.node.Node hud;
-	private org.godot.node.Node music;
-	private org.godot.node.Node deathSound;
+	private demos.twod.dodge_the_creeps.DTCPlayer player;
+	private org.godot.node.Timer scoreTimer;
+	private org.godot.node.Timer mobTimer;
+	private org.godot.node.Timer startTimer;
+	private demos.twod.dodge_the_creeps.DTCHUD hud;
+	private org.godot.node.AudioStreamPlayer music;
+	private org.godot.node.AudioStreamPlayer deathSound;
 	private boolean initialized = false;
 
 	@Override
@@ -25,13 +25,13 @@ public class DTCMain extends Node {
 		if (initialized) return;
 		initialized = true;
 
-		player = getNode("Player");
-		scoreTimer = getNode("ScoreTimer");
-		mobTimer = getNode("MobTimer");
-		startTimer = getNode("StartTimer");
-		hud = getNode("HUD");
-		music = getNode("Music");
-		deathSound = getNode("DeathSound");
+		player = (demos.twod.dodge_the_creeps.DTCPlayer) getNode("Player");
+		scoreTimer = (org.godot.node.Timer) getNode("ScoreTimer");
+		mobTimer = (org.godot.node.Timer) getNode("MobTimer");
+		startTimer = (org.godot.node.Timer) getNode("StartTimer");
+		hud = (demos.twod.dodge_the_creeps.DTCHUD) getNode("HUD");
+		music = (org.godot.node.AudioStreamPlayer) getNode("Music");
+		deathSound = (org.godot.node.AudioStreamPlayer) getNode("DeathSound");
 
 		// Connect signals programmatically
 		if (mobTimer != null) mobTimer.connect("timeout", new Callable(this, "_on_mob_timer_timeout"), 0);
@@ -56,24 +56,24 @@ public class DTCMain extends Node {
 		org.godot.node.Node startPos = getNode("StartPosition");
 		if (player != null && startPos != null) {
 			Vector2 pos = (Vector2) startPos.getProperty("position");
-			player.call("start", pos);
+			player.start(pos);
 		}
 
-		if (startTimer != null) startTimer.call("start");
+		if (startTimer != null) startTimer.start();
 		if (hud != null) {
-			hud.call("update_score", score);
-			hud.call("show_message", "Get Ready");
+			hud.updateScore(score);
+			hud.showMessage("Get Ready");
 		}
-		if (music != null) music.call("play");
+		if (music != null) music.play();
 	}
 
 	@GodotMethod
 	public void gameOver() {
-		if (scoreTimer != null) scoreTimer.call("stop");
-		if (mobTimer != null) mobTimer.call("stop");
-		if (hud != null) hud.call("show_game_over");
-		if (music != null) music.call("stop");
-		if (deathSound != null) deathSound.call("play");
+		if (scoreTimer != null) scoreTimer.stop();
+		if (mobTimer != null) mobTimer.stop();
+		if (hud != null) hud.showGameOver();
+		if (music != null) music.stop();
+		if (deathSound != null) deathSound.play();
 	}
 
 	@GodotMethod
@@ -106,13 +106,13 @@ public class DTCMain extends Node {
 	@GodotMethod
 	public void OnScoreTimerTimeout() {
 		score++;
-		if (hud != null) hud.call("update_score", score);
+		if (hud != null) hud.updateScore(score);
 	}
 
 	@GodotMethod
 	public void OnStartTimerTimeout() {
-		if (mobTimer != null) mobTimer.call("start");
-		if (scoreTimer != null) scoreTimer.call("start");
+		if (mobTimer != null) mobTimer.start();
+		if (scoreTimer != null) scoreTimer.start();
 	}
 
 	@GodotMethod
