@@ -62,7 +62,7 @@ public class RPCombatant extends Node {
             if (targetAnimTree != null) {
                 Object playback = targetAnimTree.getProperty("parameters/playback");
                 if (playback instanceof org.godot.Godot) {
-                    ((org.godot.Godot) playback).call("start", "take_damage");
+                    ((org.godot.node.AnimationNodeStateMachinePlayback) playback).start("take_damage");
                 }
             }
         }

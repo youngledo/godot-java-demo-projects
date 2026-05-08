@@ -52,8 +52,8 @@ public class RPDialogueUI extends Control {
     @GodotMethod
     public void onDialogueFinished() {
         if (dialogueNode != null) {
-            dialogueNode.call("disconnect", "dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"));
-            dialogueNode.call("disconnect", "dialogue_finished", new org.godot.core.Callable(this, "hide"));
+            dialogueNode.disconnect("dialogue_finished", new org.godot.core.Callable(this, "on_dialogue_finished"));
+            dialogueNode.disconnect("dialogue_finished", new org.godot.core.Callable(this, "hide"));
         }
         if (playerPawn != null) {
             playerPawn.setActive(true);

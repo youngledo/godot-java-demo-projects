@@ -14,7 +14,7 @@ public class RPWalker extends RPPawn {
     protected RPGrid grid;
     protected org.godot.node.Node animationTree;
     protected org.godot.node.AnimationPlayer animationPlayer;
-    protected org.godot.node.Node pose;
+    protected org.godot.node.AnimatedSprite2D pose;
     protected double walkAnimationTime = 0.3;
 
     private boolean moving = false;
@@ -30,7 +30,7 @@ public class RPWalker extends RPPawn {
 
         animationTree = getNode("AnimationTree");
         animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
-        pose = getNode("Pivot/Slime");
+        pose = (org.godot.node.AnimatedSprite2D) getNode("Pivot/Slime");
 
         if (animationPlayer != null) {
             Object walkAnim = animationPlayer.getAnimation("walk");
@@ -73,11 +73,11 @@ public class RPWalker extends RPPawn {
         org.godot.math.Vector2 pos = (org.godot.math.Vector2) getProperty("position");
         org.godot.math.Vector2 moveDirection = targetPosition.sub(pos).normalized();
 
-        if (pose != null) pose.call("play", "idle");
+        if (pose != null) pose.play("idle");
         if (animationTree != null) {
             Object playback = animationTree.get("parameters/playback");
             if (playback instanceof org.godot.Godot) {
-                ((org.godot.Godot) playback).call("start", "walk");
+                ((org.godot.node.AnimationNodeStateMachinePlayback) playback).start("walk");
             }
         }
 
@@ -112,10 +112,10 @@ public class RPWalker extends RPPawn {
         if (animationTree != null) {
             Object playback = animationTree.get("parameters/playback");
             if (playback instanceof org.godot.Godot) {
-                ((org.godot.Godot) playback).call("start", "idle");
+                ((org.godot.node.AnimationNodeStateMachinePlayback) playback).start("idle");
             }
         }
-        if (pose != null) pose.call("play", "idle");
+        if (pose != null) pose.play("idle");
 
         moving = false;
         setProcess(true);
@@ -126,11 +126,11 @@ public class RPWalker extends RPPawn {
         moving = true;
         setProcess(false);
 
-        if (pose != null) pose.call("play", "bump");
+        if (pose != null) pose.play("bump");
         if (animationTree != null) {
             Object playback = animationTree.get("parameters/playback");
             if (playback instanceof org.godot.Godot) {
-                ((org.godot.Godot) playback).call("start", "bump");
+                ((org.godot.node.AnimationNodeStateMachinePlayback) playback).start("bump");
             }
         }
 
@@ -143,13 +143,13 @@ public class RPWalker extends RPPawn {
     @GodotMethod
     public void onBumpComplete(String animName) {
         if (animationTree != null) {
-            animationTree.call("disconnect", "animation_finished", new org.godot.core.Callable(this, "on_bump_complete"));
+            animationTree.disconnect("animation_finished", new org.godot.core.Callable(this, "on_bump_complete"));
             Object playback = animationTree.get("parameters/playback");
             if (playback instanceof org.godot.Godot) {
-                ((org.godot.Godot) playback).call("start", "idle");
+                ((org.godot.node.AnimationNodeStateMachinePlayback) playback).start("idle");
             }
         }
-        if (pose != null) pose.call("play", "idle");
+        if (pose != null) pose.play("idle");
 
         moving = false;
         setProcess(true);

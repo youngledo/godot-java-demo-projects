@@ -101,7 +101,7 @@ public class RPGame extends Node {
     public void onFadeOutComplete(String animName) {
         org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
         if (animPlayer != null) {
-            animPlayer.call("disconnect", "animation_finished", new org.godot.core.Callable(this, "on_fade_out_complete"));
+            animPlayer.disconnect("animation_finished", new org.godot.core.Callable(this, "on_fade_out_complete"));
         }
 
         org.godot.node.Node exploration = getNode("Exploration");
@@ -150,7 +150,7 @@ public class RPGame extends Node {
     public void onFadeInForDialogue(String animName) {
         org.godot.node.AnimationPlayer animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
         if (animPlayer != null) {
-            animPlayer.call("disconnect", "animation_finished", new org.godot.core.Callable(this, "on_fade_in_for_dialogue"));
+            animPlayer.disconnect("animation_finished", new org.godot.core.Callable(this, "on_fade_in_for_dialogue"));
         }
 
         Object dialogueObj = getProperty("_pending_dialogue");

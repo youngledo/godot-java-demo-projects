@@ -52,7 +52,7 @@ public class RPTurnQueue extends Node {
 
     private void disconnectTurnSignal() {
         if (activeCombatant == null) return;
-        activeCombatant.call("disconnect", "turn_finished", new org.godot.core.Callable(this, "on_turn_finished"));
+        activeCombatant.disconnect("turn_finished", new org.godot.core.Callable(this, "on_turn_finished"));
     }
 
     @GodotMethod
