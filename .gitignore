@@ -29,3 +29,6 @@ test_all.sh
 
 # Log4j
 log4j2-test.xml
+
+# AI
+.claude/settings.local.json

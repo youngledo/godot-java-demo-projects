@@ -8,6 +8,7 @@ import org.godot.node.Control;
 import org.godot.node.Font;
 import org.godot.node.InputEvent;
 import org.godot.node.InputEventMouseButton;
+import org.godot.singleton.DisplayServer;
 
 @GodotClass(name = "CustomControl", parent = "Control")
 public class CustomControl extends Control {
@@ -21,6 +22,9 @@ public class CustomControl extends Control {
         itemValues[0] = 25;
         itemValues[1] = 50;
         itemValues[2] = 75;
+        setAccessibilityName("Custom Java Control");
+        setAccessibilityDescription("Use up and down to choose an item, then press Enter or click to change its value.");
+        setAccessibilityLive(DisplayServer.AccessibilityLiveMode.LIVE_POLITE.value);
     }
 
     @Override
@@ -29,26 +33,22 @@ public class CustomControl extends Control {
             int row = (int) ((mouseButton.getPosition().y - 34.0) / 56.0);
             if (row >= 0 && row < ITEM_COUNT) {
                 selected = row;
-                itemValues[row] = (itemValues[row] + 10) % 110;
-                queueRedraw();
+                incrementSelectedItem();
             }
             return true;
         }
 
         if (event instanceof InputEvent inputEvent) {
             if (inputEvent.isActionPressed("ui_down")) {
-                selected = (selected + 1) % ITEM_COUNT;
-                queueRedraw();
+                selectNextItem();
                 return true;
             }
             if (inputEvent.isActionPressed("ui_up")) {
-                selected = (selected + ITEM_COUNT - 1) % ITEM_COUNT;
-                queueRedraw();
+                selectPreviousItem();
                 return true;
             }
             if (inputEvent.isActionPressed("ui_accept")) {
-                itemValues[selected] = (itemValues[selected] + 10) % 110;
-                queueRedraw();
+                incrementSelectedItem();
                 return true;
             }
         }
@@ -72,5 +72,45 @@ public class CustomControl extends Control {
             drawRect(new Rect2(105, y + 13.0, itemValues[i] * 1.5, 18.0), new Color(0.45, 1.0, 0.45));
             drawString(font, new Vector2(270, y + 28.0), itemValues[i] + "%", 0, -1.0, 16L, new Color(1, 1, 1));
         }
+    }
+
+    @Override
+    public void _accessibilityUpdate() {
+        long id = getAccessibilityElement();
+        if (id == 0L) return;
+
+        DisplayServer displayServer = DisplayServer.singleton();
+        displayServer.accessibilityUpdateSetRole(id, DisplayServer.AccessibilityRole.ROLE_LIST_BOX.value);
+        displayServer.accessibilityUpdateSetName(id, "Custom Java Control");
+        displayServer.accessibilityUpdateSetDescription(id, "Use up and down to choose an item, then press Enter or click to change its value.");
+        displayServer.accessibilityUpdateSetValue(id, itemNames[selected] + ", " + itemValues[selected] + "%");
+        displayServer.accessibilityUpdateSetLive(id, DisplayServer.AccessibilityLiveMode.LIVE_POLITE.value);
+        displayServer.accessibilityUpdateSetNumValue(id, itemValues[selected]);
+        displayServer.accessibilityUpdateSetNumRange(id, 0.0, 100.0);
+        displayServer.accessibilityUpdateSetNumStep(id, 10.0);
+    }
+
+    @Override
+    public void _accessibilityInvalidate() {
+    }
+
+    private void selectNextItem() {
+        selected = (selected + 1) % ITEM_COUNT;
+        refreshAccessibilityState();
+    }
+
+    private void selectPreviousItem() {
+        selected = (selected + ITEM_COUNT - 1) % ITEM_COUNT;
+        refreshAccessibilityState();
+    }
+
+    private void incrementSelectedItem() {
+        itemValues[selected] = (itemValues[selected] + 10) % 110;
+        refreshAccessibilityState();
+    }
+
+    private void refreshAccessibilityState() {
+        queueRedraw();
+        queueAccessibilityUpdate();
     }
 }
