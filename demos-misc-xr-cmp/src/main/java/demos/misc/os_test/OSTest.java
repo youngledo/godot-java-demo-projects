@@ -1,13 +1,21 @@
 package demos.misc.os_test;
 
+import java.util.Arrays;
 import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotDictionary;
 import org.godot.node.Panel;
-import org.godot.node.Node;
+import org.godot.node.RichTextLabel;
+import org.godot.singleton.AudioServer;
+import org.godot.singleton.DisplayServer;
+import org.godot.singleton.Engine;
+import org.godot.singleton.OS;
+import org.godot.singleton.RenderingServer;
+import org.godot.singleton.Time;
 
 @GodotClass(name = "OSTest", parent = "Panel")
 public class OSTest extends Panel {
 
-    private org.godot.node.Node rtl;
+    private RichTextLabel rtl;
     private int lineCount = 0;
     private boolean initialized = false;
 
@@ -16,142 +24,143 @@ public class OSTest extends Panel {
         if (initialized) return;
         initialized = true;
 
-        rtl = getNode("HBoxContainer/Features");
-        if (rtl != null) rtl.call("grab_focus");
+        rtl = getNodeAs("HBoxContainer/Features", RichTextLabel.class);
+        if (rtl != null) rtl.grabFocus();
+
+        AudioServer audioServer = AudioServer.singleton();
+        Time time = Time.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
+        Engine engine = Engine.singleton();
+        OS os = OS.singleton();
+        RenderingServer renderingServer = RenderingServer.singleton();
 
         addHeader("Audio");
-        addLine("Mix rate", org.godot.singleton.AudioServer.singleton().getMixRate() + " Hz");
-        addLine("Output latency", String.format("%f ms", org.godot.singleton.AudioServer.singleton().getOutputLatency() * 1000));
-        addLine("Output device list", joinArray(org.godot.singleton.AudioServer.singleton().getOutputDeviceList()));
-        addLine("Capture device list", joinArray(org.godot.singleton.AudioServer.singleton().getInputDeviceList()));
+        addLine("Mix rate", audioServer.getMixRate() + " Hz");
+        addLine("Output latency", String.format("%f ms", audioServer.getOutputLatency() * 1000));
+        addLine("Output device list", joinArray(audioServer.getOutputDeviceList()));
+        addLine("Capture device list", joinArray(audioServer.getInputDeviceList()));
         addLine("Connected MIDI inputs", scanMidiInputs());
 
         addHeader("Date and time");
-        addLine("Date and time (local)", org.godot.singleton.Time.singleton().getDatetimeStringFromSystem(false, true));
-        addLine("Date and time (UTC)", org.godot.singleton.Time.singleton().getDatetimeStringFromSystem(true, true));
-        addLine("Date (local)", org.godot.singleton.Time.singleton().getDateStringFromSystem(false));
-        addLine("Date (UTC)", org.godot.singleton.Time.singleton().getDateStringFromSystem(true));
-        addLine("Time (local)", org.godot.singleton.Time.singleton().getTimeStringFromSystem(false));
-        addLine("Time (UTC)", org.godot.singleton.Time.singleton().getTimeStringFromSystem(true));
-        addLine("Timezone", org.godot.singleton.Time.singleton().getTimeZoneFromSystem());
-        addLine("UNIX time", org.godot.singleton.Time.singleton().getUnixTimeFromSystem());
+        addLine("Date and time (local)", time.getDatetimeStringFromSystem(false, true));
+        addLine("Date and time (UTC)", time.getDatetimeStringFromSystem(true, true));
+        addLine("Date (local)", time.getDateStringFromSystem(false));
+        addLine("Date (UTC)", time.getDateStringFromSystem(true));
+        addLine("Time (local)", time.getTimeStringFromSystem(false));
+        addLine("Time (UTC)", time.getTimeStringFromSystem(true));
+        addLine("Timezone", time.getTimeZoneFromSystem());
+        addLine("UNIX time", time.getUnixTimeFromSystem());
 
         addHeader("Display");
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        addLine("Screen count", ds.call("get_screen_count"));
-        addLine("DPI", ds.call("screen_get_dpi"));
-        addLine("Scale factor", ds.call("screen_get_scale"));
-        addLine("Maximum scale factor", ds.call("screen_get_max_scale"));
-        addLine("Startup screen position", ds.call("screen_get_position"));
-        addLine("Startup screen size", ds.call("screen_get_size"));
-        double refreshRate = (double) ds.call("screen_get_refresh_rate");
+        addLine("Screen count", displayServer.getScreenCount());
+        addLine("DPI", displayServer.screenGetDpi());
+        addLine("Scale factor", displayServer.screenGetScale());
+        addLine("Maximum scale factor", displayServer.screenGetMaxScale());
+        addLine("Startup screen position", displayServer.screenGetPosition());
+        addLine("Startup screen size", displayServer.screenGetSize());
+        double refreshRate = displayServer.screenGetRefreshRate();
         addLine("Startup screen refresh rate", refreshRate > 0.0 ? String.format("%f Hz", refreshRate) : "");
-        addLine("Usable (safe) area rectangle", ds.call("get_display_safe_area"));
-        long orientation = (long) ds.call("screen_get_orientation");
-        String[] orientations = {"Landscape", "Portrait", "Landscape (reverse)", "Portrait (reverse)",
-            "Landscape (defined by sensor)", "Portrait (defined by sensor)", "Defined by sensor"};
-        addLine("Screen orientation", orientations[(int) Math.min(orientation, orientations.length - 1)]);
+        addLine("Usable (safe) area rectangle", displayServer.getDisplaySafeArea());
+        int orientation = displayServer.screenGetOrientation();
+        String[] orientations = { "Landscape", "Portrait", "Landscape (reverse)", "Portrait (reverse)",
+                "Landscape (defined by sensor)", "Portrait (defined by sensor)", "Defined by sensor" };
+        addLine("Screen orientation", orientations[Math.min(orientation, orientations.length - 1)]);
 
         addHeader("Engine");
-        Object versionInfo = org.godot.singleton.Engine.singleton().getVersionInfo();
-        addLine("Version", versionInfo instanceof java.util.Map ? ((java.util.Map<?, ?>) versionInfo).get("string") : String.valueOf(versionInfo));
-        addLine("Compiled for architecture", org.godot.singleton.Engine.singleton().getArchitectureName());
-        addLine("Command-line arguments", joinArray(org.godot.singleton.OS.singleton().getCmdlineArgs()));
-        addLine("Is debug build", org.godot.singleton.OS.singleton().isDebugBuild());
-        addLine("Executable path", org.godot.singleton.OS.singleton().getExecutablePath());
-        addLine("User data directory", org.godot.singleton.OS.singleton().getUserDataDir());
-        addLine("Filesystem is persistent", org.godot.singleton.OS.singleton().isUserfsPersistent());
-        addLine("Process ID (PID)", org.godot.singleton.OS.singleton().getProcessId());
-        addLine("Main thread ID", org.godot.singleton.OS.singleton().getMainThreadId());
-        addLine("Thread caller ID", org.godot.singleton.OS.singleton().getThreadCallerId());
-        addLine("Memory information", org.godot.singleton.OS.singleton().getMemoryInfo());
-        addLine("Static memory usage", org.godot.singleton.OS.singleton().getStaticMemoryUsage());
-        addLine("Static memory peak usage", org.godot.singleton.OS.singleton().getStaticMemoryPeakUsage());
+        Object versionInfo = engine.getVersionInfo();
+        addLine("Version", versionString(versionInfo));
+        addLine("Compiled for architecture", engine.getArchitectureName());
+        addLine("Command-line arguments", joinArray(os.getCmdlineArgs()));
+        addLine("Is debug build", os.isDebugBuild());
+        addLine("Executable path", os.getExecutablePath());
+        addLine("User data directory", os.getUserDataDir());
+        addLine("Filesystem is persistent", os.isUserfsPersistent());
+        addLine("Process ID (PID)", os.getProcessId());
+        addLine("Main thread ID", os.getMainThreadId());
+        addLine("Thread caller ID", os.getThreadCallerId());
+        addLine("Memory information", os.getMemoryInfo());
+        addLine("Static memory usage", os.getStaticMemoryUsage());
+        addLine("Static memory peak usage", os.getStaticMemoryPeakUsage());
 
         addHeader("Environment");
-        addLine("Value of `PATH`", org.godot.singleton.OS.singleton().getEnvironment("PATH"));
-        addLine("Value of `path`", org.godot.singleton.OS.singleton().getEnvironment("path"));
+        addLine("Value of `PATH`", os.getEnvironment("PATH"));
+        addLine("Value of `path`", os.getEnvironment("path"));
 
         addHeader("Hardware");
-        addLine("Model name", org.godot.singleton.OS.singleton().getName());
-        addLine("Processor name", org.godot.singleton.OS.singleton().getProcessorName());
-        addLine("Processor count", org.godot.singleton.OS.singleton().getProcessorCount());
-        addLine("Device unique ID", org.godot.singleton.OS.singleton().getUniqueId());
+        addLine("Model name", os.getName());
+        addLine("Processor name", os.getProcessorName());
+        addLine("Processor count", os.getProcessorCount());
+        addLine("Device unique ID", os.getUniqueId());
 
         addHeader("Input");
-        addLine("Device has touch screen", ds.call("is_touchscreen_available"));
-        boolean hasVirtualKeyboard = (boolean) ds.call("has_feature", 11); // FEATURE_VIRTUAL_KEYBOARD
+        addLine("Device has touch screen", displayServer.isTouchscreenAvailable());
+        boolean hasVirtualKeyboard = displayServer.hasFeature(11);
         addLine("Device has virtual keyboard", hasVirtualKeyboard);
         if (hasVirtualKeyboard) {
-            addLine("Virtual keyboard height", ds.call("virtual_keyboard_get_height"));
+            addLine("Virtual keyboard height", displayServer.virtualKeyboardGetHeight());
         }
 
         addHeader("Localization");
-        addLine("Locale", org.godot.singleton.OS.singleton().getLocale());
-        addLine("Language", org.godot.singleton.OS.singleton().getLocaleLanguage());
+        addLine("Locale", os.getLocale());
+        addLine("Language", os.getLocaleLanguage());
 
         addHeader("Mobile");
-        addLine("Granted permissions", joinArray(org.godot.singleton.OS.singleton().getGrantedPermissions()));
+        addLine("Granted permissions", joinArray(os.getGrantedPermissions()));
 
         addHeader("Software");
-        addLine("OS name", org.godot.singleton.OS.singleton().getName());
-        addLine("OS version", org.godot.singleton.OS.singleton().getVersion());
-        addLine("Distribution name", call("OS.get_distribution_name"));
-        addLine("System dark mode supported", ds.call("is_dark_mode_supported"));
-        addLine("System dark mode enabled", ds.call("is_dark_mode"));
-        Object accentColor = ds.call("get_accent_color");
-        addLine("System accent color", accentColor != null ? "#" + accentColor : "N/A");
-        Object systemFonts = call("OS.get_system_fonts");
-        addLine("System fonts", (systemFonts instanceof Object[] ? ((Object[]) systemFonts).length : 0) + " fonts available");
-        addLine("System font path (\"sans-serif\")", call("OS.get_system_font_path", "sans-serif"));
-        addLine("System font path for English text", joinArray(call("OS.get_system_font_path_for_text", "sans-serif", "Hello")));
-        addLine("System font path for Chinese text", joinArray(call("OS.get_system_font_path_for_text", "sans-serif", "你好")));
-        addLine("System font path for Japanese text", joinArray(call("OS.get_system_font_path_for_text", "sans-serif", "こんにちは")));
+        addLine("OS name", os.getName());
+        addLine("OS version", os.getVersion());
+        addLine("Distribution name", os.getDistributionName());
+        addLine("System dark mode supported", displayServer.isDarkModeSupported());
+        addLine("System dark mode enabled", displayServer.isDarkMode());
+        addLine("System accent color", displayServer.getAccentColor());
+        String[] systemFonts = os.getSystemFonts();
+        addLine("System fonts", systemFonts.length + " fonts available");
+        addLine("System font path (\"sans-serif\")", os.getSystemFontPath("sans-serif"));
+        addLine("System font path for English text", joinArray(os.getSystemFontPathForText("sans-serif", "Hello")));
+        addLine("System font path for Chinese text", joinArray(os.getSystemFontPathForText("sans-serif", "你好")));
+        addLine("System font path for Japanese text", joinArray(os.getSystemFontPathForText("sans-serif", "こんにちは")));
 
         addHeader("Security");
-        addLine("Is sandboxed", call("OS.is_sandboxed"));
-        addLine("Entropy (8 random bytes)", call("OS.get_entropy", 8));
-        Object caCerts = call("OS.get_system_ca_certificates");
-        String caCertsStr = String.valueOf(caCerts);
-        addLine("System CA certificates", !caCertsStr.isEmpty() ? "Available (" + caCertsStr.length() + " bytes)" : "Not available");
+        addLine("Is sandboxed", os.isSandboxed());
+        addLine("Entropy (8 random bytes)", joinArray(os.getEntropy(8)));
+        String caCerts = os.getSystemCaCertificates();
+        addLine("System CA certificates", !caCerts.isEmpty() ? "Available (" + caCerts.length() + " bytes)" : "Not available");
 
         addHeader("Engine directories");
-        addLine("User data", call("OS.get_data_dir"));
-        addLine("Configuration", call("OS.get_config_dir"));
-        addLine("Cache", call("OS.get_cache_dir"));
+        addLine("User data", os.getDataDir());
+        addLine("Configuration", os.getConfigDir());
+        addLine("Cache", os.getCacheDir());
 
         addHeader("System directories");
-        addLine("Desktop", call("OS.get_system_dir", 0));
-        addLine("DCIM", call("OS.get_system_dir", 1));
-        addLine("Documents", call("OS.get_system_dir", 2));
-        addLine("Downloads", call("OS.get_system_dir", 3));
-        addLine("Movies", call("OS.get_system_dir", 4));
-        addLine("Music", call("OS.get_system_dir", 5));
-        addLine("Pictures", call("OS.get_system_dir", 6));
-        addLine("Ringtones", call("OS.get_system_dir", 7));
+        addLine("Desktop", os.getSystemDir(0));
+        addLine("DCIM", os.getSystemDir(1));
+        addLine("Documents", os.getSystemDir(2));
+        addLine("Downloads", os.getSystemDir(3));
+        addLine("Movies", os.getSystemDir(4));
+        addLine("Music", os.getSystemDir(5));
+        addLine("Pictures", os.getSystemDir(6));
+        addLine("Ringtones", os.getSystemDir(7));
 
         addHeader("Video");
-        addLine("Adapter name", call("RenderingServer.get_video_adapter_name"));
-        addLine("Adapter vendor", call("RenderingServer.get_video_adapter_vendor"));
-        String renderMethod = (String) call("RenderingServer.get_current_rendering_method");
+        addLine("Adapter name", renderingServer.getVideoAdapterName());
+        addLine("Adapter vendor", renderingServer.getVideoAdapterVendor());
+        String renderMethod = renderingServer.getCurrentRenderingMethod();
         if (!"gl_compatibility".equals(renderMethod)) {
-            long adapterType = (long) call("RenderingServer.get_video_adapter_type");
-            String[] adapterTypes = {"Other (Unknown)", "Integrated", "Discrete", "Virtual", "CPU"};
-            addLine("Adapter type", adapterTypes[(int) Math.min(adapterType, adapterTypes.length - 1)]);
+            int adapterType = renderingServer.getVideoAdapterType();
+            String[] adapterTypes = { "Other (Unknown)", "Integrated", "Discrete", "Virtual", "CPU" };
+            addLine("Adapter type", adapterTypes[Math.min(adapterType, adapterTypes.length - 1)]);
         }
-        addLine("Adapter graphics API version", call("RenderingServer.get_video_adapter_api_version"));
+        addLine("Adapter graphics API version", renderingServer.getVideoAdapterApiVersion());
 
-        Object driverInfo = call("OS.get_video_adapter_driver_info");
-        if (driverInfo instanceof Object[]) {
-            Object[] info = (Object[]) driverInfo;
-            if (info.length > 0) addLine("Adapter driver name", info[0]);
-            if (info.length > 1) addLine("Adapter driver version", info[1]);
-        }
+        String[] driverInfo = os.getVideoAdapterDriverInfo();
+        if (driverInfo.length > 0) addLine("Adapter driver name", driverInfo[0]);
+        if (driverInfo.length > 1) addLine("Adapter driver version", driverInfo[1]);
     }
 
     private void addHeader(String header) {
         if (rtl != null) {
-            rtl.call("append_text", "\n[font_size=24][color=#5cf]" + header + "[/color][/font_size]\n[font_size=1]\n[/font_size]");
+            rtl.appendText("\n[font_size=24][color=#5cf]" + header + "[/color][/font_size]\n[font_size=1]\n[/font_size]");
         }
         System.out.println("\n" + header);
         System.out.println("=".repeat(header.length()));
@@ -163,8 +172,7 @@ public class OSTest extends Panel {
         if (valueStr.isEmpty()) valueStr = "(empty)";
         String originalValue = valueStr;
 
-        if (value instanceof Boolean) {
-            boolean b = (Boolean) value;
+        if (value instanceof Boolean b) {
             valueStr = b ? "[color=6f7]true[/color]" : "[color=#f76]false[/color]";
         }
 
@@ -172,29 +180,40 @@ public class OSTest extends Panel {
         String bgcolorEnd = lineCount % 2 == 0 ? "[/bgcolor]" : "";
 
         if (rtl != null) {
-            rtl.call("append_text", bgcolor + "[color=#9df]" + key + ":[/color] " +
-                (valueStr.isEmpty() ? "[color=#fff8](empty)[/color]" : valueStr) + bgcolorEnd + "\n");
+            rtl.appendText(bgcolor + "[color=#9df]" + key + ":[/color] "
+                    + (valueStr.isEmpty() ? "[color=#fff8](empty)[/color]" : valueStr) + bgcolorEnd + "\n");
         }
         System.out.println(key + ": " + originalValue);
     }
 
     private String scanMidiInputs() {
-        String dsName = (String) org.godot.singleton.DisplayServer.singleton().call("get_name");
-        if ("headless".equals(dsName)) return "";
+        if ("headless".equals(DisplayServer.singleton().getName())) return "";
 
-        org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        os.call("open_midi_inputs");
-        Object devices = os.call("get_connected_midi_inputs");
-        String result = joinArray(devices);
-        os.call("close_midi_inputs");
+        OS os = OS.singleton();
+        os.openMidiInputs();
+        String result = joinArray(os.getConnectedMidiInputs());
+        os.closeMidiInputs();
         return result;
     }
 
     private String joinArray(Object arr) {
-        if (arr instanceof Object[]) {
-            return String.join(", ", java.util.Arrays.stream((Object[]) arr)
-                .map(String::valueOf).toArray(String[]::new));
+        if (arr instanceof Object[] values) {
+            return String.join(", ", Arrays.stream(values).map(String::valueOf).toArray(String[]::new));
+        }
+        if (arr instanceof byte[] values) {
+            return Arrays.toString(values);
         }
         return arr != null ? String.valueOf(arr) : "";
+    }
+
+    private String versionString(Object versionInfo) {
+        if (versionInfo instanceof GodotDictionary dictionary) {
+            Object value = dictionary.get("string");
+            return String.valueOf(value);
+        }
+        if (versionInfo instanceof java.util.Map<?, ?> map) {
+            return String.valueOf(map.get("string"));
+        }
+        return String.valueOf(versionInfo);
     }
 }

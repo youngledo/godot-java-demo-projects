@@ -3,32 +3,32 @@ package demos.twod.navigation;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
-import org.godot.node.Node;
+import org.godot.node.NavigationAgent2D;
 import org.godot.singleton.Input;
 
 @GodotClass(name = "NavCharacter", parent = "CharacterBody2D")
 public class NavCharacter extends CharacterBody2D {
 
 	private static final double MOVEMENT_SPEED = 200.0;
-	private org.godot.node.Node navigationAgent;
+	private NavigationAgent2D navigationAgent;
 
 	@Override
 	public void _ready() {
-		navigationAgent = getNode("NavigationAgent2D");
+		navigationAgent = getNodeAs("NavigationAgent2D", NavigationAgent2D.class);
 		if (navigationAgent != null) {
-			navigationAgent.call("set_path_desired_distance", 2.0);
-			navigationAgent.call("set_target_desired_distance", 2.0);
-			navigationAgent.call("set_debug_enabled", true);
+			navigationAgent.setPathDesiredDistance(2.0);
+			navigationAgent.setTargetDesiredDistance(2.0);
+			navigationAgent.setDebugEnabled(true);
 		}
 	}
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		boolean pressed = (boolean) (boolean) Input.singleton().isActionJustPressed( "click");
+		boolean pressed = Input.singleton().isActionJustPressed("click");
 		if (pressed) {
-			Vector2 mousePos = (Vector2) call("get_global_mouse_position");
+			Vector2 mousePos = getGlobalMousePosition();
 			if (navigationAgent != null) {
-				navigationAgent.call("set_target_position", mousePos);
+				navigationAgent.setTargetPosition(mousePos);
 			}
 			return true;
 		}
@@ -40,12 +40,12 @@ public class NavCharacter extends CharacterBody2D {
 		if (navigationAgent == null) {
 			return;
 		}
-		boolean finished = (boolean) navigationAgent.call("is_navigation_finished");
+		boolean finished = navigationAgent.isNavigationFinished();
 		if (finished) {
 			return;
 		}
 		Vector2 currentPos = getGlobalPosition();
-		Vector2 nextPos = (Vector2) navigationAgent.call("get_next_path_position");
+		Vector2 nextPos = navigationAgent.getNextPathPosition();
 		double dx = nextPos.getX() - currentPos.getX();
 		double dy = nextPos.getY() - currentPos.getY();
 		double len = Math.sqrt(dx * dx + dy * dy);

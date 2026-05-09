@@ -55,8 +55,8 @@ public class KCCubio extends CharacterBody3D {
 			resetPhysicsInterpolation();
 		}
 
-		double dx = (double) input.call("get_axis", "move_left", "move_right");
-		double dz = (double) input.call("get_axis", "move_forward", "move_back");
+		double dx = input.getAxis("move_left", "move_right");
+		double dz = input.getAxis("move_forward", "move_back");
 		Vector3 dir = new Vector3(dx, 0, dz);
 
 		// Get camera basis and transform direction

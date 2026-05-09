@@ -1,13 +1,16 @@
 package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
-import org.godot.node.Node3D;
-import org.godot.node.Node;
+import org.godot.node.XRNode3D;
+import org.godot.node.XRPose;
+import org.godot.node.XRPositionalTracker;
+import org.godot.node.XRTracker;
+import org.godot.singleton.XRServer;
 
 @GodotClass(name = "HandMesh", parent = "XRNode3D")
-public class HandMesh extends org.godot.Godot {
+public class HandMesh extends XRNode3D {
 
-    private int hand = 0; // 0 = Left, 1 = Right
+    private int hand = 0;
     private boolean initialized = false;
 
     @Override
@@ -18,51 +21,33 @@ public class HandMesh extends org.godot.Godot {
 
     @Override
     public void _process(double delta) {
-        String newTracker;
-
-        // Check if our hand tracker is usable.
-        newTracker = hand == 0 ? "/user/hand_tracker/left" : "/user/hand_tracker/right";
-        Object handTrackerObj = call("get_tracker", newTracker);
-        if (handTrackerObj != null) {
-            org.godot.Godot handTracker = (org.godot.Godot) handTrackerObj;
-            boolean hasTrackingData = (boolean) handTracker.getProperty("has_tracking_data");
-            if (hasTrackingData) {
-                String currentTracker = (String) getProperty("tracker");
-                if (!newTracker.equals(currentTracker)) {
-                    System.out.println("Switching to " + (hand == 0 ? "left" : "right") + " hand tracker");
-                    setProperty("tracker", newTracker);
-                    setProperty("pose", "default");
-                }
-                return;
+        String newTracker = hand == 0 ? "/user/hand_tracker/left" : "/user/hand_tracker/right";
+        XRTracker handTracker = XRServer.singleton().getTracker(newTracker);
+        if (handTracker != null && Boolean.TRUE.equals(handTracker.getProperty("has_tracking_data"))) {
+            if (!newTracker.equals(getTracker())) {
+                System.out.println("Switching to " + (hand == 0 ? "left" : "right") + " hand tracker");
+                setTracker(newTracker);
+                setPose("default");
             }
+            return;
         }
 
-        // Else fallback to our controller tracker.
         newTracker = hand == 0 ? "left_hand" : "right_hand";
-        Object controllerTrackerObj = call("get_tracker", newTracker);
-        if (controllerTrackerObj != null) {
-            String currentTracker = (String) getProperty("tracker");
-            if (!newTracker.equals(currentTracker)) {
+        XRTracker controllerTracker = XRServer.singleton().getTracker(newTracker);
+        if (controllerTracker instanceof XRPositionalTracker positionalTracker) {
+            if (!newTracker.equals(getTracker())) {
                 System.out.println("Switching to " + (hand == 0 ? "left" : "right") + " controller tracker");
-                setProperty("tracker", newTracker);
+                setTracker(newTracker);
             }
 
-            org.godot.Godot controllerTracker = (org.godot.Godot) controllerTrackerObj;
             String newPose = "palm_pose";
-            Object xrPoseObj = controllerTracker.call("get_pose", newPose);
-            if (xrPoseObj != null) {
-                org.godot.Godot xrPose = (org.godot.Godot) xrPoseObj;
-                int confidence = (int) xrPose.getProperty("tracking_confidence");
-                if (confidence == 0) { // XR_TRACKING_CONFIDENCE_NONE
-                    newPose = "grip";
-                }
-            } else {
+            XRPose xrPose = positionalTracker.getPose(newPose);
+            if (xrPose == null || xrPose.getTrackingConfidence() == 0) {
                 newPose = "grip";
             }
 
-            String currentPose = (String) getProperty("pose");
-            if (!newPose.equals(currentPose)) {
-                setProperty("pose", newPose);
+            if (!newPose.equals(getPose())) {
+                setPose(newPose);
             }
         }
     }

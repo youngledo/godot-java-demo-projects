@@ -112,16 +112,16 @@ public class PIPlayer extends CharacterBody3D {
 	@GodotMethod
 	public void cycleCameraType() {
 		camType = (camType + 1) % 3;
-		org.godot.node.Node fpsCam = getNode("Rig/Head/Camera_FPS");
-		org.godot.node.Node tpsCam = getNode("Rig/Camera_TPS");
+		org.godot.node.Camera3D fpsCam = getNodeAs("Rig/Head/Camera_FPS", org.godot.node.Camera3D.class);
+		org.godot.node.Camera3D tpsCam = getNodeAs("Rig/Camera_TPS", org.godot.node.Camera3D.class);
 
 		if (camType == 1 && fpsCam != null) {
-			fpsCam.call("make_current");
+			fpsCam.makeCurrent();
 		} else if (camType == 2 && tpsCam != null) {
-			tpsCam.call("make_current");
+			tpsCam.makeCurrent();
 		} else {
-			org.godot.node.Node fixedCam = getNode("../Camera_Fixed");
-			if (fixedCam != null) fixedCam.call("make_current");
+			org.godot.node.Camera3D fixedCam = getNodeAs("../Camera_Fixed", org.godot.node.Camera3D.class);
+			if (fixedCam != null) fixedCam.makeCurrent();
 		}
 	}
 }

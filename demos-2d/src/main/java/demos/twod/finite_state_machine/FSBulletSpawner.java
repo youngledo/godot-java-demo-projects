@@ -22,10 +22,9 @@ public class FSBulletSpawner extends Node2D {
 
     @Override
     public boolean _unhandledInput(Object inputEvent) {
-        org.godot.Godot event = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent event = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (event != null) {
-            Object pressed = event.call("is_action_pressed", "fire");
-            if (pressed instanceof Boolean && (Boolean) pressed) {
+            if (event.isActionPressed("fire", false, false)) {
                 fire();
             }
         }
@@ -35,8 +34,7 @@ public class FSBulletSpawner extends Node2D {
     private void fire() {
         org.godot.node.Timer cooldownTimer = (org.godot.node.Timer) getNode("CooldownTimer");
         if (cooldownTimer != null) {
-            Object stopped = cooldownTimer.call("is_stopped");
-            if (!(stopped instanceof Boolean && (Boolean) stopped)) return;
+            if (!cooldownTimer.isStopped()) return;
             cooldownTimer.start();
         }
 

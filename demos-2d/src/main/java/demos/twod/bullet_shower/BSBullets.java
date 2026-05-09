@@ -4,7 +4,6 @@ import org.godot.annotation.GodotClass;
 import org.godot.math.Color;
 import org.godot.math.Vector2;
 import org.godot.node.Node2D;
-import org.godot.node.Node;
 import org.godot.node.Viewport;
 
 @GodotClass(name = "BSBullets", parent = "Node2D")
@@ -27,15 +26,12 @@ public class BSBullets extends Node2D {
 		if (initialized) return;
 		initialized = true;
 
-		org.godot.node.Viewport viewport = getViewport();
+		Viewport viewport = getViewport();
 		if (viewport != null) {
-			Object rect = viewport.getVisibleRect();
-			if (rect != null) {
-				Vector2 size = (Vector2) ((org.godot.Godot) rect).getProperty("size");
-				if (size != null) {
-					viewportWidth = size.getX();
-					viewportHeight = size.getY();
-				}
+			org.godot.math.Rect2 rect = viewport.getVisibleRect();
+			if (rect != null && rect.size != null) {
+				viewportWidth = rect.size.getX();
+				viewportHeight = rect.size.getY();
 			}
 		}
 
@@ -66,7 +62,7 @@ public class BSBullets extends Node2D {
 	public void _draw() {
 		Color color = new Color(1, 1, 0.4, 0.9);
 		for (int i = 0; i < BULLET_COUNT; i++) {
-			call("draw_circle", new Vector2(posX[i], posY[i]), BULLET_RADIUS, color);
+			drawCircle(new Vector2(posX[i], posY[i]), BULLET_RADIUS, color);
 		}
 	}
 }

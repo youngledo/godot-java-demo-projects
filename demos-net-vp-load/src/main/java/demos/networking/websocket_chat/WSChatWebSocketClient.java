@@ -55,7 +55,7 @@ public class WSChatWebSocketClient extends Node {
         if (socket.wasStringPacket()) {
             return new String(pkt);
         }
-        return call("bytes_to_var", pkt);
+        return bytesToVar(pkt);
     }
 
     public void close(int code, String reason) {

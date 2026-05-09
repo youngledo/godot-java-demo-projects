@@ -88,7 +88,7 @@ public class WSMPMain extends Control {
 
     @GodotMethod
     public void _connected() {
-        game.call("rpc", "set_player_name", nameEdit.getText());
+        game.rpc("set_player_name", nameEdit.getText());
     }
 
     @GodotMethod

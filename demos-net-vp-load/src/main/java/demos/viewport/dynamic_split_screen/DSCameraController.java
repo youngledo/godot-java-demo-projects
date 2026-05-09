@@ -4,14 +4,17 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.core.Callable;
 import org.godot.math.Color;
+import org.godot.math.Rect2;
 import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
 import org.godot.math.Vector3;
 import org.godot.node.Camera3D;
 import org.godot.node.CharacterBody3D;
 import org.godot.node.Node3D;
+import org.godot.node.ShaderMaterial;
 import org.godot.node.SubViewport;
 import org.godot.node.TextureRect;
-import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "DSCameraController", parent = "Node3D")
 public class DSCameraController extends Node3D {
@@ -42,39 +45,34 @@ public class DSCameraController extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        player1 = (CharacterBody3D) getNode("../Player1");
-        player2 = (CharacterBody3D) getNode("../Player2");
-        view = (TextureRect) getNode("View");
-        viewport1 = (SubViewport) getNode("Viewport1");
-        viewport2 = (SubViewport) getNode("Viewport2");
+        player1 = getNodeAs("../Player1", CharacterBody3D.class);
+        player2 = getNodeAs("../Player2", CharacterBody3D.class);
+        view = getNodeAs("View", TextureRect.class);
+        viewport1 = getNodeAs("Viewport1", SubViewport.class);
+        viewport2 = getNodeAs("Viewport2", SubViewport.class);
 
         if (viewport1 != null) {
-            camera1 = (Camera3D) viewport1.getNode("Camera1");
+            camera1 = viewport1.getNodeAs("Camera1", Camera3D.class);
         }
         if (viewport2 != null) {
-            camera2 = (Camera3D) viewport2.getNode("Camera2");
+            camera2 = viewport2.getNodeAs("Camera2", Camera3D.class);
         }
 
         onSizeChanged();
         updateSplitscreen();
 
-        // Connect viewport size_changed signal
-        Object vp = getViewport();
+        Viewport vp = getViewport();
         if (vp != null) {
-            ((org.godot.Godot) vp).connect("size_changed", new Callable(this, "onSizeChanged"), 0);
+            vp.connect("size_changed", new Callable(this, "onSizeChanged"), 0);
         }
 
-        // Set shader parameters for viewport textures
-        if (view != null) {
-            Object material = view.getProperty("material");
-            if (material != null) {
-                org.godot.node.ShaderMaterial mat = (org.godot.node.ShaderMaterial) material;
-                if (viewport1 != null) {
-                    mat.call("set_shader_parameter", "viewport1", viewport1.call("get_texture"));
-                }
-                if (viewport2 != null) {
-                    mat.call("set_shader_parameter", "viewport2", viewport2.call("get_texture"));
-                }
+        ShaderMaterial material = getViewShaderMaterial();
+        if (material != null) {
+            if (viewport1 != null) {
+                material.setShaderParameter("viewport1", viewport1.getTexture());
+            }
+            if (viewport2 != null) {
+                material.setShaderParameter("viewport2", viewport2.getTexture());
             }
         }
     }
@@ -100,18 +98,20 @@ public class DSCameraController extends Node3D {
             );
         }
 
-        Vector3 p1Pos = (Vector3) player1.getProperty("position");
-        Vector3 p2Pos = (Vector3) player2.getProperty("position");
+        Vector3 p1Pos = player1.getPosition();
+        Vector3 p2Pos = player2.getPosition();
+        Vector3 camera1Pos = camera1.getPosition();
+        Vector3 camera2Pos = camera2.getPosition();
 
-        camera1.setProperty("position", new Vector3(
+        camera1.setPosition(new Vector3(
             p1Pos.getX() + positionDifference.getX() / 2.0,
-            ((Vector3) camera1.getProperty("position")).getY(),
+            camera1Pos.getY(),
             p1Pos.getZ() + positionDifference.getZ() / 2.0
         ));
 
-        camera2.setProperty("position", new Vector3(
+        camera2.setPosition(new Vector3(
             p2Pos.getX() - positionDifference.getX() / 2.0,
-            ((Vector3) camera2.getProperty("position")).getY(),
+            camera2Pos.getY(),
             p2Pos.getZ() - positionDifference.getZ() / 2.0
         ));
     }
@@ -119,52 +119,30 @@ public class DSCameraController extends Node3D {
     private void updateSplitscreen() {
         if (view == null || camera1 == null || camera2 == null || player1 == null || player2 == null) return;
 
-        Object vp = getViewport();
-        Vector2 screenSize = new Vector2(1152, 648);
-        if (vp != null) {
-            Object rect = ((org.godot.Godot) vp).call("get_visible_rect");
-            if (rect != null) {
-                Object s = ((org.godot.Godot) rect).getProperty("size");
-                if (s instanceof Vector2) screenSize = (Vector2) s;
-            }
-        }
+        Vector2 screenSize = getScreenSize();
+        Vector3 p1Pos = player1.getPosition();
+        Vector3 p2Pos = player2.getPosition();
 
-        // Calculate player screen positions
-        Vector3 p1Pos = (Vector3) player1.getProperty("position");
-        Vector3 p2Pos = (Vector3) player2.getProperty("position");
+        Vector2 p1Screen = camera1.unprojectPosition(p1Pos);
+        Vector2 p2Screen = camera2.unprojectPosition(p2Pos);
+        Vector2 player1Position = new Vector2(p1Screen.getX() / screenSize.getX(), p1Screen.getY() / screenSize.getY());
+        Vector2 player2Position = new Vector2(p2Screen.getX() / screenSize.getX(), p2Screen.getY() / screenSize.getY());
 
-        Object p1ScreenObj = camera1.unprojectPosition(p1Pos);
-        Object p2ScreenObj = camera2.unprojectPosition(p2Pos);
-
-        Vector2 player1Position = new Vector2(0, 0);
-        Vector2 player2Position = new Vector2(0, 0);
-        if (p1ScreenObj instanceof Vector2) {
-            player1Position = new Vector2(((Vector2) p1ScreenObj).getX() / screenSize.getX(), ((Vector2) p1ScreenObj).getY() / screenSize.getY());
-        }
-        if (p2ScreenObj instanceof Vector2) {
-            player2Position = new Vector2(((Vector2) p2ScreenObj).getX() / screenSize.getX(), ((Vector2) p2ScreenObj).getY() / screenSize.getY());
-        }
-
-        double thickness = 0.0;
+        double thickness = splitLineThickness;
         if (adaptiveSplitLineThickness) {
             Vector3 positionDifference = getPositionDifferenceInWorld();
             double distance = getHorizontalLength(positionDifference);
             thickness = lerpDouble(0, splitLineThickness, (distance - maxSeparation) / maxSeparation);
             thickness = clampDouble(thickness, 0, splitLineThickness);
-        } else {
-            thickness = splitLineThickness;
         }
 
-        boolean splitActive = isSplitState();
-
-        Object material = view.getProperty("material");
+        ShaderMaterial material = getViewShaderMaterial();
         if (material != null) {
-            org.godot.node.ShaderMaterial mat = (org.godot.node.ShaderMaterial) material;
-            mat.call("set_shader_parameter", "split_active", splitActive);
-            mat.call("set_shader_parameter", "player1_position", player1Position);
-            mat.call("set_shader_parameter", "player2_position", player2Position);
-            mat.call("set_shader_parameter", "split_line_thickness", thickness);
-            mat.call("set_shader_parameter", "split_line_color", splitLineColor);
+            material.setShaderParameter("split_active", isSplitState());
+            material.setShaderParameter("player1_position", player1Position);
+            material.setShaderParameter("player2_position", player2Position);
+            material.setShaderParameter("split_line_thickness", thickness);
+            material.setShaderParameter("split_line_color", splitLineColor);
         }
     }
 
@@ -177,35 +155,40 @@ public class DSCameraController extends Node3D {
 
     @org.godot.annotation.GodotMethod
     public void onSizeChanged() {
-        Object vp = getViewport();
-        Vector2 screenSize = new Vector2(1152, 648);
-        if (vp != null) {
-            Object rect = ((org.godot.Godot) vp).call("get_visible_rect");
-            if (rect != null) {
-                Object s = ((org.godot.Godot) rect).getProperty("size");
-                if (s instanceof Vector2) screenSize = (Vector2) s;
-            }
-        }
+        Vector2 screenSize = getScreenSize();
+        Vector2i viewportSize = new Vector2i((int) screenSize.getX(), (int) screenSize.getY());
 
         if (viewport1 != null) {
-            viewport1.setProperty("size", screenSize);
+            viewport1.setSize(viewportSize);
         }
         if (viewport2 != null) {
-            viewport2.setProperty("size", screenSize);
+            viewport2.setSize(viewportSize);
         }
 
-        if (view != null) {
-            Object material = view.getProperty("material");
-            if (material != null) {
-                ((org.godot.node.ShaderMaterial) material).call("set_shader_parameter", "viewport_size", screenSize);
-            }
+        ShaderMaterial material = getViewShaderMaterial();
+        if (material != null) {
+            material.setShaderParameter("viewport_size", screenSize);
         }
+    }
+
+    private Vector2 getScreenSize() {
+        Viewport vp = getViewport();
+        if (vp == null) return new Vector2(1152, 648);
+
+        Rect2 rect = vp.getVisibleRect();
+        return rect != null ? rect.size : new Vector2(1152, 648);
+    }
+
+    private ShaderMaterial getViewShaderMaterial() {
+        if (view == null) return null;
+        Object material = view.getMaterial();
+        return material instanceof ShaderMaterial shaderMaterial ? shaderMaterial : null;
     }
 
     private Vector3 getPositionDifferenceInWorld() {
         if (player1 == null || player2 == null) return new Vector3(0, 0, 0);
-        Vector3 p2 = (Vector3) player2.getProperty("position");
-        Vector3 p1 = (Vector3) player1.getProperty("position");
+        Vector3 p2 = player2.getPosition();
+        Vector3 p1 = player1.getPosition();
         return new Vector3(p2.getX() - p1.getX(), p2.getY() - p1.getY(), p2.getZ() - p1.getZ());
     }
 

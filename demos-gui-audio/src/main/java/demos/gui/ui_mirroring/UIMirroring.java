@@ -3,7 +3,8 @@ package demos.gui.ui_mirroring;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Label;
+import org.godot.singleton.TranslationServer;
 
 @GodotClass(name = "UIMirroring", parent = "Control")
 public class UIMirroring extends Control {
@@ -15,27 +16,20 @@ public class UIMirroring extends Control {
         if (initialized) return;
         initialized = true;
 
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        org.godot.node.Label label = (org.godot.node.Label) getNode("Label");
-        if (label != null) {
-            label.setProperty("text", ts.call("get_locale"));
-        }
+        updateLabel();
     }
 
     @GodotMethod
     public void OnButtonPressed() {
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        org.godot.node.Label label = (org.godot.node.Label) getNode("Label");
+        TranslationServer ts = TranslationServer.singleton();
+        ts.setLocale("ar".equals(ts.getLocale()) ? "en" : "ar");
+        updateLabel();
+    }
 
-        String locale = (String) ts.call("get_locale");
-        if (!"ar".equals(locale)) {
-            ts.call("set_locale", "ar");
-        } else {
-            ts.call("set_locale", "en");
-        }
-
+    private void updateLabel() {
+        Label label = getNodeAs("Label", Label.class);
         if (label != null) {
-            label.setProperty("text", ts.call("get_locale"));
+            label.setText(TranslationServer.singleton().getLocale());
         }
     }
 }

@@ -1,21 +1,24 @@
 package demos.xr.openxr_binding_modifier_demo;
 
 import org.godot.annotation.GodotClass;
+import org.godot.node.CheckBox;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Label;
+import org.godot.node.Slider;
+import org.godot.node.XRController3D;
 
 @GodotClass(name = "ControllerState", parent = "Control")
 public class ControllerState extends Control {
 
-    private org.godot.Godot controller;
-    private org.godot.node.Slider triggerInputNode;
-    private org.godot.node.CheckBox triggerClickNode;
-    private org.godot.node.Node onThresholdNode;
-    private org.godot.node.Node offThresholdNode;
-    private org.godot.node.Node dpadUpNode;
-    private org.godot.node.Node dpadDownNode;
-    private org.godot.node.Node dpadLeftNode;
-    private org.godot.node.Node dpadRightNode;
+    private XRController3D controller;
+    private Slider triggerInputNode;
+    private CheckBox triggerClickNode;
+    private Label onThresholdNode;
+    private Label offThresholdNode;
+    private CheckBox dpadUpNode;
+    private CheckBox dpadDownNode;
+    private CheckBox dpadLeftNode;
+    private CheckBox dpadRightNode;
 
     private double offTriggerThreshold = 1.0;
     private double onTriggerThreshold = 0.0;
@@ -27,29 +30,31 @@ public class ControllerState extends Control {
         if (initialized) return;
         initialized = true;
 
-        // controller is set as an exported property from the scene
-        controller = (org.godot.Godot) getProperty("controller");
+        Object controllerValue = getProperty("controller");
+        if (controllerValue instanceof XRController3D xrController) {
+            controller = xrController;
+        }
 
-        triggerInputNode = (org.godot.node.Slider) getNode("VBoxContainer/TriggerInput/HSlider");
-        triggerClickNode = (org.godot.node.CheckBox) getNode("VBoxContainer/TriggerInput/CheckBox");
-        onThresholdNode = getNode("VBoxContainer/Thresholds/OnThreshold");
-        offThresholdNode = getNode("VBoxContainer/Thresholds/OffThreshold");
+        triggerInputNode = getNodeAs("VBoxContainer/TriggerInput/HSlider", Slider.class);
+        triggerClickNode = getNodeAs("VBoxContainer/TriggerInput/CheckBox", CheckBox.class);
+        onThresholdNode = getNodeAs("VBoxContainer/Thresholds/OnThreshold", Label.class);
+        offThresholdNode = getNodeAs("VBoxContainer/Thresholds/OffThreshold", Label.class);
 
-        dpadUpNode = getNode("VBoxContainer/DPadState/Up");
-        dpadDownNode = getNode("VBoxContainer/DPadState/Down");
-        dpadLeftNode = getNode("VBoxContainer/DPadState/Left");
-        dpadRightNode = getNode("VBoxContainer/DPadState/Right");
+        dpadUpNode = getNodeAs("VBoxContainer/DPadState/Up", CheckBox.class);
+        dpadDownNode = getNodeAs("VBoxContainer/DPadState/Down", CheckBox.class);
+        dpadLeftNode = getNodeAs("VBoxContainer/DPadState/Left", CheckBox.class);
+        dpadRightNode = getNodeAs("VBoxContainer/DPadState/Right", CheckBox.class);
     }
 
     @Override
     public void _process(double delta) {
         if (controller == null) return;
 
-        double triggerInput = (double) controller.call("get_float", "trigger");
-        if (triggerInputNode != null) triggerInputNode.setProperty("value", triggerInput);
+        double triggerInput = controller.getFloat("trigger");
+        if (triggerInputNode != null) triggerInputNode.setValue(triggerInput);
 
-        boolean triggerClick = (boolean) controller.call("is_button_pressed", "trigger_click");
-        if (triggerClickNode != null) triggerClickNode.setProperty("button_pressed", triggerClick);
+        boolean triggerClick = controller.isButtonPressed("trigger_click");
+        if (triggerClickNode != null) triggerClickNode.setButtonPressed(triggerClick);
 
         if (triggerClick) {
             offTriggerThreshold = Math.min(offTriggerThreshold, triggerInput);
@@ -58,20 +63,20 @@ public class ControllerState extends Control {
         }
 
         if (onThresholdNode != null) {
-            onThresholdNode.setProperty("text", String.format("On: %.2f", onTriggerThreshold));
+            onThresholdNode.setText(String.format("On: %.2f", onTriggerThreshold));
         }
         if (offThresholdNode != null) {
-            offThresholdNode.setProperty("text", String.format("Off: %.2f", offTriggerThreshold));
+            offThresholdNode.setText(String.format("Off: %.2f", offTriggerThreshold));
         }
 
-        boolean dpadUp = (boolean) controller.call("is_button_pressed", "up");
-        boolean dpadDown = (boolean) controller.call("is_button_pressed", "down");
-        boolean dpadLeft = (boolean) controller.call("is_button_pressed", "left");
-        boolean dpadRight = (boolean) controller.call("is_button_pressed", "right");
+        boolean dpadUp = controller.isButtonPressed("up");
+        boolean dpadDown = controller.isButtonPressed("down");
+        boolean dpadLeft = controller.isButtonPressed("left");
+        boolean dpadRight = controller.isButtonPressed("right");
 
-        if (dpadUpNode != null) dpadUpNode.setProperty("button_pressed", dpadUp);
-        if (dpadDownNode != null) dpadDownNode.setProperty("button_pressed", dpadDown);
-        if (dpadLeftNode != null) dpadLeftNode.setProperty("button_pressed", dpadLeft);
-        if (dpadRightNode != null) dpadRightNode.setProperty("button_pressed", dpadRight);
+        if (dpadUpNode != null) dpadUpNode.setButtonPressed(dpadUp);
+        if (dpadDownNode != null) dpadDownNode.setButtonPressed(dpadDown);
+        if (dpadLeftNode != null) dpadLeftNode.setButtonPressed(dpadLeft);
+        if (dpadRightNode != null) dpadRightNode.setButtonPressed(dpadRight);
     }
 }

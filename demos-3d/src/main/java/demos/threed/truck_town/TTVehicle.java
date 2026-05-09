@@ -4,6 +4,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
+import org.godot.node.AudioStreamPlayer;
 import org.godot.node.VehicleBody3D;
 import org.godot.node.Node;
 import org.godot.node.SceneTree;
@@ -23,8 +24,8 @@ public class TTVehicle extends VehicleBody3D {
 	private boolean headlightsActive = false;
 	private double steerTarget = 0.0;
 	private org.godot.node.Node engineSound;
-	private org.godot.node.Node impactSound;
-	private org.godot.node.Node honkSound;
+	private AudioStreamPlayer impactSound;
+	private AudioStreamPlayer honkSound;
 	private org.godot.Godot turbometer;
 	private org.godot.node.AnimationPlayer turboAnimator;
 	private boolean initialized = false;
@@ -35,8 +36,8 @@ public class TTVehicle extends VehicleBody3D {
 		initialized = true;
 
 		engineSound = getNode("EngineSound");
-		impactSound = getNode("ImpactSound");
-		honkSound = getNode("HonkSound");
+		impactSound = getNodeAs("ImpactSound", AudioStreamPlayer.class);
+		honkSound = getNodeAs("HonkSound", AudioStreamPlayer.class);
 	}
 
 	@Override
@@ -59,7 +60,7 @@ public class TTVehicle extends VehicleBody3D {
 
 		// Impact detection
 		if (Math.abs(speed - previousSpeed) > 1.0) {
-			if (impactSound != null) impactSound.call("play");
+			if (impactSound != null) impactSound.play();
 		}
 
 		// Acceleration / reverse
@@ -118,7 +119,7 @@ public class TTVehicle extends VehicleBody3D {
 	public boolean _input(Object inputEvent) {
 		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
 		if ((boolean) ev.isActionPressed("honk")) {
-			if (honkSound != null) honkSound.call("play");
+			if (honkSound != null) honkSound.play();
 		}
 		return false;
 	}
@@ -128,7 +129,7 @@ public class TTVehicle extends VehicleBody3D {
 		headlightsActive = !headlightsActive;
 		org.godot.node.SceneTree tree = getTree();
 		if (tree != null) {
-			tree.call("call_group", "headlight", "set_visible", headlightsActive);
+			tree.setGroup("headlight", "visible", headlightsActive);
 		}
 	}
 }

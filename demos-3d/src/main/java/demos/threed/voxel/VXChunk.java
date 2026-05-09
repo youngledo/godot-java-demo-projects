@@ -200,20 +200,20 @@ public class VXChunk {
     }
 
     private static void drawBlockFace(SurfaceTool st, Vector3[] verts, double[][] uvs, Vector3 normal) {
-        st.call("set_normal", normal);
+        st.setNormal(normal);
 
-        st.call("set_uv", new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
         st.addVertex(verts[1]);
-        st.call("set_uv", new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
         st.addVertex(verts[2]);
-        st.call("set_uv", new org.godot.math.Vector2(uvs[3][0], uvs[3][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[3][0], uvs[3][1]));
         st.addVertex(verts[3]);
 
-        st.call("set_uv", new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[2][0], uvs[2][1]));
         st.addVertex(verts[2]);
-        st.call("set_uv", new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[1][0], uvs[1][1]));
         st.addVertex(verts[1]);
-        st.call("set_uv", new org.godot.math.Vector2(uvs[0][0], uvs[0][1]));
+        st.setUv(new org.godot.math.Vector2(uvs[0][0], uvs[0][1]));
         st.addVertex(verts[0]);
     }
 

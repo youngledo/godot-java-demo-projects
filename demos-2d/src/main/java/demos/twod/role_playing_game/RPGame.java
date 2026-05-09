@@ -108,7 +108,7 @@ public class RPGame extends Node {
         if (exploration != null) removeChild(exploration);
         if (combatScreen != null) {
             addChild(combatScreen);
-            combatScreen.call("show");
+            combatScreen.show();
             Object actorsObj = getProperty("_pending_combat_actors");
             if (actorsObj instanceof Object[]) {
                 combatScreen.initialize((Object[]) actorsObj);
@@ -175,8 +175,8 @@ public class RPGame extends Node {
     @GodotMethod
     public void onResultDialogueFinished() {
         Object dialogueObj = getProperty("_pending_dialogue");
-        if (dialogueObj instanceof org.godot.Godot) {
-            ((org.godot.Godot) dialogueObj).call("queue_free");
+        if (dialogueObj instanceof org.godot.node.Node dialogueNode) {
+            dialogueNode.queueFree();
         }
         setProperty("_pending_dialogue", null);
     }

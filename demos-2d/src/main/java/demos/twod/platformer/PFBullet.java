@@ -4,7 +4,6 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.node.RigidBody2D;
-import org.godot.node.Node;
 
 @GodotClass(name = "PFBullet", parent = "RigidBody2D")
 public class PFBullet extends RigidBody2D {
@@ -26,13 +25,11 @@ public class PFBullet extends RigidBody2D {
 
 	@GodotMethod
 	public void OnBodyEntered(Object body) {
-		org.godot.Godot b = (org.godot.Godot) body;
-		String cls = (String) b.call("get_class");
-		if ("PFEnemy".equals(cls)) {
-			((demos.twod.platformer.PFEnemy) b).destroy();
+		if (body instanceof PFEnemy enemy) {
+			enemy.destroy();
 		}
 
-		org.godot.node.AnimationPlayer anim = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
+		org.godot.node.AnimationPlayer anim = getNodeAs("AnimationPlayer", org.godot.node.AnimationPlayer.class);
 		if (anim != null) anim.play("destroy");
 	}
 }

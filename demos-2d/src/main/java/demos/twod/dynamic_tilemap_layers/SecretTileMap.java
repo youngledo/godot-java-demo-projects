@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Color;
+import org.godot.node.CharacterBody2D;
 import org.godot.node.TileMapLayer;
 import org.godot.node.Node;
 
@@ -46,9 +47,7 @@ public class SecretTileMap extends TileMapLayer {
 
 	@GodotMethod
 	public void OnSecretDetectorBodyEntered(Object body) {
-		// Check if it's a CharacterBody2D (player)
-		String className = (String) ((org.godot.Godot) body).call("get_class");
-		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
+		if (body instanceof CharacterBody2D) {
 			playerInSecret = true;
 			setProcess(true);
 		}
@@ -56,8 +55,7 @@ public class SecretTileMap extends TileMapLayer {
 
 	@GodotMethod
 	public void OnSecretDetectorBodyExited(Object body) {
-		String className = (String) ((org.godot.Godot) body).call("get_class");
-		if ("CharacterBody2D".equals(className) || "DTPlayer".equals(className)) {
+		if (body instanceof CharacterBody2D) {
 			playerInSecret = false;
 			setProcess(true);
 		}

@@ -3,9 +3,11 @@ package demos.threed.squash_the_creeps;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
 import org.godot.core.Callable;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
+import org.godot.node.KinematicCollision3D;
 import org.godot.singleton.Input;
 import org.godot.node.Node;
 
@@ -21,6 +23,9 @@ public class STCPlayer extends CharacterBody3D {
 	@Export
 	public double fallAcceleration = 75.0;
 
+	@Signal
+	public void hit() {}
+
 	private org.godot.node.AnimationPlayer animPlayer;
 	private org.godot.node.Node mobDetector;
 	private boolean initialized = false;
@@ -30,7 +35,6 @@ public class STCPlayer extends CharacterBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		call("add_user_signal", "hit");
 		animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
 		mobDetector = getNode("MobDetector");
 
@@ -80,20 +84,15 @@ public class STCPlayer extends CharacterBody3D {
 		moveAndSlide();
 
 		// Check slide collisions for mob squashing
-		long collisionCount = (long) call("get_slide_collision_count");
+		int collisionCount = getSlideCollisionCount();
 		for (int i = 0; i < collisionCount; i++) {
-			org.godot.Godot collision = (org.godot.Godot) call("get_slide_collision", i);
+			KinematicCollision3D collision = getSlideCollision(i);
 			if (collision == null) continue;
-			org.godot.Godot collider = (org.godot.Godot) collision.call("get_collider");
-			if (collider == null) continue;
-
-			boolean inMobGroup = (boolean) collider.call("is_in_group", "mob");
-			if (inMobGroup) {
-				Vector3 normal = (Vector3) collision.call("get_normal");
-				// dot product with UP
-				double dot = normal.getY(); // UP.y = 1
+			if (collision.getCollider() instanceof STCMob mob && mob.isInGroup("mob")) {
+				Vector3 normal = collision.getNormal();
+				double dot = normal.getY();
 				if (dot > 0.1) {
-					((STCMob) collider).squash();
+					mob.squash();
 					Vector3 curVel = (Vector3) getProperty("velocity");
 					setProperty("velocity", new Vector3(curVel.getX(), bounceImpulse, curVel.getZ()));
 					break;

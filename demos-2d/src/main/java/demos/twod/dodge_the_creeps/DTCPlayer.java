@@ -3,6 +3,7 @@ package demos.twod.dodge_the_creeps;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
 import org.godot.core.Callable;
 import org.godot.math.Vector2;
 import org.godot.node.Area2D;
@@ -16,6 +17,9 @@ public class DTCPlayer extends Area2D {
 	@Export
 	public double speed = 400.0;
 
+	@Signal
+	public void hit() {}
+
 	private org.godot.node.AnimatedSprite2D animatedSprite;
 	private org.godot.node.CollisionShape2D collisionShape;
 	private org.godot.node.Node trail;
@@ -27,17 +31,15 @@ public class DTCPlayer extends Area2D {
 		if (initialized) return;
 		initialized = true;
 
-		call("add_user_signal", "hit");
 		animatedSprite = (org.godot.node.AnimatedSprite2D) getNode("AnimatedSprite2D");
 		collisionShape = (org.godot.node.CollisionShape2D) getNode("CollisionShape2D");
 		trail = getNode("Trail");
 
 		org.godot.node.Viewport viewport = getViewport();
 		if (viewport != null) {
-			Object rect = viewport.getVisibleRect();
+			org.godot.math.Rect2 rect = viewport.getVisibleRect();
 			if (rect != null) {
-				Object size = ((org.godot.Godot) rect).getProperty("size");
-				screenSize = (Vector2) size;
+				screenSize = rect.size;
 			}
 		}
 
@@ -77,12 +79,12 @@ public class DTCPlayer extends Area2D {
 		}
 
 		if (vx != 0 && animatedSprite != null) {
-			animatedSprite.call("set_animation", "right");
+			animatedSprite.setAnimation("right");
 			animatedSprite.setProperty("flip_v", false);
 			if (trail != null) setProperty("rotation", 0);
 			animatedSprite.setProperty("flip_h", vx < 0);
 		} else if (vy != 0) {
-			if (animatedSprite != null) animatedSprite.call("set_animation", "up");
+			if (animatedSprite != null) animatedSprite.setAnimation("up");
 			setProperty("rotation", vy > 0 ? Math.PI : 0);
 		}
 	}

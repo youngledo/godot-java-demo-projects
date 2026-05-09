@@ -2,21 +2,32 @@ package demos.xr.openxr_composition_layers;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
+import org.godot.core.Callable;
+import org.godot.node.MeshInstance3D;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
+import org.godot.node.OpenXRCompositionLayerEquirect;
+import org.godot.node.OpenXRInterface;
 import org.godot.node.SceneTree;
+import org.godot.node.ShaderMaterial;
+import org.godot.node.Tween;
 import org.godot.node.Viewport;
+import org.godot.node.XRController3D;
+import org.godot.singleton.DisplayServer;
+import org.godot.singleton.Engine;
+import org.godot.singleton.RenderingServer;
+import org.godot.singleton.XRServer;
 
 @GodotClass(name = "MainComposition", parent = "Node3D")
 public class OXCLMain extends Node3D {
 
-    private org.godot.Godot xrInterface;
+    private OpenXRInterface xrInterface;
     private boolean xrIsFocused = false;
     private boolean initialized = false;
 
     // Pointer handling state (from original main.gd)
-    private org.godot.Godot tween;
-    private org.godot.node.Node activeHand;
+    private Tween tween;
+    private XRController3D activeHand;
 
     @Override
     public void _ready() {
@@ -24,51 +35,48 @@ public class OXCLMain extends Node3D {
         initialized = true;
 
         // XR initialization
-        xrInterface = (org.godot.Godot) call("find_interface", "OpenXR");
-        if (xrInterface != null && (boolean) xrInterface.call("is_initialized")) {
+        if (XRServer.singleton().findInterface("OpenXR") instanceof OpenXRInterface openXr) {
+            xrInterface = openXr;
+        }
+        if (xrInterface != null && xrInterface.isInitialized()) {
             System.out.println("OpenXR instantiated successfully.");
-            org.godot.node.Viewport vp = getViewport();
+            Viewport vp = getViewport();
 
-            vp.setProperty("use_xr", true);
-            org.godot.singleton.DisplayServer.singleton().windowSetVsyncMode(1);
+            vp.setUseXr(true);
+            DisplayServer.singleton().windowSetVsyncMode(1);
 
-            org.godot.Godot renderingServer = org.godot.singleton.RenderingServer.singleton();
-            if (renderingServer != null && renderingServer.call("get_rendering_device") != null) {
-                vp.setProperty("vrs_mode", 2);
+            if (RenderingServer.singleton().getRenderingDevice() != null) {
+                vp.setVrsMode(2);
             }
 
-            org.godot.core.Callable sessionBegunCb = new org.godot.core.Callable(this, "_on_openxr_session_begun");
-            org.godot.core.Callable sessionVisibleCb = new org.godot.core.Callable(this, "_on_openxr_visible_state");
-            org.godot.core.Callable sessionFocussedCb = new org.godot.core.Callable(this, "_on_openxr_focused_state");
-            org.godot.core.Callable sessionStoppingCb = new org.godot.core.Callable(this, "_on_openxr_stopping");
-            org.godot.core.Callable poseRecenteredCb = new org.godot.core.Callable(this, "_on_openxr_pose_recentered");
-
-            xrInterface.connect("session_begun", sessionBegunCb, 0);
-            xrInterface.connect("session_visible", sessionVisibleCb, 0);
-            xrInterface.connect("session_focussed", sessionFocussedCb, 0);
-            xrInterface.connect("session_stopping", sessionStoppingCb, 0);
-            xrInterface.connect("pose_recentered", poseRecenteredCb, 0);
+            xrInterface.connect("session_begun", new Callable(this, "OnOpenxrSessionBegun"), 0);
+            xrInterface.connect("session_visible", new Callable(this, "OnOpenxrVisibleState"), 0);
+            xrInterface.connect("session_focussed", new Callable(this, "OnOpenxrFocusedState"), 0);
+            xrInterface.connect("session_stopping", new Callable(this, "OnOpenxrStopping"), 0);
+            xrInterface.connect("pose_recentered", new Callable(this, "OnOpenxrPoseRecentered"), 0);
         } else {
             System.out.println("OpenXR not instantiated!");
-            org.godot.node.SceneTree tree = getTree();
+            SceneTree tree = getTree();
             if (tree != null) tree.quit();
         }
 
         // Pointer initialization (from original main.gd _ready)
-        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
-        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
+        Node3D leftPointer = getNodeAs("XROrigin3D/LeftHand/Pointer", Node3D.class);
+        Node3D rightPointer = getNodeAs("XROrigin3D/RightHand/Pointer", Node3D.class);
 
-        if (leftPointer != null) leftPointer.setProperty("visible", false);
-        if (rightPointer != null) rightPointer.setProperty("visible", true);
+        if (leftPointer != null) leftPointer.hide();
+        if (rightPointer != null) rightPointer.show();
 
-        activeHand = getNode("XROrigin3D/RightHand");
+        activeHand = getNodeAs("XROrigin3D/RightHand", XRController3D.class);
     }
 
     // --- XR session callbacks ---
 
     @GodotMethod
     public void OnOpenxrSessionBegun() {
-        double currentRefreshRate = (double) xrInterface.call("get_display_refresh_rate");
+        if (xrInterface == null) return;
+
+        double currentRefreshRate = xrInterface.getDisplayRefreshRate();
         if (currentRefreshRate > 0) {
             System.out.println("OpenXR: Refresh rate reported as " + currentRefreshRate);
         } else {
@@ -76,31 +84,34 @@ public class OXCLMain extends Node3D {
         }
 
         double newRate = currentRefreshRate;
-        Object[] availableRates = (Object[]) xrInterface.call("get_available_display_refresh_rates");
-        if (availableRates == null || availableRates.length == 0) {
+        GodotArray availableRates = xrInterface.getAvailableDisplayRefreshRates();
+        if (availableRates == null || availableRates.size() == 0) {
             System.out.println("OpenXR: Target does not support refresh rate extension");
-        } else if (availableRates.length == 1) {
-            newRate = (double) availableRates[0];
+        } else if (availableRates.size() == 1) {
+            Object rateObj = availableRates.get(0);
+            if (rateObj instanceof Number number) {
+                newRate = number.doubleValue();
+            }
         } else {
-            int maxRefreshRate = (int) getProperty("maximum_refresh_rate");
-            for (Object rateObj : availableRates) {
-                double rate = (double) rateObj;
-                if (rate > newRate && rate <= maxRefreshRate) {
-                    newRate = rate;
+            int maxRefreshRate = maximumRefreshRate();
+            for (int i = 0; i < availableRates.size(); i++) {
+                Object rateObj = availableRates.get(i);
+                if (rateObj instanceof Number number) {
+                    double rate = number.doubleValue();
+                    if (rate > newRate && rate <= maxRefreshRate) {
+                        newRate = rate;
+                    }
                 }
             }
         }
 
         if (currentRefreshRate != newRate) {
             System.out.println("OpenXR: Setting refresh rate to " + newRate);
-            xrInterface.call("set_display_refresh_rate", newRate);
+            xrInterface.setDisplayRefreshRate(newRate);
             currentRefreshRate = newRate;
         }
 
-        org.godot.node.Node engine = getNode("/root/Engine");
-        if (engine != null) {
-            engine.setProperty("physics_ticks_per_second", (int) Math.round(currentRefreshRate));
-        }
+        Engine.singleton().setPhysicsTicksPerSecond((int) Math.round(currentRefreshRate));
     }
 
     @GodotMethod
@@ -108,7 +119,7 @@ public class OXCLMain extends Node3D {
         if (xrIsFocused) {
             System.out.println("OpenXR lost focus");
             xrIsFocused = false;
-            setProperty("process_mode", 3);
+            setProcessMode(3);
         }
     }
 
@@ -116,7 +127,7 @@ public class OXCLMain extends Node3D {
     public void OnOpenxrFocusedState() {
         System.out.println("OpenXR gained focus");
         xrIsFocused = true;
-        setProperty("process_mode", 0);
+        setProcessMode(0);
     }
 
     @GodotMethod
@@ -134,22 +145,21 @@ public class OXCLMain extends Node3D {
     @GodotMethod
     public void UpdateEnergy(double newValue) {
         if (activeHand == null) return;
-        org.godot.Godot pointer = (org.godot.Godot) activeHand.getNode("Pointer");
+        MeshInstance3D pointer = activeHand.getNodeAs("Pointer", MeshInstance3D.class);
         if (pointer == null) return;
-        org.godot.Godot material = (org.godot.Godot) pointer.getProperty("material_override");
-        if (material != null) {
-            material.call("set_shader_parameter", "energy", newValue);
+        Object material = pointer.getMaterialOverride();
+        if (material instanceof ShaderMaterial shaderMaterial) {
+            shaderMaterial.setShaderParameter("energy", newValue);
         }
     }
 
     private void doTweenEnergy() {
         if (tween != null) {
-            tween.call("kill");
+            tween.kill();
         }
-        tween = (org.godot.Godot) createTween();
+        tween = createTween();
         if (tween != null) {
-            org.godot.core.Callable updateCb = new org.godot.core.Callable(this, "_update_energy");
-            tween.call("tween_method", updateCb, 5.0, 1.0, 0.5);
+            tween.tweenMethod(new Callable(this, "UpdateEnergy"), 5.0, 1.0, 0.5);
         }
     }
 
@@ -157,19 +167,19 @@ public class OXCLMain extends Node3D {
     public void OnLeftHandButtonPressed(String actionName) {
         if (!"select".equals(actionName)) return;
 
-        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
-        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
-        if (leftPointer != null) leftPointer.setProperty("visible", true);
-        if (rightPointer != null) rightPointer.setProperty("visible", false);
+        Node3D leftPointer = getNodeAs("XROrigin3D/LeftHand/Pointer", Node3D.class);
+        Node3D rightPointer = getNodeAs("XROrigin3D/RightHand/Pointer", Node3D.class);
+        if (leftPointer != null) leftPointer.show();
+        if (rightPointer != null) rightPointer.hide();
 
-        activeHand = getNode("XROrigin3D/LeftHand");
+        activeHand = getNodeAs("XROrigin3D/LeftHand", XRController3D.class);
 
-        org.godot.node.Node equirect = getNode("XROrigin3D/OpenXRCompositionLayerEquirect");
+        OpenXRCompositionLayerEquirect equirect = getNodeAs("XROrigin3D/OpenXRCompositionLayerEquirect", OpenXRCompositionLayerEquirect.class);
         if (equirect != null) equirect.setProperty("controller", activeHand);
 
         doTweenEnergy();
         if (activeHand != null) {
-            activeHand.call("trigger_haptic_pulse", "haptic", 0.0, 1.0, 0.5, 0.0);
+            activeHand.triggerHapticPulse("haptic", 0.0, 1.0, 0.5, 0.0);
         }
     }
 
@@ -177,19 +187,24 @@ public class OXCLMain extends Node3D {
     public void OnRightHandButtonPressed(String actionName) {
         if (!"select".equals(actionName)) return;
 
-        org.godot.node.Node leftPointer = getNode("XROrigin3D/LeftHand/Pointer");
-        org.godot.node.Node rightPointer = getNode("XROrigin3D/RightHand/Pointer");
-        if (leftPointer != null) leftPointer.setProperty("visible", false);
-        if (rightPointer != null) rightPointer.setProperty("visible", true);
+        Node3D leftPointer = getNodeAs("XROrigin3D/LeftHand/Pointer", Node3D.class);
+        Node3D rightPointer = getNodeAs("XROrigin3D/RightHand/Pointer", Node3D.class);
+        if (leftPointer != null) leftPointer.hide();
+        if (rightPointer != null) rightPointer.show();
 
-        activeHand = getNode("XROrigin3D/RightHand");
+        activeHand = getNodeAs("XROrigin3D/RightHand", XRController3D.class);
 
-        org.godot.node.Node equirect = getNode("XROrigin3D/OpenXRCompositionLayerEquirect");
+        OpenXRCompositionLayerEquirect equirect = getNodeAs("XROrigin3D/OpenXRCompositionLayerEquirect", OpenXRCompositionLayerEquirect.class);
         if (equirect != null) equirect.setProperty("controller", activeHand);
 
         doTweenEnergy();
         if (activeHand != null) {
-            activeHand.call("trigger_haptic_pulse", "haptic", 0.0, 1.0, 0.5, 0.0);
+            activeHand.triggerHapticPulse("haptic", 0.0, 1.0, 0.5, 0.0);
         }
+    }
+
+    private int maximumRefreshRate() {
+        Object value = getProperty("maximum_refresh_rate");
+        return value instanceof Number number ? number.intValue() : 90;
     }
 }

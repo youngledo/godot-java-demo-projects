@@ -13,7 +13,7 @@ public class STCMain extends Node {
 	private org.godot.node.Timer mobTimer;
 	private org.godot.node.Control retry;
 	private org.godot.node.Label scoreLabel;
-	private org.godot.node.Node player;
+	private STCPlayer player;
 	private boolean initialized = false;
 
 	@Override
@@ -24,7 +24,7 @@ public class STCMain extends Node {
 		mobTimer = (org.godot.node.Timer) getNode("MobTimer");
 		retry = (org.godot.node.Control) getNode("UserInterface/Retry");
 		scoreLabel = (org.godot.node.Label) getNode("UserInterface/ScoreLabel");
-		player = getNode("Player");
+		player = getNodeAs("Player", STCPlayer.class);
 
 		if (retry != null) retry.hide();
 
@@ -35,7 +35,6 @@ public class STCMain extends Node {
 
 		// Connect player hit signal
 		if (player != null) {
-			player.call("add_user_signal", "hit");
 			player.connect("hit", new Callable(this, "_on_player_hit"), 0);
 		}
 	}
@@ -71,7 +70,7 @@ public class STCMain extends Node {
 		if (mobSceneObj == null) return;
 
 		org.godot.node.PackedScene mobScene = (org.godot.node.PackedScene) mobSceneObj;
-		org.godot.node.Node mob = (org.godot.node.Node) mobScene.instantiate();
+		if (!(mobScene.instantiate() instanceof STCMob mob)) return;
 
 		// Choose random location on SpawnPath
 		org.godot.node.Node spawnLocation = getNode("SpawnPath/SpawnLocation");
@@ -81,13 +80,12 @@ public class STCMain extends Node {
 
 		// Initialize mob with spawn position and player position
 		Vector3 spawnPos = spawnLocation != null ? (Vector3) spawnLocation.getProperty("position") : new Vector3(0, 0, 0);
-		Vector3 playerPos = player != null ? (Vector3) player.getProperty("position") : new Vector3(0, 0, 0);
-		mob.call("initialize", spawnPos, playerPos);
+		Vector3 playerPos = player != null ? player.getPosition() : new Vector3(0, 0, 0);
+		mob.initialize(spawnPos, playerPos);
 
 		addChild(mob);
 
 		// Connect mob's squashed signal to score label
-		mob.call("add_user_signal", "squashed");
 		mob.connect("squashed", new Callable(this, "_on_mob_squashed"), 0);
 	}
 

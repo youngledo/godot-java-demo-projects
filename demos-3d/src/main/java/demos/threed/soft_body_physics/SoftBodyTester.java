@@ -22,7 +22,7 @@ public class SoftBodyTester extends WorldEnvironment {
 
 	private org.godot.node.Node testers;
 	private org.godot.node.Camera3D cameraHolder;
-	private org.godot.node.Node rotationX;
+	private org.godot.node.Node3D rotationX;
 	private org.godot.node.Camera3D camera;
 	private boolean initialized = false;
 
@@ -33,11 +33,11 @@ public class SoftBodyTester extends WorldEnvironment {
 
 		testers = getNode("Testers");
 		cameraHolder = (org.godot.node.Camera3D) getNode("CameraHolder");
-		rotationX = getNode("CameraHolder/RotationX");
+		rotationX = getNodeAs("CameraHolder/RotationX", org.godot.node.Node3D.class);
 		camera = (org.godot.node.Camera3D) getNode("CameraHolder/RotationX/Camera3D");
 
 		if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
-		if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+		if (rotationX != null) rotationX.setRotation( new Vector3(rotX, 0, 0));
 		updateGui();
 	}
 
@@ -72,7 +72,7 @@ public class SoftBodyTester extends WorldEnvironment {
 				rotX -= relative.getY() * ROT_SPEED;
 				rotX = clamp(rotX, Math.toRadians(-90), 0);
 				if (cameraHolder != null) cameraHolder.setRotation(new Vector3(0, rotY, 0));
-				if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+				if (rotationX != null) rotationX.setRotation( new Vector3(rotX, 0, 0));
 				return true;
 			}
 		}

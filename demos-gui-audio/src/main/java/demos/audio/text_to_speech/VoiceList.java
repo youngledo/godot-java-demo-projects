@@ -1,99 +1,93 @@
 package demos.audio.text_to_speech;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotDictionary;
+import org.godot.core.Callable;
 import org.godot.math.Color;
+import org.godot.node.BaseButton;
+import org.godot.node.ColorRect;
 import org.godot.node.Control;
+import org.godot.node.Label;
+import org.godot.node.LineEdit;
 import org.godot.node.Node;
+import org.godot.node.Range;
+import org.godot.node.RichTextLabel;
+import org.godot.node.TextEdit;
+import org.godot.node.Tree;
+import org.godot.node.TreeItem;
+import org.godot.singleton.DisplayServer;
+import org.godot.singleton.OS;
 
-/**
- * Text-to-speech demo - demonstrates TTS capabilities using DisplayServer.
- * Lists available voices, allows speaking text with various parameters,
- * and shows utterance callbacks.
- */
 @GodotClass(name = "VoiceList", parent = "Control")
 public class VoiceList extends Control {
 
-    /** The utterance ID to use for text to speech. */
     private int id = 0;
-
-    private final java.util.Map<Integer, String> utMap = new java.util.HashMap<>();
-    private org.godot.collection.GodotArray vs;
+    private final Map<Integer, String> utMap = new HashMap<>();
+    private GodotDictionary[] voices = new GodotDictionary[0];
 
     @Override
     public void _ready() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
+        voices = displayServer.ttsGetVoices();
 
-        // Get voice data.
-        vs = (org.godot.collection.GodotArray) ds.call("tts_get_voices");
-
-        org.godot.node.Tree tree = (org.godot.node.Tree) getNode("Tree");
+        Tree tree = getNodeAs("Tree", Tree.class);
         if (tree != null) {
-            org.godot.node.TreeItem root = tree.createItem();
+            TreeItem root = tree.createItem();
             tree.setHideRoot(true);
             tree.setColumnTitle(0, "Name");
             tree.setColumnTitle(1, "Language");
             tree.setColumnTitlesVisible(true);
 
-            for (int vi = 0; vi < vs.size(); vi++) {
-                org.godot.Godot v = (org.godot.Godot) vs.get(vi);
-                org.godot.node.TreeItem child = tree.createItem(root);
-                child.call("set_text", 0, v.getProperty("name"));
-                child.setMetadata(0, v.getProperty("id"));
-                child.call("set_text", 1, v.getProperty("language"));
+            for (GodotDictionary voice : voices) {
+                TreeItem child = tree.createItem(root);
+                child.setText(0, voiceName(voice));
+                child.setMetadata(0, voiceId(voice));
+                child.setText(1, voiceLanguage(voice));
             }
         }
 
-        org.godot.node.Node log = getNode("Log");
-        if (log != null) {
-            appendLog(vs.size() + " voices available.\n=======\n");
-        }
+        appendLog(voices.length + " voices available.\n=======\n");
 
-        // Ensure the first voice added to the list is preselected.
         if (tree != null) {
-            org.godot.node.TreeItem rootItem = tree.getRoot();
+            TreeItem rootItem = tree.getRoot();
             if (rootItem != null) {
-                org.godot.node.TreeItem firstChild = (org.godot.node.TreeItem) rootItem.getChild(0);
+                TreeItem firstChild = rootItem.getChild(0);
                 if (firstChild != null) firstChild.select(0);
             }
         }
 
-        // Add callbacks using Callables.
-        org.godot.core.Callable startCb = new org.godot.core.Callable(this, "_onUtteranceStart");
-        org.godot.core.Callable endCb = new org.godot.core.Callable(this, "_onUtteranceEnd");
-        org.godot.core.Callable errorCb = new org.godot.core.Callable(this, "_onUtteranceError");
-        org.godot.core.Callable boundaryCb = new org.godot.core.Callable(this, "_onUtteranceBoundary");
-
-        ds.call("tts_set_utterance_callback", 0, startCb); // TTS_UTTERANCE_STARTED
-        ds.call("tts_set_utterance_callback", 1, endCb);   // TTS_UTTERANCE_ENDED
-        ds.call("tts_set_utterance_callback", 3, errorCb);  // TTS_UTTERANCE_CANCELED
-        ds.call("tts_set_utterance_callback", 4, boundaryCb); // TTS_UTTERANCE_BOUNDARY
+        displayServer.ttsSetUtteranceCallback(0, new Callable(this, "_onUtteranceStart"));
+        displayServer.ttsSetUtteranceCallback(1, new Callable(this, "_onUtteranceEnd"));
+        displayServer.ttsSetUtteranceCallback(3, new Callable(this, "_onUtteranceError"));
+        displayServer.ttsSetUtteranceCallback(4, new Callable(this, "_onUtteranceBoundary"));
     }
 
     @Override
     public void _process(double delta) {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
 
-        org.godot.node.Node pauseBtn = getNode("ButtonPause");
+        BaseButton pauseBtn = getNodeAs("ButtonPause", BaseButton.class);
         if (pauseBtn != null) {
-            pauseBtn.setProperty("button_pressed", ds.call("tts_is_paused"));
+            pauseBtn.setButtonPressed(displayServer.ttsIsPaused());
         }
 
-        org.godot.node.ColorRect colorRect = (org.godot.node.ColorRect) getNode("ColorRect");
+        ColorRect colorRect = getNodeAs("ColorRect", ColorRect.class);
         if (colorRect != null) {
-            boolean speaking = (boolean) ds.call("tts_is_speaking");
-            colorRect.setProperty("color", speaking ? new Color(0.9, 0.3, 0.1) : new Color(1, 1, 1));
+            colorRect.setColor(displayServer.ttsIsSpeaking() ? new Color(0.9, 0.3, 0.1) : new Color(1, 1, 1));
         }
     }
 
     @GodotMethod
     public void _onUtteranceBoundary(int pos, int utId) {
-        org.godot.node.RichTextLabel rtl = (org.godot.node.RichTextLabel) getNode("RichTextLabel");
-        if (rtl != null && utMap.containsKey(utId)) {
+        if (utMap.containsKey(utId)) {
             String text = utMap.get(utId);
             String bbcode = "[bgcolor=yellow][color=black]" + text.substring(0, Math.min(pos, text.length()))
                     + "[/color][/bgcolor]" + (pos < text.length() ? text.substring(pos) : "");
-            rtl.setProperty("text", bbcode);
+            setNodeText("RichTextLabel", bbcode);
         }
     }
 
@@ -104,9 +98,8 @@ public class VoiceList extends Control {
 
     @GodotMethod
     public void _onUtteranceEnd(int utId) {
-        org.godot.node.RichTextLabel rtl = (org.godot.node.RichTextLabel) getNode("RichTextLabel");
-        if (rtl != null && utMap.containsKey(utId)) {
-            rtl.setProperty("text", "[bgcolor=yellow][color=black]" + utMap.get(utId) + "[/color][/bgcolor]");
+        if (utMap.containsKey(utId)) {
+            setNodeText("RichTextLabel", "[bgcolor=yellow][color=black]" + utMap.get(utId) + "[/color][/bgcolor]");
         }
         appendLog("Utterance " + utId + " ended.\n");
         utMap.remove(utId);
@@ -114,180 +107,168 @@ public class VoiceList extends Control {
 
     @GodotMethod
     public void _onUtteranceError(int utId) {
-        org.godot.node.RichTextLabel rtl = (org.godot.node.RichTextLabel) getNode("RichTextLabel");
-        if (rtl != null) {
-            rtl.setProperty("text", "");
-        }
+        setNodeText("RichTextLabel", "");
         appendLog("Utterance " + utId + " canceled/failed.\n");
         utMap.remove(utId);
     }
 
     @GodotMethod
     public void _onButtonStopPressed() {
-        org.godot.singleton.DisplayServer.singleton().ttsStop();
+        DisplayServer.singleton().ttsStop();
     }
 
     @GodotMethod
     public void _onButtonPausePressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        org.godot.node.Node pauseBtn = getNode("ButtonPause");
-        if (pauseBtn != null && (boolean) pauseBtn.getProperty("pressed")) {
-            ds.call("tts_pause");
+        BaseButton pauseBtn = getNodeAs("ButtonPause", BaseButton.class);
+        if (pauseBtn != null && pauseBtn.isButtonPressed()) {
+            DisplayServer.singleton().ttsPause();
         } else {
-            ds.call("tts_resume");
+            DisplayServer.singleton().ttsResume();
         }
     }
 
     @GodotMethod
     public void _onButtonSpeakPressed() {
-        org.godot.node.Tree tree = (org.godot.node.Tree) getNode("Tree");
-        if (tree == null) return;
-
-        org.godot.Godot selected = (org.godot.Godot) tree.getSelected();
-        if (selected != null) {
-            appendLog("Utterance " + id + " queried.\n");
-            org.godot.node.Node utterance = getNode("Utterance");
-            String text = utterance != null ? (String) utterance.getProperty("text") : "";
-            utMap.put(id, text);
-            String voiceId = (String) selected.call("get_metadata", 0);
-            org.godot.singleton.DisplayServer.singleton().call("tts_speak", text, voiceId, getVolume(), getPitch(), getRate(), id, false);
-            id++;
-        } else {
-            org.godot.singleton.OS.singleton().alert("No voice selected.\nSelect a voice in the list, then try using Speak again.", "");
-        }
+        speakSelected(false, "queried", "Speak");
     }
 
     @GodotMethod
     public void _onButtonIntSpeakPressed() {
-        org.godot.node.Tree tree = (org.godot.node.Tree) getNode("Tree");
-        if (tree == null) return;
-
-        org.godot.Godot selected = (org.godot.Godot) tree.getSelected();
-        if (selected != null) {
-            appendLog("Utterance " + id + " interrupted.\n");
-            org.godot.node.Node utterance = getNode("Utterance");
-            String text = utterance != null ? (String) utterance.getProperty("text") : "";
-            utMap.put(id, text);
-            String voiceId = (String) selected.call("get_metadata", 0);
-            org.godot.singleton.DisplayServer.singleton().call("tts_speak", text, voiceId, getVolume(), getPitch(), getRate(), id, true);
-            id++;
-        } else {
-            org.godot.singleton.OS.singleton().alert("No voice selected.\nSelect a voice in the list, then try using Interrupt again.", "");
-        }
+        speakSelected(true, "interrupted", "Interrupt");
     }
 
     @GodotMethod
     public void _onButtonClearLogPressed() {
-        org.godot.node.Node log = getNode("Log");
-        if (log != null) log.setProperty("text", "");
+        setNodeText("Log", "");
     }
 
     @GodotMethod
     public void _onHSliderRateValueChanged(double value) {
-        org.godot.node.Label valueLabel = (org.godot.node.Label) getNode("HSliderRate/Value");
-        if (valueLabel != null) valueLabel.setProperty("text", String.format("%.2fx", value));
+        Label valueLabel = getNodeAs("HSliderRate/Value", Label.class);
+        if (valueLabel != null) valueLabel.setText(String.format(Locale.ROOT, "%.2fx", value));
     }
 
     @GodotMethod
     public void _onHSliderPitchValueChanged(double value) {
-        org.godot.node.Label valueLabel = (org.godot.node.Label) getNode("HSliderPitch/Value");
-        if (valueLabel != null) valueLabel.setProperty("text", String.format("%.2fx", value));
+        Label valueLabel = getNodeAs("HSliderPitch/Value", Label.class);
+        if (valueLabel != null) valueLabel.setText(String.format(Locale.ROOT, "%.2fx", value));
     }
 
     @GodotMethod
     public void _onHSliderVolumeValueChanged(double value) {
-        org.godot.node.Label valueLabel = (org.godot.node.Label) getNode("HSliderVolume/Value");
-        if (valueLabel != null) valueLabel.setProperty("text", String.format("%d%%", (int) value));
+        Label valueLabel = getNodeAs("HSliderVolume/Value", Label.class);
+        if (valueLabel != null) valueLabel.setText(String.format(Locale.ROOT, "%d%%", (int) value));
     }
 
     @GodotMethod
     public void _onButtonPressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-
-        // Demo - en
-        org.godot.collection.GodotArray vc = (org.godot.collection.GodotArray) ds.call("tts_get_voices_for_language", "en");
-        if (vc.size() > 0) {
-            String voiceId = (String) ((org.godot.Godot) vc.get(0)).getProperty("id");
-            utMap.put(id, "Beware the Jabberwock, my son!");
-            utMap.put(id + 1, "The jaws that bite, the claws that catch!");
-            ds.call("tts_speak", "Beware the Jabberwock, my son!", voiceId, getVolume(), getPitch(), getRate(), id);
-            ds.call("tts_speak", "The jaws that bite, the claws that catch!", voiceId, getVolume(), getPitch(), getRate(), id + 1);
-            id += 2;
-        }
-
-        // Demo - es
-        vc = (org.godot.collection.GodotArray) ds.call("tts_get_voices_for_language", "es");
-        if (vc.size() > 0) {
-            String voiceId = (String) ((org.godot.Godot) vc.get(0)).getProperty("id");
-            utMap.put(id, "¡Cuidado, hijo, con el Fablistanón!");
-            utMap.put(id + 1, "¡Con sus dientes y garras, muerde, apresa!");
-            ds.call("tts_speak", "¡Cuidado, hijo, con el Fablistanón!", voiceId, getVolume(), getPitch(), getRate(), id);
-            ds.call("tts_speak", "¡Con sus dientes y garras, muerde, apresa!", voiceId, getVolume(), getPitch(), getRate(), id + 1);
-            id += 2;
-        }
-
-        // Demo - ru
-        vc = (org.godot.collection.GodotArray) ds.call("tts_get_voices_for_language", "ru");
-        if (vc.size() > 0) {
-            String voiceId = (String) ((org.godot.Godot) vc.get(0)).getProperty("id");
-            utMap.put(id, "О, бойся Бармаглота, сын!");
-            utMap.put(id + 1, "Он так свирлеп и дик!");
-            ds.call("tts_speak", "О, бойся Бармаглота, сын!", voiceId, getVolume(), getPitch(), getRate(), id);
-            ds.call("tts_speak", "Он так свирлеп и дик!", voiceId, getVolume(), getPitch(), getRate(), id + 1);
-            id += 2;
-        }
+        DisplayServer displayServer = DisplayServer.singleton();
+        speakDemo(displayServer, "en", "Beware the Jabberwock, my son!", "The jaws that bite, the claws that catch!");
+        speakDemo(displayServer, "es", "¡Cuidado, hijo, con el Fablistanón!", "¡Con sus dientes y garras, muerde, apresa!");
+        speakDemo(displayServer, "ru", "О, бойся Бармаглота, сын!", "Он так свирлеп и дик!");
     }
 
     @GodotMethod
     public void _onLineEditFilterNameTextChanged(String newText) {
-        org.godot.node.Tree tree = (org.godot.node.Tree) getNode("Tree");
+        Tree tree = getNodeAs("Tree", Tree.class);
         if (tree == null) return;
 
         tree.clear();
-        org.godot.node.TreeItem root = tree.createItem();
+        TreeItem root = tree.createItem();
 
-        org.godot.node.Node filterName = getNode("LineEditFilterName");
-        org.godot.node.Node filterLang = getNode("LineEditFilterLang");
-        String nameFilter = filterName != null ? (String) filterName.getProperty("text") : "";
-        String langFilter = filterLang != null ? (String) filterLang.getProperty("text") : "";
+        String nameFilter = getNodeText("LineEditFilterName");
+        String langFilter = getNodeText("LineEditFilterLang");
 
-        for (int vi = 0; vi < vs.size(); vi++) {
-            org.godot.Godot v = (org.godot.Godot) vs.get(vi);
-            String vName = (String) v.getProperty("name");
-            String vLang = (String) v.getProperty("language");
+        for (GodotDictionary voice : voices) {
+            String vName = voiceName(voice);
+            String vLang = voiceLanguage(voice);
 
-            boolean nameMatch = nameFilter.isEmpty() || vName.toLowerCase().contains(nameFilter.toLowerCase());
-            boolean langMatch = langFilter.isEmpty() || vLang.toLowerCase().contains(langFilter.toLowerCase());
+            boolean nameMatch = nameFilter.isEmpty() || vName.toLowerCase(Locale.ROOT).contains(nameFilter.toLowerCase(Locale.ROOT));
+            boolean langMatch = langFilter.isEmpty() || vLang.toLowerCase(Locale.ROOT).contains(langFilter.toLowerCase(Locale.ROOT));
 
             if (nameMatch && langMatch) {
-                org.godot.node.TreeItem child = tree.createItem(root);
+                TreeItem child = tree.createItem(root);
                 child.setText(0, vName);
-                child.setMetadata(0, v.getProperty("id"));
+                child.setMetadata(0, voiceId(voice));
                 child.setText(1, vLang);
             }
         }
     }
 
+    private void speakSelected(boolean interrupt, String action, String buttonLabel) {
+        Tree tree = getNodeAs("Tree", Tree.class);
+        if (tree == null) return;
+
+        TreeItem selected = tree.getSelected();
+        if (selected == null) {
+            OS.singleton().alert("No voice selected.\nSelect a voice in the list, then try using " + buttonLabel + " again.", "");
+            return;
+        }
+
+        appendLog("Utterance " + id + " " + action + ".\n");
+        String text = getNodeText("Utterance");
+        utMap.put(id, text);
+        DisplayServer.singleton().ttsSpeak(text, String.valueOf(selected.getMetadata(0)), Math.round(getVolume()), getPitch(), getRate(), id, interrupt);
+        id++;
+    }
+
+    private void speakDemo(DisplayServer displayServer, String language, String first, String second) {
+        String[] voiceIds = displayServer.ttsGetVoicesForLanguage(language);
+        if (voiceIds.length == 0) return;
+
+        String voiceId = voiceIds[0];
+        utMap.put(id, first);
+        utMap.put(id + 1, second);
+        displayServer.ttsSpeak(first, voiceId, Math.round(getVolume()), getPitch(), getRate(), id);
+        displayServer.ttsSpeak(second, voiceId, Math.round(getVolume()), getPitch(), getRate(), id + 1);
+        id += 2;
+    }
+
     private double getRate() {
-        org.godot.node.Node slider = getNode("HSliderRate");
-        return slider != null ? ((Number) slider.getProperty("value")).doubleValue() : 1.0;
+        Range slider = getNodeAs("HSliderRate", Range.class);
+        return slider != null ? slider.getValue() : 1.0;
     }
 
     private double getPitch() {
-        org.godot.node.Node slider = getNode("HSliderPitch");
-        return slider != null ? ((Number) slider.getProperty("value")).doubleValue() : 1.0;
+        Range slider = getNodeAs("HSliderPitch", Range.class);
+        return slider != null ? slider.getValue() : 1.0;
     }
 
     private double getVolume() {
-        org.godot.node.Node slider = getNode("HSliderVolume");
-        return slider != null ? ((Number) slider.getProperty("value")).doubleValue() : 50.0;
+        Range slider = getNodeAs("HSliderVolume", Range.class);
+        return slider != null ? slider.getValue() : 50.0;
     }
 
     private void appendLog(String text) {
-        org.godot.node.Node log = getNode("Log");
-        if (log != null) {
-            String current = (String) log.getProperty("text");
-            log.setProperty("text", current + text);
-        }
+        setNodeText("Log", getNodeText("Log") + text);
+    }
+
+    private String voiceName(GodotDictionary voice) {
+        return String.valueOf(voice.get("name"));
+    }
+
+    private String voiceLanguage(GodotDictionary voice) {
+        return String.valueOf(voice.get("language"));
+    }
+
+    private String voiceId(GodotDictionary voice) {
+        return String.valueOf(voice.get("id"));
+    }
+
+    private String getNodeText(String path) {
+        Node node = getNode(path);
+        if (node instanceof LineEdit lineEdit) return lineEdit.getText();
+        if (node instanceof TextEdit textEdit) return textEdit.getText();
+        if (node instanceof RichTextLabel richTextLabel) return richTextLabel.getText();
+        if (node instanceof Label label) return label.getText();
+        return "";
+    }
+
+    private void setNodeText(String path, String text) {
+        Node node = getNode(path);
+        if (node instanceof LineEdit lineEdit) lineEdit.setText(text);
+        if (node instanceof TextEdit textEdit) textEdit.setText(text);
+        if (node instanceof RichTextLabel richTextLabel) richTextLabel.setText(text);
+        if (node instanceof Label label) label.setText(text);
     }
 }

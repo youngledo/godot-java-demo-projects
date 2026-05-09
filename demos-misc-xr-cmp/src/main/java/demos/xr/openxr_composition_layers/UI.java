@@ -2,8 +2,10 @@ package demos.xr.openxr_composition_layers;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.math.Vector2;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.InputEventMouseMotion;
+import org.godot.node.Label;
 
 @GodotClass(name = "UI", parent = "Control")
 public class UI extends Control {
@@ -12,14 +14,10 @@ public class UI extends Control {
 
     @Override
     public boolean _input(Object eventObj) {
-        if (!(eventObj instanceof org.godot.Godot)) return false;
-        org.godot.Godot event = (org.godot.Godot) eventObj;
-        Object className = event.call("get_class");
-        if ("InputEventMouseMotion".equals(className)) {
-            org.godot.math.Vector2 pos = (org.godot.math.Vector2) event.getProperty("position");
-            org.godot.node.Node cursor = getNode("Cursor");
-            if (cursor != null && pos != null) {
-                cursor.setProperty("position", pos.sub(new org.godot.math.Vector2(16, 16)));
+        if (eventObj instanceof InputEventMouseMotion event) {
+            Control cursor = getNodeAs("Cursor", Control.class);
+            if (cursor != null) {
+                cursor.setPosition(event.getPosition().sub(new Vector2(16, 16)));
             }
         }
         return false;
@@ -28,9 +26,9 @@ public class UI extends Control {
     @GodotMethod
     public void OnButtonPressed() {
         buttonCount++;
-        org.godot.node.Node countLabel = getNode("CountLabel");
+        Label countLabel = getNodeAs("CountLabel", Label.class);
         if (countLabel != null) {
-            countLabel.setProperty("text", "The button has been pressed " + buttonCount + " times!");
+            countLabel.setText("The button has been pressed " + buttonCount + " times!");
         }
     }
 }

@@ -1,13 +1,15 @@
 package demos.threed.ragdoll_physics;
 
 import org.godot.annotation.GodotClass;
-import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotDictionary;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
-import org.godot.node.SceneTree;
-import org.godot.node.Viewport;
+import org.godot.node.PackedScene;
+import org.godot.node.PhysicsDirectSpaceState3D;
+import org.godot.node.PhysicsRayQueryParameters3D;
+import org.godot.node.World3D;
+import org.godot.singleton.ResourceLoader;
 
 @GodotClass(name = "RagdollDemo", parent = "Node3D")
 public class RagdollDemo extends Node3D {
@@ -15,7 +17,7 @@ public class RagdollDemo extends Node3D {
 	private static final double MOUSE_SENSITIVITY = 0.01;
 	private static final double INITIAL_VELOCITY_STRENGTH = 0.5;
 
-	private org.godot.node.Camera3D cameraPivot;
+	private Node3D cameraPivot;
 	private org.godot.node.Camera3D camera;
 	private boolean initialized = false;
 
@@ -24,8 +26,8 @@ public class RagdollDemo extends Node3D {
 		if (initialized) return;
 		initialized = true;
 
-		cameraPivot = (org.godot.node.Camera3D) getNode("CameraPivot");
-		camera = (org.godot.node.Camera3D) getNode("CameraPivot/Camera3D");
+		cameraPivot = getNodeAs("CameraPivot", Node3D.class);
+		camera = getNodeAs("CameraPivot/Camera3D", org.godot.node.Camera3D.class);
 	}
 
 	@Override
@@ -33,24 +35,24 @@ public class RagdollDemo extends Node3D {
 		org.godot.node.InputEvent ev = (org.godot.node.InputEvent) inputEvent;
 		String className = ev.get_class_();
 
-		if ((boolean) ev.isActionPressed("reset_simulation")) {
+		if (ev.isActionPressed("reset_simulation")) {
 			org.godot.node.SceneTree tree = getTree();
 			if (tree != null) tree.reloadCurrentScene();
 			return true;
 		}
 
-		if ((boolean) ev.isActionPressed("place_ragdoll")) {
+		if (ev.isActionPressed("place_ragdoll")) {
 			placeRagdoll();
 			return true;
 		}
 
-		if ((boolean) ev.isActionPressed("slow_motion")) {
+		if (ev.isActionPressed("slow_motion")) {
 			org.godot.node.Node engine = getNode("/root/Engine");
 			if (engine != null) engine.setProperty("time_scale", 0.25);
 			return true;
 		}
 
-		if ((boolean) ev.isActionReleased("slow_motion")) {
+		if (ev.isActionReleased("slow_motion")) {
 			org.godot.node.Node engine = getNode("/root/Engine");
 			if (engine != null) engine.setProperty("time_scale", 1.0);
 			return true;
@@ -58,15 +60,13 @@ public class RagdollDemo extends Node3D {
 
 		if ("InputEventMouseMotion".equals(className)) {
 			long buttonMask = (long) ev.getProperty("button_mask");
-			if ((buttonMask & 2) != 0) { // RIGHT button
+			if ((buttonMask & 2) != 0) {
 				Vector2 relative = (Vector2) ev.getProperty("screen_relative");
 				if (relative != null && cameraPivot != null) {
-					Vector3 rot = (Vector3) cameraPivot.getProperty("global_rotation");
-					if (rot != null) {
-						double newX = clamp(rot.getX() - relative.getY() * MOUSE_SENSITIVITY, -Math.PI * 2 * 0.249, Math.PI * 2 * 0.021);
-						double newY = rot.getY() - relative.getX() * MOUSE_SENSITIVITY;
-						cameraPivot.setProperty("global_rotation", new Vector3(newX, newY, rot.getZ()));
-					}
+					Vector3 rot = cameraPivot.getGlobalRotation();
+					double newX = clamp(rot.getX() - relative.getY() * MOUSE_SENSITIVITY, -Math.PI * 2 * 0.249, Math.PI * 2 * 0.021);
+					double newY = rot.getY() - relative.getX() * MOUSE_SENSITIVITY;
+					cameraPivot.setGlobalRotation(new Vector3(newX, newY, rot.getZ()));
 				}
 				return true;
 			}
@@ -74,11 +74,11 @@ public class RagdollDemo extends Node3D {
 
 		if ("InputEventMouseButton".equals(className)) {
 			long buttonIndex = (long) ev.getProperty("button_index");
-			if (buttonIndex == 4 && camera != null) { // WHEEL_UP
-				camera.call("translate_object_local", new Vector3(0, 0, -0.5));
+			if (buttonIndex == 4 && camera != null) {
+				camera.translateObjectLocal(new Vector3(0, 0, -0.5));
 				return true;
-			} else if (buttonIndex == 5 && camera != null) { // WHEEL_DOWN
-				camera.call("translate_object_local", new Vector3(0, 0, 0.5));
+			} else if (buttonIndex == 5 && camera != null) {
+				camera.translateObjectLocal(new Vector3(0, 0, 0.5));
 				return true;
 			}
 		}
@@ -88,43 +88,32 @@ public class RagdollDemo extends Node3D {
 	private void placeRagdoll() {
 		if (camera == null) return;
 
-		Vector3 origin = (Vector3) camera.getProperty("global_position");
+		Vector3 origin = camera.getGlobalPosition();
 		org.godot.node.Viewport viewport = getViewport();
-		Vector2 mousePos = viewport != null ? (Vector2) viewport.getMousePosition() : null;
-		Vector3 target = mousePos != null ? (Vector3) camera.projectPosition(mousePos, 100) : null;
+		Vector2 mousePos = viewport != null ? viewport.getMousePosition() : null;
+		Vector3 target = mousePos != null ? camera.projectPosition(mousePos, 100) : null;
+		if (target == null) return;
 
-		if (origin == null || target == null) return;
-
-		org.godot.Godot world3d = (org.godot.Godot) camera.call("get_world_3d");
+		World3D world3d = camera.getWorld3d();
 		if (world3d == null) return;
-		org.godot.Godot spaceState = (org.godot.Godot) world3d.call("get_direct_space_state");
+		PhysicsDirectSpaceState3D spaceState = world3d.getDirectSpaceState();
 		if (spaceState == null) return;
 
-		org.godot.Godot query = (org.godot.Godot) spaceState.call("create_ray_query", origin, target);
-		if (query == null) return;
+		PhysicsRayQueryParameters3D query = PhysicsRayQueryParameters3D.create(origin, target);
+		GodotDictionary result = spaceState.intersectRay(query);
+		Object hitPos = result != null ? result.get("position") : null;
+		if (!(hitPos instanceof Vector3 hitVector)) return;
 
-		Object result = spaceState.call("intersect_ray", query);
-		if (result == null) return;
+		if (!(ResourceLoader.singleton().load("res://characters/mannequiny_ragdoll.tscn") instanceof PackedScene ragdollScene)) return;
+		if (!(ragdollScene.instantiate() instanceof Node3D ragdoll)) return;
 
-		org.godot.Godot resDict = (org.godot.Godot) result;
-		Object hitPos = resDict.call("get", "position");
-		if (hitPos == null) return;
-
-		org.godot.node.PackedScene ragdollScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://characters/mannequiny_ragdoll.tscn");
-		if (ragdollScene == null) return;
-
-		org.godot.Godot ragdoll = ragdollScene.instantiate();
-		if (ragdoll == null) return;
-
-		Vector3 hitVector = (Vector3) hitPos;
-		ragdoll.setProperty("position", new Vector3(hitVector.getX(), hitVector.getY() + 0.5, hitVector.getZ()));
+		ragdoll.setPosition(new Vector3(hitVector.getX(), hitVector.getY() + 0.5, hitVector.getZ()));
 
 		if (cameraPivot != null) {
-			Vector3 pivotRot = (Vector3) cameraPivot.getProperty("rotation");
-			if (pivotRot != null) ragdoll.setProperty("rotation", new Vector3(0, pivotRot.getY(), 0));
+			Vector3 pivotRot = cameraPivot.getRotation();
+			ragdoll.setRotation(new Vector3(0, pivotRot.getY(), 0));
 		}
 
-		// Random initial velocity
 		double angle = Math.random() * Math.PI * 2;
 		Vector3 initVel = new Vector3(
 			-Math.sin(angle) * INITIAL_VELOCITY_STRENGTH,
@@ -133,7 +122,7 @@ public class RagdollDemo extends Node3D {
 		);
 		ragdoll.setProperty("initial_velocity", initVel);
 
-		addChild((org.godot.node.Node) ragdoll);
+		addChild(ragdoll);
 	}
 
 	private static double clamp(double v, double min, double max) { return Math.max(min, Math.min(max, v)); }

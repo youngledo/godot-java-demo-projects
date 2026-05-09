@@ -2,43 +2,56 @@ package demos.audio.mic_record;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.AudioEffect;
+import org.godot.node.AudioEffectRecord;
+import org.godot.node.AudioStreamPlayer;
+import org.godot.node.AudioStreamWAV;
+import org.godot.node.Button;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Label;
+import org.godot.node.LineEdit;
+import org.godot.singleton.AudioServer;
+import org.godot.singleton.OS;
+import org.godot.singleton.ProjectSettings;
 
-/**
- * Mic record demo - records audio from microphone using AudioEffectRecord,
- * with options for format, mix rate, and stereo settings.
- */
 @GodotClass(name = "MicRecord", parent = "Control")
 public class MicRecord extends Control {
 
-    private org.godot.node.AudioEffect effect;
-    private org.godot.Godot recording;
+    private AudioEffectRecord effect;
+    private AudioStreamWAV recording;
 
     private boolean stereo = true;
-    private int mixRate = 44100; // Default mix rate on recordings.
-    private int format = 1; // FORMAT_16_BITS = 1, default format on recordings.
+    private int mixRate = 44100;
+    private int format = 1;
 
     @Override
     public void _ready() {
-        org.godot.singleton.AudioServer audioServer = org.godot.singleton.AudioServer.singleton();
-        Object idx = audioServer.call("get_bus_index", "Record");
-        effect = (org.godot.node.AudioEffect) audioServer.call("get_bus_effect", idx, 0);
+        AudioServer audioServer = AudioServer.singleton();
+        int idx = audioServer.getBusIndex("Record");
+        AudioEffect busEffect = audioServer.getBusEffect(idx, 0);
+        if (busEffect instanceof AudioEffectRecord recordEffect) {
+            effect = recordEffect;
+        }
     }
 
     @Override
     public void _exitTree() {
-        // Stop recording if active
-        if (effect != null && (boolean) effect.call("is_recording_active")) {
-            effect.call("set_recording_active", false);
+        if (effect != null && effect.isRecordingActive()) {
+            effect.setRecordingActive(false);
         }
-        // Stop audio players
-        org.godot.node.AudioStreamPlayer audioPlayer = (org.godot.node.AudioStreamPlayer) getNode("AudioStreamPlayer");
-        if (audioPlayer != null) audioPlayer.stop();
-        org.godot.node.AudioStreamPlayer audioPlayer2 = (org.godot.node.AudioStreamPlayer) getNode("AudioStreamPlayer2");
-        if (audioPlayer2 != null) audioPlayer2.stop();
-        if (audioPlayer != null) audioPlayer.setProperty("stream", null);
-        if (audioPlayer2 != null) audioPlayer2.setProperty("stream", null);
+
+        AudioStreamPlayer audioPlayer = getNodeAs("AudioStreamPlayer", AudioStreamPlayer.class);
+        if (audioPlayer != null) {
+            audioPlayer.stop();
+            audioPlayer.setStream(null);
+        }
+
+        AudioStreamPlayer audioPlayer2 = getNodeAs("AudioStreamPlayer2", AudioStreamPlayer.class);
+        if (audioPlayer2 != null) {
+            audioPlayer2.stop();
+            audioPlayer2.setStream(null);
+        }
+
         recording = null;
         effect = null;
     }
@@ -47,39 +60,39 @@ public class MicRecord extends Control {
     public void _onRecordButtonPressed() {
         if (effect == null) return;
 
-        if ((boolean) effect.call("is_recording_active")) {
-            recording = (org.godot.node.AudioEffect) effect.call("get_recording");
+        if (effect.isRecordingActive()) {
+            recording = effect.getRecording();
 
-            org.godot.node.Button playButton = (org.godot.node.Button) getNode("PlayButton");
-            org.godot.node.Button saveButton = (org.godot.node.Button) getNode("SaveButton");
-            if (playButton != null) playButton.setProperty("disabled", false);
-            if (saveButton != null) saveButton.setProperty("disabled", false);
+            Button playButton = getNodeAs("PlayButton", Button.class);
+            Button saveButton = getNodeAs("SaveButton", Button.class);
+            if (playButton != null) playButton.setDisabled(false);
+            if (saveButton != null) saveButton.setDisabled(false);
 
-            effect.call("set_recording_active", false);
+            effect.setRecordingActive(false);
             if (recording != null) {
-                recording.call("set_mix_rate", mixRate);
-                recording.call("set_format", format);
-                recording.call("set_stereo", stereo);
+                recording.setMixRate(mixRate);
+                recording.setFormat(format);
+                recording.setStereo(stereo);
             }
 
-            org.godot.node.Button recordButton = (org.godot.node.Button) getNode("RecordButton");
-            if (recordButton != null) recordButton.setProperty("text", "Record");
+            Button recordButton = getNodeAs("RecordButton", Button.class);
+            if (recordButton != null) recordButton.setText("Record");
 
-            org.godot.node.Label status = (org.godot.node.Label) getNode("Status");
-            if (status != null) status.setProperty("text", "");
+            Label status = getNodeAs("Status", Label.class);
+            if (status != null) status.setText("");
         } else {
-            org.godot.node.Button playButton = (org.godot.node.Button) getNode("PlayButton");
-            org.godot.node.Button saveButton = (org.godot.node.Button) getNode("SaveButton");
-            if (playButton != null) playButton.setProperty("disabled", true);
-            if (saveButton != null) saveButton.setProperty("disabled", true);
+            Button playButton = getNodeAs("PlayButton", Button.class);
+            Button saveButton = getNodeAs("SaveButton", Button.class);
+            if (playButton != null) playButton.setDisabled(true);
+            if (saveButton != null) saveButton.setDisabled(true);
 
-            effect.call("set_recording_active", true);
+            effect.setRecordingActive(true);
 
-            org.godot.node.Button recordButton = (org.godot.node.Button) getNode("RecordButton");
-            if (recordButton != null) recordButton.setProperty("text", "Stop");
+            Button recordButton = getNodeAs("RecordButton", Button.class);
+            if (recordButton != null) recordButton.setText("Stop");
 
-            org.godot.node.Label status = (org.godot.node.Label) getNode("Status");
-            if (status != null) status.setProperty("text", "Status: Recording...");
+            Label status = getNodeAs("Status", Label.class);
+            if (status != null) status.setText("Status: Recording...");
         }
     }
 
@@ -87,87 +100,84 @@ public class MicRecord extends Control {
     public void _onPlayButtonPressed() {
         if (recording == null) return;
 
-        int fmt = ((Number) recording.call("get_format")).intValue();
+        long fmt = recording.getFormat();
         String formatStr;
         if (fmt == 0) formatStr = "8-bit uncompressed";
         else if (fmt == 1) formatStr = "16-bit uncompressed";
         else formatStr = "IMA ADPCM compressed";
 
-        int recMixRate = ((Number) recording.call("get_mix_rate")).intValue();
-        boolean recStereo = (boolean) recording.call("is_stereo");
+        long recMixRate = recording.getMixRate();
+        boolean recStereo = recording.isStereo();
+        byte[] data = recording.getData();
 
-        byte[] data = (byte[]) recording.call("get_data");
         System.out.println("\nPlaying recording: " + recording);
         System.out.println("Format: " + formatStr);
         System.out.println("Mix rate: " + recMixRate + " Hz");
         System.out.println("Stereo: " + (recStereo ? "Yes" : "No"));
         System.out.println("Size: " + data.length + " bytes");
 
-        org.godot.node.AudioStreamPlayer audioPlayer = (org.godot.node.AudioStreamPlayer) getNode("AudioStreamPlayer");
+        AudioStreamPlayer audioPlayer = getNodeAs("AudioStreamPlayer", AudioStreamPlayer.class);
         if (audioPlayer != null) {
-            audioPlayer.setProperty("stream", recording);
+            audioPlayer.setStream(recording);
             audioPlayer.play();
         }
     }
 
     @GodotMethod
     public void _onPlayMusicPressed() {
-        org.godot.node.AudioStreamPlayer audioPlayer2 = (org.godot.node.AudioStreamPlayer) getNode("AudioStreamPlayer2");
-        org.godot.node.Button playMusicBtn = (org.godot.node.Button) getNode("PlayMusic");
+        AudioStreamPlayer audioPlayer2 = getNodeAs("AudioStreamPlayer2", AudioStreamPlayer.class);
+        Button playMusicBtn = getNodeAs("PlayMusic", Button.class);
         if (audioPlayer2 == null) return;
 
-        if ((boolean) audioPlayer2.call("playing")) {
+        if (audioPlayer2.isPlaying()) {
             audioPlayer2.stop();
-            if (playMusicBtn != null) playMusicBtn.setProperty("text", "Play Music");
+            if (playMusicBtn != null) playMusicBtn.setText("Play Music");
         } else {
             audioPlayer2.play();
-            if (playMusicBtn != null) playMusicBtn.setProperty("text", "Stop Music");
+            if (playMusicBtn != null) playMusicBtn.setText("Stop Music");
         }
     }
 
     @GodotMethod
     public void _onSaveButtonPressed() {
         if (recording == null) return;
-        org.godot.node.Button saveButton = (org.godot.node.Button) getNode("SaveButton");
-        org.godot.Godot filenameInput = saveButton != null
-                ? (org.godot.Godot) saveButton.getNode("Filename")
-                : null;
-        String savePath = filenameInput != null ? (String) filenameInput.getProperty("text") : "user://record.wav";
-        recording.call("save_to_wav", savePath);
 
-        org.godot.singleton.ProjectSettings projectSettings = org.godot.singleton.ProjectSettings.singleton();
-        String globalPath = (String) projectSettings.call("globalize_path", savePath);
+        Button saveButton = getNodeAs("SaveButton", Button.class);
+        LineEdit filenameInput = saveButton != null ? saveButton.getNodeAs("Filename", LineEdit.class) : null;
+        String savePath = filenameInput != null ? filenameInput.getText() : "user://record.wav";
+        recording.saveToWav(savePath);
 
-        org.godot.node.Label status = (org.godot.node.Label) getNode("Status");
+        String globalPath = ProjectSettings.singleton().globalizePath(savePath);
+        Label status = getNodeAs("Status", Label.class);
         if (status != null) {
-            status.setProperty("text", "Status: Saved WAV file to: " + savePath + "\n(" + globalPath + ")");
+            status.setText("Status: Saved WAV file to: " + savePath + "\n(" + globalPath + ")");
         }
     }
 
     @GodotMethod
     public void _onMixRateOptionButtonItemSelected(int index) {
         switch (index) {
-            case 0: mixRate = 11025; break;
-            case 1: mixRate = 16000; break;
-            case 2: mixRate = 22050; break;
-            case 3: mixRate = 32000; break;
-            case 4: mixRate = 44100; break;
-            case 5: mixRate = 48000; break;
+            case 0 -> mixRate = 11025;
+            case 1 -> mixRate = 16000;
+            case 2 -> mixRate = 22050;
+            case 3 -> mixRate = 32000;
+            case 4 -> mixRate = 44100;
+            case 5 -> mixRate = 48000;
         }
         if (recording != null) {
-            recording.call("set_mix_rate", mixRate);
+            recording.setMixRate(mixRate);
         }
     }
 
     @GodotMethod
     public void _onFormatOptionButtonItemSelected(int index) {
         switch (index) {
-            case 0: format = 0; break; // FORMAT_8_BITS
-            case 1: format = 1; break; // FORMAT_16_BITS
-            case 2: format = 2; break; // FORMAT_IMA_ADPCM
+            case 0 -> format = 0;
+            case 1 -> format = 1;
+            case 2 -> format = 2;
         }
         if (recording != null) {
-            recording.call("set_format", format);
+            recording.setFormat(format);
         }
     }
 
@@ -175,12 +185,12 @@ public class MicRecord extends Control {
     public void _onStereoCheckButtonToggled(boolean buttonPressed) {
         stereo = buttonPressed;
         if (recording != null) {
-            recording.call("set_stereo", stereo);
+            recording.setStereo(stereo);
         }
     }
 
     @GodotMethod
     public void _onOpenUserFolderButtonPressed() {
-        org.godot.singleton.OS.singleton().shellOpen((String) org.godot.singleton.ProjectSettings.singleton().call("globalize_path", "user://"));
+        OS.singleton().shellOpen(ProjectSettings.singleton().globalizePath("user://"));
     }
 }

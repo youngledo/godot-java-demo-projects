@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
 import org.godot.node.Area2D;
+import org.godot.node.CollisionObject2D;
 import org.godot.node.Node;
 import java.util.ArrayList;
 
@@ -84,10 +85,9 @@ public class FSSword extends Area2D {
         if (state != 1) return false;
         if (attackInputState != 1) return false;
 
-        org.godot.Godot event = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent event = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (event != null) {
-            Object pressed = event.call("is_action_pressed", "attack");
-            if (pressed instanceof Boolean && (Boolean) pressed) {
+            if (event.isActionPressed("attack", false, false)) {
                 attackInputState = 2; // REGISTERED
             }
         }
@@ -116,21 +116,16 @@ public class FSSword extends Area2D {
 
     @GodotMethod
     public void onBodyEntered(org.godot.Godot body) {
-        boolean hasHealth = ((org.godot.node.Node) body).hasNode("Health");
-        if (!hasHealth) return;
+        if (!(body instanceof Node bodyNode)) return;
+        if (!bodyNode.hasNode("Health")) return;
 
-        Object ridObj = body.call("get_rid");
-        long ridId = System.identityHashCode(body);
-        if (ridObj instanceof org.godot.Godot) {
-            try {
-                Object idObj = ((org.godot.Godot) ridObj).getProperty("id");
-                if (idObj instanceof Number) ridId = ((Number) idObj).longValue();
-            } catch (Exception ignored) {}
-        }
+        long ridId = body instanceof CollisionObject2D collisionObject ? collisionObject.getRid() : System.identityHashCode(body);
         if (hitObjects.contains(ridId)) return;
         hitObjects.add(ridId);
 
-        body.call("take_damage", this, currentDamage, null);
+        if (body instanceof FSPlayerController playerController) {
+            playerController.takeDamage(this, currentDamage, null);
+        }
     }
 
     @GodotMethod

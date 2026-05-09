@@ -1,8 +1,10 @@
 package demos.threed.voxel;
 
 import org.godot.annotation.GodotClass;
+import org.godot.core.Callable;
+import org.godot.node.CheckBox;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Slider;
 
 @GodotClass(name = "VXOptionButtons", parent = "Control")
 public class VXOptionButtons extends Control {
@@ -14,31 +16,30 @@ public class VXOptionButtons extends Control {
         if (initialized) return;
         initialized = true;
 
-        // Connect slider signal
-        org.godot.node.Slider slider = (org.godot.node.Slider) getNode("GridContainer/RenderDistance/Slider");
+        Slider slider = getNodeAs("GridContainer/RenderDistance/Slider", Slider.class);
         if (slider != null) {
-            slider.connect("value_changed", new org.godot.core.Callable(this, "on_render_distance_changed"), 0);
+            slider.connect("value_changed", new Callable(this, "on_render_distance_changed"), 0);
         }
 
-        org.godot.node.CheckBox checkbox = (org.godot.node.CheckBox) getNode("GridContainer/Fog/CheckBox");
+        CheckBox checkbox = getNodeAs("GridContainer/Fog/CheckBox", CheckBox.class);
         if (checkbox != null) {
-            checkbox.connect("toggled", new org.godot.core.Callable(this, "on_fog_toggled"), 0);
+            checkbox.connect("toggled", new Callable(this, "on_fog_toggled"), 0);
         }
     }
 
     public void onRenderDistanceChanged(double value) {
-        org.godot.node.Node settings = getNode("/root/Settings");
+        VXSettings settings = getNodeAs("/root/Settings", VXSettings.class);
         if (settings != null) {
-            settings.setProperty("render_distance", (int) value);
-            settings.call("save_settings");
+            settings.renderDistance = (int) value;
+            settings.saveSettings();
         }
     }
 
     public void onFogToggled(boolean enabled) {
-        org.godot.node.Node settings = getNode("/root/Settings");
+        VXSettings settings = getNodeAs("/root/Settings", VXSettings.class);
         if (settings != null) {
-            settings.setProperty("fog_enabled", enabled);
-            settings.call("save_settings");
+            settings.fogEnabled = enabled;
+            settings.saveSettings();
         }
     }
 }

@@ -6,7 +6,6 @@ import org.godot.math.Vector2;
 import org.godot.node.Label;
 import org.godot.node.Node2D;
 import org.godot.singleton.Input;
-import org.godot.node.Node;
 
 @GodotClass(name = "TweenDemo", parent = "Node2D")
 public class TweenDemo extends Node2D {
@@ -28,11 +27,11 @@ public class TweenDemo extends Node2D {
 	@Override
 	public void _process(double delta) {
 		if (tween == null) return;
-		boolean running = (boolean) tween.call("is_running");
+		boolean running = tween.isRunning();
 		if (!running) return;
 
 		if (progress != null) {
-			double elapsed = (double) tween.call("get_total_elapsed_time");
+			double elapsed = tween.getTotalElapsedTime();
 			progress.setProperty("value", elapsed);
 		}
 	}
@@ -62,20 +61,20 @@ public class TweenDemo extends Node2D {
 		if (icon != null) {
 			double maxVal = 0;
 			// Move
-			tween.call("tween_property", icon, "position", new Vector2(400, 250), 1.0);
+			tween.tweenProperty(icon, "position", new Vector2(400, 250), 1.0);
 			maxVal += 1.0;
 			// Color red
-			tween.call("tween_property", icon, "self_modulate", new Color(1, 0, 0), 1.0);
+			tween.tweenProperty(icon, "self_modulate", new Color(1, 0, 0), 1.0);
 			maxVal += 1.0;
 			// Move relative right
-			tween.call("tween_property", icon, "position:x", 200.0, 1.0);
+			tween.tweenProperty(icon, "position:x", 200.0, 1.0);
 			// Roll (parallel)
-			tween.call("tween_property", icon, "rotation", Math.PI * 2, 1.0);
+			tween.tweenProperty(icon, "rotation", Math.PI * 2, 1.0);
 			maxVal += 1.0;
 			// Scale up
-			tween.call("tween_property", icon, "scale", new Vector2(5, 5), 0.5);
+			tween.tweenProperty(icon, "scale", new Vector2(5, 5), 0.5);
 			// Vanish
-			tween.call("tween_property", icon, "self_modulate:a", 0.0, 1.0);
+			tween.tweenProperty(icon, "self_modulate:a", 0.0, 1.0);
 			maxVal += 2.0;
 
 			if (progress != null) {
@@ -84,7 +83,7 @@ public class TweenDemo extends Node2D {
 		}
 
 		// Loop back
-		tween.call("tween_callback", new org.godot.core.Callable(this, "showIcon"));
+		tween.tweenCallback(new org.godot.core.Callable(this, "showIcon"));
 	}
 
 	@org.godot.annotation.GodotMethod

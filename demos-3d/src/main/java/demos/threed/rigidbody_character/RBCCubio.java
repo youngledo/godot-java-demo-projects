@@ -4,14 +4,14 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.RigidBody3D;
+import org.godot.node.ShapeCast3D;
 import org.godot.singleton.Input;
-import org.godot.node.Node;
 import org.godot.node.SceneTree;
 
 @GodotClass(name = "RBCCubio", parent = "RigidBody3D")
 public class RBCCubio extends RigidBody3D {
 
-	private org.godot.node.Node shapeCast;
+	private ShapeCast3D shapeCast;
 	private org.godot.node.Camera3D camera;
 	private org.godot.node.Label winText;
 	private Vector3 startPosition;
@@ -22,7 +22,7 @@ public class RBCCubio extends RigidBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		shapeCast = getNode("ShapeCast3D");
+		shapeCast = getNodeAs("ShapeCast3D", ShapeCast3D.class);
 		camera = (org.godot.node.Camera3D) getNode("Target/Camera3D");
 		winText = (org.godot.node.Label) getNode("WinText");
 		startPosition = (Vector3) getProperty("position");
@@ -44,8 +44,8 @@ public class RBCCubio extends RigidBody3D {
 			resetPhysicsInterpolation();
 		}
 
-		double dx = (double) input.call("get_axis", "move_left", "move_right");
-		double dz = (double) input.call("get_axis", "move_forward", "move_back");
+		double dx = input.getAxis("move_left", "move_right");
+		double dz = input.getAxis("move_forward", "move_back");
 		Vector3 dir = new Vector3(dx, 0, dz);
 		double len = Math.sqrt(dx * dx + dz * dz);
 		if (len > 1) {
@@ -72,7 +72,7 @@ public class RBCCubio extends RigidBody3D {
 	}
 
 	private boolean onGround() {
-		return shapeCast != null && (boolean) shapeCast.call("is_colliding");
+		return shapeCast != null && shapeCast.isColliding();
 	}
 
 	@GodotMethod

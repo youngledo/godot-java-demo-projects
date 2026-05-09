@@ -3,6 +3,7 @@ package demos.threed.squash_the_creeps;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
 import org.godot.node.Node;
@@ -15,6 +16,9 @@ public class STCMob extends CharacterBody3D {
 	@Export
 	public double maxSpeed = 18.0;
 
+	@Signal
+	public void squashed() {}
+
 	private org.godot.node.AnimationPlayer animPlayer;
 	private org.godot.node.VisibleOnScreenNotifier3D notifier;
 	private boolean initialized = false;
@@ -24,7 +28,6 @@ public class STCMob extends CharacterBody3D {
 		if (initialized) return;
 		initialized = true;
 
-		call("add_user_signal", "squashed");
 		animPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
 		notifier = (org.godot.node.VisibleOnScreenNotifier3D) getNode("VisibleOnScreenNotifier3D");
 

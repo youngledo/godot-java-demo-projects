@@ -1,9 +1,17 @@
 package demos.loading.serialization;
 
-import org.godot.annotation.GodotClass;
 import org.godot.Godot;
+import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
+import org.godot.collection.GodotDictionary;
 import org.godot.node.Button;
 import org.godot.node.FileAccess;
+import org.godot.node.JSON;
+import org.godot.node.Node;
+import org.godot.node.Node2D;
+import org.godot.node.PackedScene;
+import org.godot.node.SceneTree;
+import org.godot.singleton.ResourceLoader;
 
 /**
  * Saves and loads game data using the JSON file format.
@@ -16,96 +24,85 @@ public class SaveLoadJSON extends Button {
     private static final String SAVE_PATH = "user://save_json.json";
 
     public void saveGame() {
-        // Open file for writing (FileAccess.WRITE = 2).
-        FileAccess fileObj = FileAccess.open(SAVE_PATH, 2);
-        if (fileObj == null) return;
-        FileAccess file = fileObj;
+        FileAccess file = FileAccess.open(SAVE_PATH, 2);
+        if (file == null) return;
 
         String playerPath = (String) getProperty("player_node");
         SerPlayer player = (SerPlayer) getNode(playerPath);
         Godot sprite = player.getSprite();
 
-        // Build save dictionary. JSON doesn't support Vector2, so use var_to_str.
-        Godot saveDict = (Godot) call("Dictionary.new");
+        GodotDictionary saveDict = new GodotDictionary();
 
-        Godot playerDict = (Godot) call("Dictionary.new");
-        playerDict.setProperty("position", call("var_to_str", player.getProperty("position")));
-        playerDict.setProperty("health", call("var_to_str", player.getHealth()));
+        GodotDictionary playerDict = new GodotDictionary();
+        playerDict.put("position", varToStr(player.getPosition()));
+        playerDict.put("health", varToStr(player.getHealth()));
         if (sprite != null) {
-            playerDict.setProperty("rotation", call("var_to_str", sprite.getProperty("rotation")));
+            playerDict.put("rotation", varToStr(sprite.getProperty("rotation")));
         }
-        saveDict.setProperty("player", playerDict);
+        saveDict.put("player", playerDict);
 
-        Godot enemiesArray = (Godot) call("Array.new");
-        saveDict.setProperty("enemies", enemiesArray);
+        GodotArray enemiesArray = new GodotArray();
+        saveDict.put("enemies", enemiesArray);
 
-        Godot tree = (Godot) getTree();
-        Object[] enemies = (Object[]) tree.call("get_nodes_in_group", "enemy");
-        for (Object enemyObj : enemies) {
-            if (enemyObj instanceof Godot) {
-                Godot enemy = (Godot) enemyObj;
-                Godot dict = (Godot) call("Dictionary.new");
-                dict.setProperty("position", call("var_to_str", enemy.getProperty("position")));
-                enemiesArray.call("push_back", dict);
+        SceneTree tree = getTree();
+        Node[] enemies = tree.getNodesInGroup("enemy");
+        for (Node enemyNode : enemies) {
+            if (enemyNode instanceof Node2D enemy) {
+                GodotDictionary dict = new GodotDictionary();
+                dict.put("position", varToStr(enemy.getPosition()));
+                enemiesArray.add(dict);
             }
         }
 
-        // Write JSON to file.
-        String jsonString = (String) call("JSON.stringify", saveDict);
+        String jsonString = JSON.stringify(saveDict);
         file.storeLine(jsonString);
 
-        // Enable the load button.
-        Godot loadBtn = (Godot) getNode("../LoadJSON");
-        if (loadBtn != null) loadBtn.setProperty("disabled", false);
+        Button loadBtn = getNodeAs("../LoadJSON", Button.class);
+        if (loadBtn != null) loadBtn.setDisabled(false);
     }
 
     public void loadGame() {
-        // Open file for reading (FileAccess.READ = 1).
-        FileAccess fileObj = FileAccess.open(SAVE_PATH, 1);
-        if (fileObj == null) return;
-        FileAccess file = fileObj;
+        FileAccess file = FileAccess.open(SAVE_PATH, 1);
+        if (file == null) return;
 
-        Godot json = (Godot) call("JSON.new");
+        JSON json = JSON.create();
         String line = file.getLine();
-        json.call("parse", line);
-        Godot saveDict = (Godot) json.call("get_data");
+        json.parse(line);
+        GodotDictionary saveDict = (GodotDictionary) json.getData();
 
         String playerPath = (String) getProperty("player_node");
         SerPlayer player = (SerPlayer) getNode(playerPath);
         Godot sprite = player.getSprite();
 
-        // Restore player data using str_to_var for type conversion.
-        Godot playerDict = (Godot) saveDict.getProperty("player");
-        Object posObj = call("str_to_var", playerDict.getProperty("position"));
-        player.setProperty("position", posObj);
-        Object healthObj = call("str_to_var", playerDict.getProperty("health"));
+        GodotDictionary playerDict = (GodotDictionary) saveDict.get("player");
+        Object posObj = strToVar((String) playerDict.get("position"));
+        player.setPosition((org.godot.math.Vector2) posObj);
+        Object healthObj = strToVar((String) playerDict.get("health"));
         if (healthObj instanceof Number) {
             player.setHealth(((Number) healthObj).doubleValue());
         }
         if (sprite != null) {
-            Object rotObj = call("str_to_var", playerDict.getProperty("rotation"));
+            Object rotObj = strToVar((String) playerDict.get("rotation"));
             sprite.setProperty("rotation", rotObj);
         }
 
-        // Remove existing enemies.
-        Godot tree = (Godot) getTree();
-        tree.call("call_group", "enemy", "queue_free");
+        SceneTree tree = getTree();
+        tree.callGroup("enemy", "queue_free");
 
-        // Load enemies.
         String gamePath = (String) getProperty("game_node");
-        Godot game = (Godot) getNode(gamePath);
-        Godot enemiesArray = (Godot) saveDict.getProperty("enemies");
+        Node game = getNode(gamePath);
+        GodotArray enemiesArray = (GodotArray) saveDict.get("enemies");
 
         if (enemiesArray != null && game != null) {
-            int count = (int) enemiesArray.call("size");
+            int count = enemiesArray.size();
             for (int i = 0; i < count; i++) {
-                Godot enemyConfig = (Godot) enemiesArray.call("get", i);
-                org.godot.node.PackedScene enemyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://enemy.tscn");
+                GodotDictionary enemyConfig = (GodotDictionary) enemiesArray.get(i);
+                PackedScene enemyScene = (PackedScene) ResourceLoader.singleton().load("res://enemy.tscn");
                 if (enemyScene != null) {
-                    Godot enemy = (Godot) ((Godot) enemyScene).call("instantiate");
-                    Object enemyPos = call("str_to_var", enemyConfig.getProperty("position"));
+                    Node enemy = enemyScene.instantiate();
+                    Object enemyPos = strToVar((String) enemyConfig.get("position"));
                     enemy.setProperty("position", enemyPos);
-                    game.call("add_child", enemy);
+                    game.addChild(enemy);
                 }
             }
         }

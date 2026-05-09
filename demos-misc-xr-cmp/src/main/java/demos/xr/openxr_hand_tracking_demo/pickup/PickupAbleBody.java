@@ -1,20 +1,23 @@
 package demos.xr.openxr_hand_tracking_demo.pickup;
 
-import org.godot.annotation.GodotClass;
-import org.godot.node.RigidBody3D;
-import org.godot.node.Node;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.godot.annotation.GodotClass;
+import org.godot.math.Transform3D;
+import org.godot.node.MeshInstance3D;
+import org.godot.node.Node;
+import org.godot.node.RigidBody3D;
+import org.godot.node.Tween;
+import org.godot.singleton.ResourceLoader;
 
 @GodotClass(name = "PickupAbleBody3D", parent = "RigidBody3D")
 public class PickupAbleBody extends RigidBody3D {
 
-    private org.godot.Godot highlightMaterial;
-    private org.godot.node.Node pickedUpBy;
-    private List<org.godot.Godot> closestAreas = new ArrayList<>();
-    private org.godot.node.Node originalParent;
-    private org.godot.node.Tween tween;
+    private Object highlightMaterial;
+    private Node pickedUpBy;
+    private List<Node> closestAreas = new ArrayList<>();
+    private Node originalParent;
+    private Tween tween;
 
     private boolean initialized = false;
 
@@ -23,18 +26,17 @@ public class PickupAbleBody extends RigidBody3D {
         if (initialized) return;
         initialized = true;
 
-        // Load highlight material.
-        highlightMaterial = (org.godot.Godot) org.godot.singleton.ResourceLoader.singleton().load("res://shaders/highlight_material.tres");
+        highlightMaterial = ResourceLoader.singleton().load("res://shaders/highlight_material.tres");
     }
 
-    public void addIsClosest(org.godot.Godot area) {
+    public void addIsClosest(Node area) {
         if (!closestAreas.contains(area)) {
             closestAreas.add(area);
         }
         updateHighlight();
     }
 
-    public void removeIsClosest(org.godot.Godot area) {
+    public void removeIsClosest(Node area) {
         closestAreas.remove(area);
         updateHighlight();
     }
@@ -43,73 +45,56 @@ public class PickupAbleBody extends RigidBody3D {
         return pickedUpBy != null;
     }
 
-    public void pickUp(org.godot.Godot pickUpByNode) {
+    public void pickUp(Node pickUpByNode) {
         if (pickedUpBy != null) {
             if (pickedUpBy == pickUpByNode) return;
             letGo();
         }
 
-        // Remember state.
-        originalParent = (org.godot.node.Node) getParent();
-        org.godot.math.Transform3D currentTransform = getGlobalTransform();
+        originalParent = getParent();
+        Transform3D currentTransform = getGlobalTransform();
 
-        // Remove from old parent.
         originalParent.removeChild(this);
 
-        // Process pickup.
-        pickedUpBy = (org.godot.node.Node) pickUpByNode;
+        pickedUpBy = pickUpByNode;
         pickedUpBy.addChild(this);
         setGlobalTransform(currentTransform);
-        setProperty("freeze", true);
+        setFreeze(true);
 
-        // Kill existing tween and create new.
         if (tween != null) {
             tween.kill();
         }
         tween = createTween();
 
-        // Snap to transform (identity for now).
-        org.godot.math.Transform3D snapTo = new org.godot.math.Transform3D();
-        tween.call("tween_property", this, "transform", snapTo, 0.1);
+        Transform3D snapTo = new Transform3D();
+        tween.tweenProperty(this, "transform", snapTo, 0.1);
     }
 
     public void letGo() {
         if (pickedUpBy == null) return;
 
-        // Cancel ongoing tween.
         if (tween != null) {
             tween.kill();
             tween = null;
         }
 
-        org.godot.math.Transform3D currentTransform = getGlobalTransform();
+        Transform3D currentTransform = getGlobalTransform();
 
         pickedUpBy.removeChild(this);
         pickedUpBy = null;
 
         originalParent.addChild(this);
         setGlobalTransform(currentTransform);
-        setProperty("freeze", false);
+        setFreeze(false);
     }
 
     private void updateHighlight() {
-        if (pickedUpBy == null && !closestAreas.isEmpty() ) {
-            // Add highlight.
-            int childCount = (int) getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                org.godot.node.Node child = getChild(i);
-                if (child != null && "MeshInstance3D".equals(child.get_class_())) {
-                    child.setProperty("material_overlay", highlightMaterial);
-                }
-            }
-        } else {
-            // Remove highlight.
-            int childCount = (int) getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                org.godot.node.Node child = getChild(i);
-                if (child != null && "MeshInstance3D".equals(child.get_class_())) {
-                    child.setProperty("material_overlay", null);
-                }
+        Object materialOverlay = pickedUpBy == null && !closestAreas.isEmpty() ? highlightMaterial : null;
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            Node child = getChild(i);
+            if (child instanceof MeshInstance3D mesh) {
+                mesh.setMaterialOverlay(materialOverlay);
             }
         }
     }

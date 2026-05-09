@@ -6,7 +6,9 @@ import org.godot.annotation.GodotMethod;
 import org.godot.node.Button;
 import org.godot.node.HBoxContainer;
 import org.godot.node.Label;
+import org.godot.node.Font;
 import org.godot.node.Node;
+import org.godot.singleton.ResourceLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,8 +74,8 @@ public class MPBomberScore extends HBoxContainer {
         label.setProperty("modulate", color);
         label.setProperty("size_flags_horizontal", 3);
 
-        Godot font = (Godot) call("preload", "res://montserrat.otf");
-        label.addThemeFontOverride("font", (org.godot.node.Font) font);
+        Font font = (Font) ResourceLoader.singleton().load("res://montserrat.otf");
+        label.addThemeFontOverride("font", font);
         label.addThemeColorOverride("font_outline_color", new org.godot.math.Color(0, 0, 0));
         label.addThemeConstantOverride("outline_size", 9);
         label.addThemeFontSizeOverride("font_size", 18);

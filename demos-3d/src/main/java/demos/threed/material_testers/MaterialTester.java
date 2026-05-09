@@ -21,8 +21,8 @@ public class MaterialTester extends Node3D {
 	private double zoom = 5.0;
 
 	private org.godot.node.Node testers;
-	private org.godot.node.Node cameraHolder;
-	private org.godot.node.Node rotationX;
+	private org.godot.node.Node3D cameraHolder;
+	private org.godot.node.Node3D rotationX;
 	private org.godot.node.Node camera;
 	private org.godot.node.Node materialName;
 	private boolean initialized = false;
@@ -33,13 +33,13 @@ public class MaterialTester extends Node3D {
 		initialized = true;
 
 		testers = getNode("Testers");
-		cameraHolder = getNode("CameraHolder");
-		rotationX = getNode("CameraHolder/RotationX");
+		cameraHolder = getNodeAs("CameraHolder", org.godot.node.Node3D.class);
+		rotationX = getNodeAs("CameraHolder/RotationX", org.godot.node.Node3D.class);
 		camera = getNode("CameraHolder/RotationX/Camera");
 		materialName = getNode("UI/MaterialName");
 
-		if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
-		if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+		if (cameraHolder != null) cameraHolder.setRotation( new Vector3(0, rotY, 0));
+		if (rotationX != null) rotationX.setRotation( new Vector3(rotX, 0, 0));
 		updateGui();
 	}
 
@@ -68,8 +68,8 @@ public class MaterialTester extends Node3D {
 				rotY = clamp(rotY, -1.95, 1.95);
 				rotX -= relative.getY() * ROT_SPEED;
 				rotX = clamp(rotX, -1.4, 0.45);
-				if (cameraHolder != null) cameraHolder.call("set_rotation", new Vector3(0, rotY, 0));
-				if (rotationX != null) rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+				if (cameraHolder != null) cameraHolder.setRotation( new Vector3(0, rotY, 0));
+				if (rotationX != null) rotationX.setRotation( new Vector3(rotX, 0, 0));
 				return true;
 			}
 		}

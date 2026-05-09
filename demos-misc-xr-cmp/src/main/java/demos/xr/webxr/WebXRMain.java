@@ -2,16 +2,25 @@ package demos.xr.webxr;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
+import org.godot.math.Vector2;
+import org.godot.node.BaseButton;
+import org.godot.node.CanvasItem;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
 import org.godot.node.Viewport;
+import org.godot.node.WebXRInterface;
+import org.godot.node.XRController3D;
+import org.godot.node.XRControllerTracker;
+import org.godot.node.XRPose;
+import org.godot.singleton.OS;
+import org.godot.singleton.XRServer;
 
 @GodotClass(name = "WebXRMain", parent = "Node3D")
 public class WebXRMain extends Node3D {
 
-    private org.godot.Godot webxrInterface;
+    private WebXRInterface webxrInterface;
     private boolean vrSupported = false;
-    private org.godot.node.Node leftController;
+    private XRController3D leftController;
 
     private boolean initialized = false;
 
@@ -20,52 +29,34 @@ public class WebXRMain extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        org.godot.node.Node enterVrButton = getNode("CanvasLayer/EnterVRButton");
+        BaseButton enterVrButton = getNodeAs("CanvasLayer/EnterVRButton", BaseButton.class);
         if (enterVrButton != null) {
-            org.godot.core.Callable pressedCb = new org.godot.core.Callable(this, "_on_enter_vr_button_pressed");
-            enterVrButton.connect("pressed", pressedCb);
+            enterVrButton.connect("pressed", new Callable(this, "OnEnterVrButtonPressed"));
         }
 
-        leftController = getNode("XROrigin3D/LeftController");
+        leftController = getNodeAs("XROrigin3D/LeftController", XRController3D.class);
 
-        webxrInterface = (org.godot.Godot) call("find_interface", "WebXR");
+        if (XRServer.singleton().findInterface("WebXR") instanceof WebXRInterface webXr) {
+            webxrInterface = webXr;
+        }
         if (webxrInterface != null) {
-            // Connect WebXR signals.
-            org.godot.core.Callable sessionSupportedCb = new org.godot.core.Callable(this, "_webxr_session_supported");
-            org.godot.core.Callable sessionStartedCb = new org.godot.core.Callable(this, "_webxr_session_started");
-            org.godot.core.Callable sessionEndedCb = new org.godot.core.Callable(this, "_webxr_session_ended");
-            org.godot.core.Callable sessionFailedCb = new org.godot.core.Callable(this, "_webxr_session_failed");
+            webxrInterface.connect("session_supported", new Callable(this, "WebxrSessionSupported"), 0);
+            webxrInterface.connect("session_started", new Callable(this, "WebxrSessionStarted"), 0);
+            webxrInterface.connect("session_ended", new Callable(this, "WebxrSessionEnded"), 0);
+            webxrInterface.connect("session_failed", new Callable(this, "WebxrSessionFailed"), 0);
+            webxrInterface.connect("select", new Callable(this, "WebxrOnSelect"), 0);
+            webxrInterface.connect("selectstart", new Callable(this, "WebxrOnSelectStart"), 0);
+            webxrInterface.connect("selectend", new Callable(this, "WebxrOnSelectEnd"), 0);
+            webxrInterface.connect("squeeze", new Callable(this, "WebxrOnSqueeze"), 0);
+            webxrInterface.connect("squeezestart", new Callable(this, "WebxrOnSqueezeStart"), 0);
+            webxrInterface.connect("squeezeend", new Callable(this, "WebxrOnSqueezeEnd"), 0);
 
-            org.godot.core.Callable selectCb = new org.godot.core.Callable(this, "_webxr_on_select");
-            org.godot.core.Callable selectStartCb = new org.godot.core.Callable(this, "_webxr_on_select_start");
-            org.godot.core.Callable selectEndCb = new org.godot.core.Callable(this, "_webxr_on_select_end");
-
-            org.godot.core.Callable squeezeCb = new org.godot.core.Callable(this, "_webxr_on_squeeze");
-            org.godot.core.Callable squeezeStartCb = new org.godot.core.Callable(this, "_webxr_on_squeeze_start");
-            org.godot.core.Callable squeezeEndCb = new org.godot.core.Callable(this, "_webxr_on_squeeze_end");
-
-            webxrInterface.connect("session_supported", sessionSupportedCb, 0);
-            webxrInterface.connect("session_started", sessionStartedCb, 0);
-            webxrInterface.connect("session_ended", sessionEndedCb, 0);
-            webxrInterface.connect("session_failed", sessionFailedCb, 0);
-
-            webxrInterface.connect("select", selectCb, 0);
-            webxrInterface.connect("selectstart", selectStartCb, 0);
-            webxrInterface.connect("selectend", selectEndCb, 0);
-
-            webxrInterface.connect("squeeze", squeezeCb, 0);
-            webxrInterface.connect("squeezestart", squeezeStartCb, 0);
-            webxrInterface.connect("squeezeend", squeezeEndCb, 0);
-
-            webxrInterface.call("is_session_supported", "immersive-vr");
+            webxrInterface.isSessionSupported("immersive-vr");
         }
 
-        // Connect left controller signals.
         if (leftController != null) {
-            org.godot.core.Callable btnPressedCb = new org.godot.core.Callable(this, "_on_left_controller_button_pressed");
-            org.godot.core.Callable btnReleasedCb = new org.godot.core.Callable(this, "_on_left_controller_button_released");
-            leftController.connect("button_pressed", btnPressedCb);
-            leftController.connect("button_released", btnReleasedCb);
+            leftController.connect("button_pressed", new Callable(this, "OnLeftControllerButtonPressed"));
+            leftController.connect("button_released", new Callable(this, "OnLeftControllerButtonReleased"));
         }
     }
 
@@ -79,47 +70,44 @@ public class WebXRMain extends Node3D {
     @GodotMethod
     public void OnEnterVrButtonPressed() {
         if (!vrSupported) {
-            call("alert", "Your browser doesn't support VR", "VR Not Supported");
+            OS.singleton().alert("Your browser doesn't support VR", "VR Not Supported");
             return;
         }
 
-        webxrInterface.setProperty("session_mode", "immersive-vr");
-        webxrInterface.setProperty("requested_reference_space_types", "bounded-floor, local-floor, local");
-        webxrInterface.setProperty("required_features", "local-floor");
-        webxrInterface.setProperty("optional_features", "bounded-floor");
+        webxrInterface.setSessionMode("immersive-vr");
+        webxrInterface.setRequestedReferenceSpaceTypes("bounded-floor, local-floor, local");
+        webxrInterface.setRequiredFeatures("local-floor");
+        webxrInterface.setOptionalFeatures("bounded-floor");
 
-        if (!(boolean) webxrInterface.call("initialize")) {
-            call("alert", "Failed to initialize WebXR", "Error");
+        if (!webxrInterface.initialize()) {
+            OS.singleton().alert("Failed to initialize WebXR", "Error");
         }
     }
 
     @GodotMethod
     public void WebxrSessionStarted() {
-        org.godot.node.Node canvasLayer = getNode("CanvasLayer");
-        if (canvasLayer != null) canvasLayer.setProperty("visible", false);
+        CanvasItem canvasLayer = getNodeAs("CanvasLayer", CanvasItem.class);
+        if (canvasLayer != null) canvasLayer.setVisible(false);
 
-        org.godot.node.Viewport vp = getViewport();
-        if (vp != null) vp.setProperty("use_xr", true);
+        Viewport vp = getViewport();
+        if (vp != null) vp.setUseXr(true);
 
-        String refSpaceType = (String) webxrInterface.getProperty("reference_space_type");
-        System.out.println("Reference space type: " + refSpaceType);
-
-        String enabledFeatures = (String) webxrInterface.getProperty("enabled_features");
-        System.out.println("Enabled features: " + enabledFeatures);
+        System.out.println("Reference space type: " + webxrInterface.getReferenceSpaceType());
+        System.out.println("Enabled features: " + webxrInterface.getEnabledFeatures());
     }
 
     @GodotMethod
     public void WebxrSessionEnded() {
-        org.godot.node.Node canvasLayer = getNode("CanvasLayer");
-        if (canvasLayer != null) canvasLayer.setProperty("visible", true);
+        CanvasItem canvasLayer = getNodeAs("CanvasLayer", CanvasItem.class);
+        if (canvasLayer != null) canvasLayer.setVisible(true);
 
-        org.godot.node.Viewport vp = getViewport();
-        if (vp != null) vp.setProperty("use_xr", false);
+        Viewport vp = getViewport();
+        if (vp != null) vp.setUseXr(false);
     }
 
     @GodotMethod
     public void WebxrSessionFailed(String message) {
-        call("alert", "Failed to initialize: " + message, "Error");
+        OS.singleton().alert("Failed to initialize: " + message, "Error");
     }
 
     @GodotMethod
@@ -135,25 +123,20 @@ public class WebXRMain extends Node3D {
     @Override
     public void _process(double delta) {
         if (leftController == null) return;
-        Object thumbstickObj = leftController.call("get_vector2", "thumbstick");
-        if (thumbstickObj instanceof org.godot.math.Vector2) {
-            org.godot.math.Vector2 thumbstickVector = (org.godot.math.Vector2) thumbstickObj;
-            if (thumbstickVector.x != 0.0 || thumbstickVector.y != 0.0) {
-                System.out.println("Left thumbstick position: " + thumbstickVector);
-            }
+        Vector2 thumbstickVector = leftController.getVector2("thumbstick");
+        if (thumbstickVector.x != 0.0 || thumbstickVector.y != 0.0) {
+            System.out.println("Left thumbstick position: " + thumbstickVector);
         }
     }
 
     @GodotMethod
     public void WebxrOnSelect(int inputSourceId) {
         System.out.println("Select: " + inputSourceId);
-        Object trackerObj = webxrInterface.call("get_input_source_tracker", inputSourceId);
-        if (trackerObj != null) {
-            org.godot.Godot tracker = (org.godot.Godot) trackerObj;
-            Object poseObj = tracker.call("get_pose", "default");
-            if (poseObj instanceof org.godot.math.Transform3D) {
-                org.godot.math.Transform3D xform = (org.godot.math.Transform3D) poseObj;
-                System.out.println(xform.getOrigin());
+        XRControllerTracker tracker = webxrInterface.getInputSourceTracker(inputSourceId);
+        if (tracker != null) {
+            XRPose pose = tracker.getPose("default");
+            if (pose != null) {
+                System.out.println(pose.getAdjustedTransform().getOrigin());
             }
         }
     }

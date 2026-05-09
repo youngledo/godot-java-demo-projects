@@ -3,7 +3,6 @@ package demos.misc.multiple_windows;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.PopupMenu;
-import org.godot.node.Node;
 
 @GodotClass(name = "MWPopupMenu", parent = "PopupMenu")
 public class MWPopupMenu extends PopupMenu {
@@ -23,26 +22,25 @@ public class MWPopupMenu extends PopupMenu {
         addSeparator("Separator");
         addSubmenuItem("Submenu", "SubPopupMenu");
 
-        org.godot.node.Node submenu = getNode("SubPopupMenu");
+        PopupMenu submenu = getNodeAs("SubPopupMenu", PopupMenu.class);
         if (submenu != null) {
-            submenu.setProperty("transparent", true);
-            submenu.call("add_item", "Submenu Item 1");
-            submenu.call("add_item", "Submenu Item 2");
+            submenu.setTransparent(true);
+            submenu.addItem("Submenu Item 1");
+            submenu.addItem("Submenu Item 2");
         }
     }
 
     @GodotMethod
     public void OnIndexPressed(long index) {
-        boolean checkable = (boolean) call("is_item_checkable", index);
+        boolean checkable = isItemCheckable(index);
         if (checkable) {
-            boolean checked = (boolean) call("is_item_checked", index);
+            boolean checked = isItemChecked(index);
             setItemChecked(index, !checked);
         }
 
         if (index == 2) setItemChecked(3, false);
         if (index == 3) setItemChecked(2, false);
 
-        String text = (String) call("get_item_text", index);
-        emitSignal("option_pressed", text);
+        emitSignal("option_pressed", getItemText(index));
     }
 }

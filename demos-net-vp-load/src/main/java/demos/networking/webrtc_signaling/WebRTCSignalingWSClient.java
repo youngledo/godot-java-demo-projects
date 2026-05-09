@@ -1,15 +1,13 @@
 package demos.networking.webrtc_signaling;
 
-import org.godot.Godot;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
+import org.godot.collection.GodotDictionary;
+import org.godot.node.JSON;
 import org.godot.node.Node;
 import org.godot.node.WebSocketPeer;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @GodotClass(name = "WebRTCSignalingWSClient", parent = "Node")
 public class WebRTCSignalingWSClient extends Node {
@@ -107,13 +105,13 @@ public class WebRTCSignalingWSClient extends Node {
     private boolean parseMsg() {
         byte[] pkt = ws.getPacket();
         String pktStr = new String(pkt);
-        Object parsed = call("JSON.parse_string", pktStr);
+        Object parsedObj = JSON.parseString(pktStr);
+        if (!(parsedObj instanceof GodotDictionary)) return false;
+        GodotDictionary parsed = (GodotDictionary) parsedObj;
 
-        if (parsed == null) return false;
-
-        long msgType = ((Number) ((Map<?, ?>) parsed).get("type")).longValue();
-        long srcId = ((Number) ((Map<?, ?>) parsed).get("id")).longValue();
-        String data = (String) ((Map<?, ?>) parsed).get("data");
+        long msgType = ((Number) parsed.get("type")).longValue();
+        long srcId = ((Number) parsed.get("id")).longValue();
+        String data = (String) parsed.get("data");
 
         if (data == null) return false;
 
@@ -173,11 +171,11 @@ public class WebRTCSignalingWSClient extends Node {
     }
 
     private long sendMsg(int type, int id, String data) {
-        Map<String, Object> msg = new HashMap<>();
+        GodotDictionary msg = new GodotDictionary();
         msg.put("type", type);
         msg.put("id", id);
         msg.put("data", data);
-        String json = (String) call("JSON.stringify", msg);
+        String json = JSON.stringify(msg);
         return ws.sendText(json);
     }
 }

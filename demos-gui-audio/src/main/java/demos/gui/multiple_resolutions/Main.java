@@ -2,22 +2,30 @@ package demos.gui.multiple_resolutions;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
 import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
+import org.godot.node.AspectRatioContainer;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Label;
+import org.godot.node.OptionButton;
+import org.godot.node.Panel;
+import org.godot.node.Slider;
+import org.godot.node.Window;
+import org.godot.singleton.ProjectSettings;
 
 @GodotClass(name = "Main", parent = "Control")
 public class Main extends Control {
 
-    private org.godot.math.Vector2 baseWindowSize;
-    private int stretchMode = 1; // Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-    private int stretchAspect = 4; // Window.CONTENT_SCALE_ASPECT_EXPAND
+    private Vector2i baseWindowSize;
+    private int stretchMode = 1;
+    private int stretchAspect = 4;
     private double scaleFactor = 1.0;
     private double guiAspectRatio = -1.0;
     private double guiMargin = 0.0;
 
-    private org.godot.node.Panel panel;
-    private org.godot.node.Node arc;
+    private Panel panel;
+    private AspectRatioContainer arc;
     private boolean initialized = false;
 
     @Override
@@ -25,77 +33,70 @@ public class Main extends Control {
         if (initialized) return;
         initialized = true;
 
-        org.godot.singleton.ProjectSettings ps = org.godot.singleton.ProjectSettings.singleton();
-        double viewportWidth = (double) ps.call("get_setting", "display/window/size/viewport_width");
-        double viewportHeight = (double) ps.call("get_setting", "display/window/size/viewport_height");
-        baseWindowSize = new Vector2(viewportWidth, viewportHeight);
+        ProjectSettings ps = ProjectSettings.singleton();
+        int viewportWidth = settingInt(ps, "display/window/size/viewport_width");
+        int viewportHeight = settingInt(ps, "display/window/size/viewport_height");
+        baseWindowSize = new Vector2i(viewportWidth, viewportHeight);
 
-        panel = (org.godot.node.Panel) getNode("Panel");
-        arc = getNode("Panel/AspectRatioContainer");
+        panel = getNodeAs("Panel", Panel.class);
+        arc = getNodeAs("Panel/AspectRatioContainer", AspectRatioContainer.class);
 
-        connect("resized", new org.godot.core.Callable(this, "_on_resized"));
+        connect("resized", new Callable(this, "_on_resized"));
         callDeferred("updateContainer");
     }
 
-    @org.godot.annotation.GodotMethod
+    @GodotMethod
     public void updateContainer() {
-        for (int i = 0; i < 2; i++) {
-            org.godot.math.Vector2 panelSize = panel != null ? (org.godot.math.Vector2) panel.getProperty("size") : null;
-            if (panelSize == null) continue;
+        if (panel == null) return;
 
+        for (int i = 0; i < 2; i++) {
+            Vector2 panelSize = panel.getSize();
             double panelAspect = panelSize.getX() / panelSize.getY();
 
             if (Math.abs(guiAspectRatio - (-1.0)) < 0.0001) {
-                // Fit to Window
-                if (arc != null) arc.setProperty("ratio", panelAspect);
-                if (panel != null) {
-                    panel.setProperty("offset_top", guiMargin);
-                    panel.setProperty("offset_bottom", -guiMargin);
-                }
+                if (arc != null) arc.setRatio(panelAspect);
+                panel.setOffsetTop(guiMargin);
+                panel.setOffsetBottom(-guiMargin);
             } else {
                 double ratio = Math.min(panelAspect, guiAspectRatio);
-                if (arc != null) arc.setProperty("ratio", ratio);
-                if (panel != null) {
-                    panel.setProperty("offset_top", guiMargin / guiAspectRatio);
-                    panel.setProperty("offset_bottom", -guiMargin / guiAspectRatio);
-                }
+                if (arc != null) arc.setRatio(ratio);
+                panel.setOffsetTop(guiMargin / guiAspectRatio);
+                panel.setOffsetBottom(-guiMargin / guiAspectRatio);
             }
 
-            if (panel != null) {
-                panel.setProperty("offset_left", guiMargin);
-                panel.setProperty("offset_right", -guiMargin);
-            }
+            panel.setOffsetLeft(guiMargin);
+            panel.setOffsetRight(-guiMargin);
         }
     }
 
     @GodotMethod
     public void OnGuiAspectRatioItemSelected(int index) {
         switch (index) {
-            case 0: guiAspectRatio = -1.0; break; // Fit to Window
-            case 1: guiAspectRatio = 5.0 / 4.0; break;
-            case 2: guiAspectRatio = 4.0 / 3.0; break;
-            case 3: guiAspectRatio = 3.0 / 2.0; break;
-            case 4: guiAspectRatio = 16.0 / 10.0; break;
-            case 5: guiAspectRatio = 16.0 / 9.0; break;
-            case 6: guiAspectRatio = 21.0 / 9.0; break;
+            case 0 -> guiAspectRatio = -1.0;
+            case 1 -> guiAspectRatio = 5.0 / 4.0;
+            case 2 -> guiAspectRatio = 4.0 / 3.0;
+            case 3 -> guiAspectRatio = 3.0 / 2.0;
+            case 4 -> guiAspectRatio = 16.0 / 10.0;
+            case 5 -> guiAspectRatio = 16.0 / 9.0;
+            case 6 -> guiAspectRatio = 21.0 / 9.0;
         }
         callDeferred("updateContainer");
     }
 
-    @org.godot.annotation.GodotMethod
+    @GodotMethod
     public void OnResized() {
         callDeferred("updateContainer");
     }
 
     @GodotMethod
     public void OnGuiMarginDragEnded(boolean valueChanged) {
-        org.godot.node.Slider slider = (org.godot.node.Slider) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/GUIMargin/HSlider");
-        org.godot.node.Label valueLabel = (org.godot.node.Label) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/GUIMargin/Value");
+        Slider slider = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/GUIMargin/HSlider", Slider.class);
+        Label valueLabel = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/GUIMargin/Value", Label.class);
         if (slider != null) {
-            guiMargin = slider.getProperty("value") != null ? (double) slider.getProperty("value") : 0.0;
+            guiMargin = slider.getValue();
         }
         if (valueLabel != null) {
-            valueLabel.setProperty("text", String.valueOf(guiMargin));
+            valueLabel.setText(String.valueOf(guiMargin));
         }
         callDeferred("updateContainer");
     }
@@ -103,18 +104,18 @@ public class Main extends Control {
     @GodotMethod
     public void OnWindowBaseSizeItemSelected(int index) {
         switch (index) {
-            case 0: baseWindowSize = new Vector2(648, 648); break;
-            case 1: baseWindowSize = new Vector2(640, 480); break;
-            case 2: baseWindowSize = new Vector2(720, 480); break;
-            case 3: baseWindowSize = new Vector2(800, 600); break;
-            case 4: baseWindowSize = new Vector2(1152, 648); break;
-            case 5: baseWindowSize = new Vector2(1280, 720); break;
-            case 6: baseWindowSize = new Vector2(1280, 800); break;
-            case 7: baseWindowSize = new Vector2(1680, 720); break;
+            case 0 -> baseWindowSize = new Vector2i(648, 648);
+            case 1 -> baseWindowSize = new Vector2i(640, 480);
+            case 2 -> baseWindowSize = new Vector2i(720, 480);
+            case 3 -> baseWindowSize = new Vector2i(800, 600);
+            case 4 -> baseWindowSize = new Vector2i(1152, 648);
+            case 5 -> baseWindowSize = new Vector2i(1280, 720);
+            case 6 -> baseWindowSize = new Vector2i(1280, 800);
+            case 7 -> baseWindowSize = new Vector2i(1680, 720);
         }
-        org.godot.Godot window = getWindow();
+        Window window = getWindow();
         if (window != null) {
-            window.setProperty("content_scale_size", baseWindowSize);
+            window.setContentScaleSize(baseWindowSize);
         }
         callDeferred("updateContainer");
     }
@@ -122,47 +123,52 @@ public class Main extends Control {
     @GodotMethod
     public void OnWindowStretchModeItemSelected(int index) {
         stretchMode = index;
-        org.godot.Godot window = getWindow();
+        Window window = getWindow();
         if (window != null) {
-            window.setProperty("content_scale_mode", stretchMode);
+            window.setContentScaleMode(stretchMode);
         }
 
-        org.godot.node.OptionButton baseSizeOption = (org.godot.node.OptionButton) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowBaseSize/OptionButton");
-        org.godot.node.OptionButton stretchAspectOption = (org.godot.node.OptionButton) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowStretchAspect/OptionButton");
-        if (baseSizeOption != null) baseSizeOption.setProperty("disabled", stretchMode == 0);
-        if (stretchAspectOption != null) stretchAspectOption.setProperty("disabled", stretchMode == 0);
+        OptionButton baseSizeOption = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowBaseSize/OptionButton", OptionButton.class);
+        OptionButton stretchAspectOption = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowStretchAspect/OptionButton", OptionButton.class);
+        if (baseSizeOption != null) baseSizeOption.setDisabled(stretchMode == 0);
+        if (stretchAspectOption != null) stretchAspectOption.setDisabled(stretchMode == 0);
     }
 
     @GodotMethod
     public void OnWindowStretchAspectItemSelected(int index) {
         stretchAspect = index;
-        org.godot.Godot window = getWindow();
+        Window window = getWindow();
         if (window != null) {
-            window.setProperty("content_scale_aspect", stretchAspect);
+            window.setContentScaleAspect(stretchAspect);
         }
     }
 
     @GodotMethod
     public void OnWindowScaleFactorDragEnded(boolean valueChanged) {
-        org.godot.node.Slider slider = (org.godot.node.Slider) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowScaleFactor/HSlider");
-        org.godot.node.Label valueLabel = (org.godot.node.Label) getNode("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowScaleFactor/Value");
+        Slider slider = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowScaleFactor/HSlider", Slider.class);
+        Label valueLabel = getNodeAs("Panel/AspectRatioContainer/Panel/CenterContainer/Options/WindowScaleFactor/Value", Label.class);
         if (slider != null) {
-            scaleFactor = slider.getProperty("value") != null ? (double) slider.getProperty("value") : 1.0;
+            scaleFactor = slider.getValue();
         }
         if (valueLabel != null) {
-            valueLabel.setProperty("text", (int)(scaleFactor * 100) + "%");
+            valueLabel.setText((int) (scaleFactor * 100) + "%");
         }
-        org.godot.Godot window = getWindow();
+        Window window = getWindow();
         if (window != null) {
-            window.setProperty("content_scale_factor", scaleFactor);
+            window.setContentScaleFactor(scaleFactor);
         }
     }
 
     @GodotMethod
     public void OnWindowStretchScaleModeItemSelected(int index) {
-        org.godot.Godot window = getWindow();
+        Window window = getWindow();
         if (window != null) {
-            window.setProperty("content_scale_stretch", index);
+            window.setContentScaleStretch(index);
         }
+    }
+
+    private int settingInt(ProjectSettings projectSettings, String setting) {
+        Object value = projectSettings.getSetting(setting);
+        return value instanceof Number number ? number.intValue() : 0;
     }
 }

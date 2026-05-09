@@ -3,6 +3,7 @@ package demos.twod.particles;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Label;
 import org.godot.node.Node;
+import org.godot.singleton.RenderingServer;
 import org.godot.node.SceneTree;
 import org.godot.singleton.Input;
 
@@ -13,7 +14,7 @@ public class ParticleController extends Label {
 
 	@Override
 	public void _ready() {
-		String method = (String) call("RenderingServer.get_current_rendering_method");
+		String method = RenderingServer.singleton().getCurrentRenderingMethod();
 		if ("gl_compatibility".equals(method)) {
 			isCompatibility = true;
 			setText("Space: Pause/Resume\nG: Toggle glow\n\n\n");

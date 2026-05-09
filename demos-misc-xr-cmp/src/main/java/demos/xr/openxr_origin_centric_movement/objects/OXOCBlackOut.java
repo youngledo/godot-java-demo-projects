@@ -1,14 +1,16 @@
 package demos.xr.openxr_origin_centric_movement.objects;
 
 import org.godot.annotation.GodotClass;
+import org.godot.math.Color;
+import org.godot.node.MeshInstance3D;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
+import org.godot.node.ShaderMaterial;
 
 @GodotClass(name = "OXOCBlackOut", parent = "Node3D")
 public class OXOCBlackOut extends Node3D {
 
     private double fade = 0.0;
-    private org.godot.Godot material;
+    private ShaderMaterial material;
     private boolean initialized = false;
 
     public double getFade() {
@@ -23,17 +25,16 @@ public class OXOCBlackOut extends Node3D {
     }
 
     private void updateFade() {
-        org.godot.node.MeshInstance3D meshInstance = (org.godot.node.MeshInstance3D) getNode("MeshInstance3D");
+        MeshInstance3D meshInstance = getNodeAs("MeshInstance3D", MeshInstance3D.class);
         if (meshInstance == null) return;
 
         if (fade == 0.0) {
-            meshInstance.setProperty("visible", false);
+            meshInstance.setVisible(false);
         } else {
             if (material != null) {
-                org.godot.math.Color albedo = new org.godot.math.Color(0.0, 0.0, 0.0, fade);
-                material.call("set_shader_parameter", "albedo", albedo);
+                material.setShaderParameter("albedo", new Color(0.0, 0.0, 0.0, fade));
             }
-            meshInstance.setProperty("visible", true);
+            meshInstance.setVisible(true);
         }
     }
 
@@ -42,9 +43,9 @@ public class OXOCBlackOut extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        org.godot.node.MeshInstance3D meshInstance = (org.godot.node.MeshInstance3D) getNode("MeshInstance3D");
-        if (meshInstance != null) {
-            material = (org.godot.Godot) meshInstance.getProperty("material_override");
+        MeshInstance3D meshInstance = getNodeAs("MeshInstance3D", MeshInstance3D.class);
+        if (meshInstance != null && meshInstance.getMaterialOverride() instanceof ShaderMaterial shaderMaterial) {
+            material = shaderMaterial;
         }
         updateFade();
     }

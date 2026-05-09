@@ -1,19 +1,19 @@
 package demos.networking.multiplayer_bomber;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
+import org.godot.core.Callable;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.MultiplayerSpawner;
 import org.godot.node.Node;
 import org.godot.node.PackedScene;
+import org.godot.singleton.ResourceLoader;
 
 @GodotClass(name = "MPBomberBombSpawner", parent = "MultiplayerSpawner")
 public class MPBomberBombSpawner extends MultiplayerSpawner {
 
     @Override
     public void _ready() {
-        // Set the spawn function
-        call("set_spawn_function", this, "_spawn_bomb");
+        setSpawnFunction(new Callable(this, "_spawn_bomb"));
     }
 
     @GodotMethod
@@ -26,8 +26,8 @@ public class MPBomberBombSpawner extends MultiplayerSpawner {
         if (posData == null || idData == null) return null;
         if (!(idData instanceof Number)) return null;
 
-        Godot scene = (Godot) call("load", "res://bomb.tscn");
-        Node bomb = ((PackedScene) scene).instantiate();
+        PackedScene scene = (PackedScene) ResourceLoader.singleton().load("res://bomb.tscn");
+        Node bomb = scene.instantiate();
         bomb.setProperty("position", data[0]);
         bomb.setProperty("from_player", ((Number) data[1]).intValue());
         return bomb;

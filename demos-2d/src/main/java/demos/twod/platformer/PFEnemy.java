@@ -4,7 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
-import org.godot.node.Node;
+import org.godot.node.RayCast2D;
 
 @GodotClass(name = "PFEnemy", parent = "CharacterBody2D")
 public class PFEnemy extends CharacterBody2D {
@@ -15,8 +15,8 @@ public class PFEnemy extends CharacterBody2D {
 	private double gravity = 980.0;
 	private org.godot.node.Sprite2D sprite;
 	private org.godot.node.AnimationPlayer animationPlayer;
-	private org.godot.node.Node floorDetectorLeft;
-	private org.godot.node.Node floorDetectorRight;
+	private RayCast2D floorDetectorLeft;
+	private RayCast2D floorDetectorRight;
 	private boolean initialized = false;
 
 	@Override
@@ -24,10 +24,10 @@ public class PFEnemy extends CharacterBody2D {
 		if (initialized) return;
 		initialized = true;
 
-		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
-		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
-		floorDetectorLeft = getNode("FloorDetectorLeft");
-		floorDetectorRight = getNode("FloorDetectorRight");
+		sprite = getNodeAs("Sprite2D", org.godot.node.Sprite2D.class);
+		animationPlayer = getNodeAs("AnimationPlayer", org.godot.node.AnimationPlayer.class);
+		floorDetectorLeft = getNodeAs("FloorDetectorLeft", RayCast2D.class);
+		floorDetectorRight = getNodeAs("FloorDetectorRight", RayCast2D.class);
 	}
 
 	@Override
@@ -41,9 +41,9 @@ public class PFEnemy extends CharacterBody2D {
 
 		vel = new Vector2(vel.getX(), vel.getY() + gravity * delta);
 
-		if (floorDetectorLeft != null && !(boolean) floorDetectorLeft.call("is_colliding")) {
+		if (floorDetectorLeft != null && !(boolean) floorDetectorLeft.isColliding()) {
 			vel = new Vector2(WALK_SPEED, vel.getY());
-		} else if (floorDetectorRight != null && !(boolean) floorDetectorRight.call("is_colliding")) {
+		} else if (floorDetectorRight != null && !(boolean) floorDetectorRight.isColliding()) {
 			vel = new Vector2(-WALK_SPEED, vel.getY());
 		}
 

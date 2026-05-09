@@ -42,10 +42,10 @@ public class FSMove extends FSOnGround {
         if (owner != null) {
             Vector2 vel = inputDir.normalized().mul(speed);
             owner.setProperty("velocity", vel);
-            owner.call("move_and_slide");
+            ((org.godot.node.CharacterBody2D) owner).moveAndSlide();
 
-            Object collisionCount = owner.call("get_slide_collision_count");
-            if (collisionCount instanceof Number && ((Number) collisionCount).intValue() > 0) {
+            int collisionCount = owner instanceof org.godot.node.CharacterBody2D body ? body.getSlideCollisionCount() : 0;
+            if (collisionCount > 0) {
                 // Collision handling
             }
         }

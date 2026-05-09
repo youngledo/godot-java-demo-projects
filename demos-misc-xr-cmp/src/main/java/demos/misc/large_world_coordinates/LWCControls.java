@@ -1,33 +1,38 @@
 package demos.misc.large_world_coordinates;
 
-import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
+import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Basis;
+import org.godot.math.Color;
 import org.godot.math.Transform3D;
 import org.godot.math.Vector2;
 import org.godot.math.Vector3;
+import org.godot.node.BaseButton;
+import org.godot.node.InputEventMouseButton;
+import org.godot.node.InputEventMouseMotion;
 import org.godot.node.Node3D;
+import org.godot.node.RichTextLabel;
 import org.godot.node.VBoxContainer;
-import org.godot.node.Node;
+import org.godot.singleton.OS;
 
 @GodotClass(name = "LWCControls", parent = "VBoxContainer")
 public class LWCControls extends VBoxContainer {
 
     private static final double ROT_SPEED = 0.003;
     private static final double ZOOM_SPEED = 0.5;
-    private static final int MAIN_BUTTONS = 1 | 4 | 2; // LEFT | MIDDLE | RIGHT
+    private static final int MAIN_BUTTONS = 1 | 4 | 2;
 
     @Export
-    public org.godot.Godot camera;
+    public Node3D camera;
     @Export
-    public org.godot.Godot cameraHolder;
+    public Node3D cameraHolder;
     @Export
-    public org.godot.Godot rotationX;
+    public Node3D rotationX;
     @Export
-    public org.godot.Godot nodeToMove;
+    public Node3D nodeToMove;
     @Export
-    public org.godot.Godot rigidBody;
+    public Node3D rigidBody;
 
     private double zoom = 7.0;
     private double rotX = 0.0;
@@ -40,98 +45,75 @@ public class LWCControls extends VBoxContainer {
         initialized = true;
 
         if (camera != null) {
-            Object pos = camera.getProperty("position");
-            if (pos instanceof Vector3) {
-                zoom = ((Vector3) pos).getZ();
-            }
+            zoom = camera.getPosition().z;
         }
 
-        org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        org.godot.node.Node helpLabel = getNode("%HelpLabel");
-        if ((boolean) os.call("has_feature", "double")) {
-            if (helpLabel != null) {
-                helpLabel.setProperty("text",
-                    "Double precision is enabled in this engine build.\n" +
-                    "No shaking should occur at high coordinate levels\n" +
-                    "(±65,536 or more on any axis).");
-                helpLabel.call("add_theme_color_override", "font_color",
-                    new org.godot.math.Color(0.667, 1.0, 0.667));
-            }
+        RichTextLabel helpLabel = getNodeAs("%HelpLabel", RichTextLabel.class);
+        if (OS.singleton().hasFeature("double") && helpLabel != null) {
+            helpLabel.setText("Double precision is enabled in this engine build.\n"
+                + "No shaking should occur at high coordinate levels\n"
+                + "(±65,536 or more on any axis).");
+            helpLabel.addThemeColorOverride("font_color", new Color(0.667, 1.0, 0.667));
         }
     }
 
     @Override
     public void _process(double delta) {
-        org.godot.node.Node coordinates = getNode("%Coordinates");
-        org.godot.node.Node incrementX = getNode("%IncrementX");
-        org.godot.node.Node incrementY = getNode("%IncrementY");
-        org.godot.node.Node incrementZ = getNode("%IncrementZ");
+        RichTextLabel coordinates = getNodeAs("%Coordinates", RichTextLabel.class);
+        BaseButton incrementX = getNodeAs("%IncrementX", BaseButton.class);
+        BaseButton incrementY = getNodeAs("%IncrementY", BaseButton.class);
+        BaseButton incrementZ = getNodeAs("%IncrementZ", BaseButton.class);
 
         if (nodeToMove != null && coordinates != null) {
-            Vector3 pos = (Vector3) nodeToMove.getProperty("position");
-            if (pos != null) {
-                String text = String.format(
-                    "X: [color=#fb9]%f[/color]\nY: [color=#bfa]%f[/color]\nZ: [color=#9cf]%f[/color]",
-                    pos.getX(), pos.getY(), pos.getZ());
-                coordinates.setProperty("text", text);
-            }
+            Vector3 pos = nodeToMove.getPosition();
+            coordinates.setText(String.format(
+                "X: [color=#fb9]%f[/color]\nY: [color=#bfa]%f[/color]\nZ: [color=#9cf]%f[/color]",
+                pos.x, pos.y, pos.z));
 
-            if (incrementX != null && (boolean) incrementX.getProperty("button_pressed")) {
-                Vector3 curPos = (Vector3) nodeToMove.getProperty("position");
-                nodeToMove.setProperty("position", new Vector3(curPos.getX() + 10000.0 * delta, curPos.getY(), curPos.getZ()));
+            if (incrementX != null && incrementX.isButtonPressed()) {
+                Vector3 curPos = nodeToMove.getPosition();
+                nodeToMove.setPosition(new Vector3(curPos.x + 10000.0 * delta, curPos.y, curPos.z));
             }
-            if (incrementY != null && (boolean) incrementY.getProperty("button_pressed")) {
-                Vector3 curPos = (Vector3) nodeToMove.getProperty("position");
-                nodeToMove.setProperty("position", new Vector3(curPos.getX(), curPos.getY() + 100000.0 * delta, curPos.getZ()));
+            if (incrementY != null && incrementY.isButtonPressed()) {
+                Vector3 curPos = nodeToMove.getPosition();
+                nodeToMove.setPosition(new Vector3(curPos.x, curPos.y + 100000.0 * delta, curPos.z));
             }
-            if (incrementZ != null && (boolean) incrementZ.getProperty("button_pressed")) {
-                Vector3 curPos = (Vector3) nodeToMove.getProperty("position");
-                nodeToMove.setProperty("position", new Vector3(curPos.getX(), curPos.getY(), curPos.getZ() + 1000000.0 * delta));
+            if (incrementZ != null && incrementZ.isButtonPressed()) {
+                Vector3 curPos = nodeToMove.getPosition();
+                nodeToMove.setPosition(new Vector3(curPos.x, curPos.y, curPos.z + 1000000.0 * delta));
             }
         }
     }
 
     @Override
     public boolean _input(Object inputEvent) {
-        if (inputEvent instanceof org.godot.Godot) {
-            org.godot.Godot evt = (org.godot.Godot) inputEvent;
-            String className = (String) evt.call("get_class");
-
-            if ("InputEventMouseButton".equals(className)) {
-                long buttonIndex = (long) evt.getProperty("button_index");
-                if (buttonIndex == 4) { // WHEEL_UP
-                    zoom -= ZOOM_SPEED;
-                }
-                if (buttonIndex == 5) { // WHEEL_DOWN
-                    zoom += ZOOM_SPEED;
-                }
-                zoom = Math.max(4, Math.min(15, zoom));
-                if (camera != null) {
-                    Object camPos = camera.getProperty("position");
-                    if (camPos instanceof Vector3) {
-                        Vector3 p = (Vector3) camPos;
-                        camera.setProperty("position", new Vector3(p.getX(), p.getY(), zoom));
-                    }
-                }
+        if (inputEvent instanceof InputEventMouseButton event) {
+            long buttonIndex = event.getButtonIndex();
+            if (buttonIndex == 4) {
+                zoom -= ZOOM_SPEED;
             }
+            if (buttonIndex == 5) {
+                zoom += ZOOM_SPEED;
+            }
+            zoom = Math.max(4, Math.min(15, zoom));
+            if (camera != null) {
+                Vector3 p = camera.getPosition();
+                camera.setPosition(new Vector3(p.x, p.y, zoom));
+            }
+        }
 
-            if ("InputEventMouseMotion".equals(className)) {
-                long buttonMask = (long) evt.getProperty("button_mask");
-                if ((buttonMask & MAIN_BUTTONS) != 0) {
-                    Vector2 relative = (Vector2) evt.getProperty("screen_relative");
-                    if (relative != null) {
-                        rotY -= relative.getX() * ROT_SPEED;
-                        rotX -= relative.getY() * ROT_SPEED;
-                        rotX = Math.max(-1.4, Math.min(0.16, rotX));
-                        if (cameraHolder != null) {
-                            cameraHolder.setProperty("transform",
-                                new Transform3D(Basis.fromEuler(new Vector3(0, rotY, 0)), new Vector3()));
-                        }
-                        if (rotationX != null) {
-                            rotationX.setProperty("transform",
-                                new Transform3D(Basis.fromEuler(new Vector3(rotX, 0, 0)), new Vector3()));
-                        }
-                    }
+        if (inputEvent instanceof InputEventMouseMotion event) {
+            long buttonMask = event.getButtonMask();
+            if ((buttonMask & MAIN_BUTTONS) != 0) {
+                Vector2 relative = event.getScreenRelative();
+                rotY -= relative.x * ROT_SPEED;
+                rotX -= relative.y * ROT_SPEED;
+                rotX = Math.max(-1.4, Math.min(0.16, rotX));
+                if (cameraHolder != null) {
+                    cameraHolder.setTransform(new Transform3D(Basis.fromEuler(new Vector3(0, rotY, 0)), new Vector3()));
+                }
+                if (rotationX != null) {
+                    rotationX.setTransform(new Transform3D(Basis.fromEuler(new Vector3(rotX, 0, 0)), new Vector3()));
                 }
             }
         }
@@ -142,15 +124,15 @@ public class LWCControls extends VBoxContainer {
     public void OnGoToButtonPressed(long xPosition) {
         if (nodeToMove == null) return;
         if (xPosition == 0) {
-            nodeToMove.setProperty("position", Vector3.ZERO);
+            nodeToMove.setPosition(Vector3.ZERO);
         } else {
-            Vector3 curPos = (Vector3) nodeToMove.getProperty("position");
-            nodeToMove.setProperty("position", new Vector3((double) xPosition, curPos.getY(), curPos.getZ()));
+            Vector3 curPos = nodeToMove.getPosition();
+            nodeToMove.setPosition(new Vector3((double) xPosition, curPos.y, curPos.z));
         }
     }
 
     @GodotMethod
     public void OnOpenDocumentationPressed() {
-        org.godot.singleton.OS.singleton().shellOpen("https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
+        OS.singleton().shellOpen("https://docs.godotengine.org/en/latest/tutorials/physics/large_world_coordinates.html");
     }
 }

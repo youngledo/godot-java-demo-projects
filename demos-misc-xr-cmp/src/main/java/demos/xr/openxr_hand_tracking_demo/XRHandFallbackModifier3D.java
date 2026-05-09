@@ -1,11 +1,18 @@
 package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
-import org.godot.node.Node3D;
+import org.godot.math.Transform3D;
+import org.godot.math.Vector3;
 import org.godot.node.Node;
+import org.godot.node.Skeleton3D;
+import org.godot.node.SkeletonModifier3D;
+import org.godot.node.XRNode3D;
+import org.godot.node.XRPositionalTracker;
+import org.godot.node.XRTracker;
+import org.godot.singleton.XRServer;
 
 @GodotClass(name = "XRHandFallbackModifier3D", parent = "SkeletonModifier3D")
-public class XRHandFallbackModifier3D extends org.godot.Godot {
+public class XRHandFallbackModifier3D extends SkeletonModifier3D {
 
     private String triggerAction = "trigger";
     private String gripAction = "grip";
@@ -19,29 +26,20 @@ public class XRHandFallbackModifier3D extends org.godot.Godot {
 
     @Override
     public void _process(double delta) {
-        // _process_modification is called by the skeleton system.
-        // In Java, we implement this as a regular call.
         processModification();
     }
 
     private void processModification() {
-        // Get our skeleton.
-        org.godot.node.Skeleton3D skeleton = (org.godot.node.Skeleton3D) call("get_skeleton");
+        Skeleton3D skeleton = getSkeleton();
         if (skeleton == null) return;
 
-        // Find our parent XRNode3D.
-        org.godot.Godot parent = (org.godot.Godot) call("get_parent");
-        while (parent != null) {
-            String className = (String) parent.call("get_class");
-            if ("XRNode3D".equals(className) || "XRController3D".equals(className) || "XRCamera3D".equals(className)) {
-                break;
-            }
-            parent = (org.godot.Godot) parent.call("get_parent");
+        Node parent = getParent();
+        while (parent != null && !(parent instanceof XRNode3D)) {
+            parent = parent.getParent();
         }
-        if (parent == null) return;
+        if (!(parent instanceof XRNode3D xrNode)) return;
 
-        // Check if we have an active hand tracker; if so, don't need fallback.
-        String parentTracker = (String) parent.getProperty("tracker");
+        String parentTracker = xrNode.getTracker();
         if (!"left_hand".equals(parentTracker) && !"right_hand".equals(parentTracker)) {
             return;
         }
@@ -49,57 +47,45 @@ public class XRHandFallbackModifier3D extends org.godot.Godot {
         double trigger = 0.0;
         double grip = 0.0;
 
-        // Check our tracker for trigger and grip values.
-        Object trackerObj = call("get_tracker", parentTracker);
-        if (trackerObj != null) {
-            org.godot.Godot tracker = (org.godot.Godot) trackerObj;
-            Object triggerValue = tracker.call("get_input", triggerAction);
-            if (triggerValue instanceof Double) {
-                trigger = (Double) triggerValue;
-            } else if (triggerValue instanceof Float) {
-                trigger = ((Float) triggerValue).doubleValue();
-            }
-            Object gripValue = tracker.call("get_input", gripAction);
-            if (gripValue instanceof Double) {
-                grip = (Double) gripValue;
-            } else if (gripValue instanceof Float) {
-                grip = ((Float) gripValue).doubleValue();
-            }
+        XRTracker tracker = XRServer.singleton().getTracker(parentTracker);
+        if (tracker instanceof XRPositionalTracker positionalTracker) {
+            trigger = inputAsDouble(positionalTracker.getInput(triggerAction));
+            grip = inputAsDouble(positionalTracker.getInput(gripAction));
         }
 
-        // Now position bones.
-        int boneCount = (int) skeleton.getBoneCount();
+        int boneCount = skeleton.getBoneCount();
         double deg45rad = Math.toRadians(45.0);
         double deg20rad = Math.toRadians(20.0);
         double deg90rad = Math.toRadians(90.0);
 
         for (int i = 0; i < boneCount; i++) {
-            org.godot.math.Transform3D t = (org.godot.math.Transform3D) skeleton.getBoneRest(i);
-            String boneName = (String) skeleton.getBoneName(i);
+            Transform3D transform = skeleton.getBoneRest(i);
+            String boneName = skeleton.getBoneName(i);
 
             if ("LeftHand".equals(boneName)) {
-                org.godot.math.Vector3 origin = t.getOrigin();
-                t = new org.godot.math.Transform3D(t.getBasis(), origin.add(new org.godot.math.Vector3(-0.015, 0.0, 0.04)));
+                Vector3 origin = transform.getOrigin();
+                transform = new Transform3D(transform.getBasis(), origin.add(new Vector3(-0.015, 0.0, 0.04)));
             } else if ("RightHand".equals(boneName)) {
-                org.godot.math.Vector3 origin = t.getOrigin();
-                t = new org.godot.math.Transform3D(t.getBasis(), origin.add(new org.godot.math.Vector3(0.015, 0.0, 0.04)));
+                Vector3 origin = transform.getOrigin();
+                transform = new Transform3D(transform.getBasis(), origin.add(new Vector3(0.015, 0.0, 0.04)));
             } else if ("LeftIndexDistal".equals(boneName) || "LeftIndexIntermediate".equals(boneName)
                     || "RightIndexDistal".equals(boneName) || "RightIndexIntermediate".equals(boneName)) {
-                org.godot.math.Transform3D rot = new org.godot.math.Transform3D().rotated(
-                        new org.godot.math.Vector3(1.0, 0.0, 0.0), deg45rad * trigger);
-                t = t.multiply(rot);
+                Transform3D rotation = new Transform3D().rotated(new Vector3(1.0, 0.0, 0.0), deg45rad * trigger);
+                transform = transform.multiply(rotation);
             } else if ("LeftIndexProximal".equals(boneName) || "RightIndexProximal".equals(boneName)) {
-                org.godot.math.Transform3D rot = new org.godot.math.Transform3D().rotated(
-                        new org.godot.math.Vector3(1.0, 0.0, 0.0), deg20rad * trigger);
-                t = t.multiply(rot);
+                Transform3D rotation = new Transform3D().rotated(new Vector3(1.0, 0.0, 0.0), deg20rad * trigger);
+                transform = transform.multiply(rotation);
             } else if (isMiddleRingLittleBone(boneName)) {
-                org.godot.math.Transform3D rot = new org.godot.math.Transform3D().rotated(
-                        new org.godot.math.Vector3(1.0, 0.0, 0.0), deg90rad * grip);
-                t = t.multiply(rot);
+                Transform3D rotation = new Transform3D().rotated(new Vector3(1.0, 0.0, 0.0), deg90rad * grip);
+                transform = transform.multiply(rotation);
             }
 
-            skeleton.setBonePose(i, t);
+            skeleton.setBonePose(i, transform);
         }
+    }
+
+    private double inputAsDouble(Object value) {
+        return value instanceof Number number ? number.doubleValue() : 0.0;
     }
 
     private boolean isMiddleRingLittleBone(String boneName) {

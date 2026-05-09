@@ -32,7 +32,7 @@ public class FSPlayerController extends CharacterBody2D {
     @GodotMethod
     public void takeDamage(Object attacker, double amount, Object effect) {
         org.godot.Godot atk = (org.godot.Godot) attacker;
-        if (atk != null && (boolean) call("is_ancestor_of", atk)) return;
+        if (atk instanceof Node atkNode && isAncestorOf(atkNode)) return;
 
         org.godot.node.Node stagger = getNode("States/Stagger");
         if (stagger != null) {

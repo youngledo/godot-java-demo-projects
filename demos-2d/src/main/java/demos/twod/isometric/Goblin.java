@@ -2,9 +2,9 @@ package demos.twod.isometric;
 
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
+import org.godot.node.AnimatedSprite2D;
 import org.godot.node.CharacterBody2D;
 import org.godot.singleton.Input;
-import org.godot.node.Node;
 
 @GodotClass(name = "Goblin", parent = "CharacterBody2D")
 public class Goblin extends CharacterBody2D {
@@ -23,14 +23,14 @@ public class Goblin extends CharacterBody2D {
 		{"back_walk", "false"}, {"45back_right_walk", "false"},
 	};
 
-	private org.godot.node.Sprite2D sprite;
+	private AnimatedSprite2D sprite;
 	private double spriteScaleX = 1.0;
 	private double lastDirX = 1.0;
 	private double lastDirY = 0.0;
 
 	@Override
 	public void _ready() {
-		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
+		sprite = getNodeAs("Sprite2D", AnimatedSprite2D.class);
 		if (sprite != null) {
 			Vector2 scale = (Vector2) sprite.getProperty("scale");
 			spriteScaleX = scale.getX();
@@ -72,7 +72,7 @@ public class Goblin extends CharacterBody2D {
 		if (angle < 0) angle += 360;
 		int slice = (int) Math.floor(angle / 45) % 8;
 
-		sprite.call("play", anims[slice][0]);
+		sprite.play(anims[slice][0]);
 		boolean flipH = "true".equals(anims[slice][1]);
 		if (!flipH) {
 			// Flip based on direction for side animations
@@ -88,7 +88,7 @@ public class Goblin extends CharacterBody2D {
 		if (lastDirX < 0) {
 			if (slice == 0) {
 				sprite.setProperty("flip_h", true);
-				sprite.call("play", "side_right_idle".contains("idle") && anims == IDLE_ANIMS ? "side_left_idle" : anims[0][0]);
+				sprite.play("side_right_idle".contains("idle") && anims == IDLE_ANIMS ? "side_left_idle" : anims[0][0]);
 				sprite.setProperty("flip_h", true);
 			}
 		}

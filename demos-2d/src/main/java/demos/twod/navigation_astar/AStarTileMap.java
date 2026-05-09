@@ -3,6 +3,7 @@ package demos.twod.navigation_astar;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
 import org.godot.node.TileMapLayer;
 
 @GodotClass(name = "AStarTileMap", parent = "TileMapLayer")
@@ -16,24 +17,19 @@ public class AStarTileMap extends TileMapLayer {
 		if (initialized) return;
 		initialized = true;
 
-		// Create AStarGrid2D
-		Object astarObj = call("create_astar_grid");
-		if (astarObj != null) {
-			astar = (org.godot.node.AStarGrid2D) astarObj;
-		}
+		astar = org.godot.node.AStarGrid2D.create();
 		if (astar != null) {
-			astar.setProperty("cell_size", new Vector2(64, 64));
-			astar.setProperty("offset", new Vector2(32, 32));
-			astar.setProperty("default_compute_heuristic", 0); // MANHATTAN
-			astar.setProperty("default_estimate_heuristic", 0);
-			astar.setProperty("diagonal_mode", 1); // NEVER
+			astar.setCellSize(new Vector2(64, 64));
+			astar.setOffset(new Vector2(32, 32));
+			astar.setDefaultComputeHeuristic(0);
+			astar.setDefaultEstimateHeuristic(0);
+			astar.setDiagonalMode(1);
 			astar.update();
 
-			// Mark used cells as solid
-			Object[] usedCells = (Object[]) call("get_used_cells");
+			Vector2i[] usedCells = getUsedCells();
 			if (usedCells != null) {
-				for (Object cell : usedCells) {
-					astar.call("set_point_solid", cell);
+				for (Vector2i cell : usedCells) {
+					astar.setPointSolid(cell);
 				}
 			}
 		}
@@ -41,18 +37,16 @@ public class AStarTileMap extends TileMapLayer {
 
 	@GodotMethod
 	public Vector2 roundLocalPosition(Vector2 localPosition) {
-		Object mapPos = call("local_to_map", localPosition);
-		Object result = call("map_to_local", mapPos);
-		return (Vector2) result;
+		Vector2i mapPos = localToMap(localPosition);
+		return mapToLocal(mapPos);
 	}
 
 	@GodotMethod
 	public boolean isPointWalkable(Vector2 localPosition) {
 		if (astar == null) return false;
-		Object mapPos = call("local_to_map", localPosition);
-		boolean inBounds = (boolean) astar.call("is_in_boundsv", mapPos);
-		if (!inBounds) return false;
-		return !(boolean) astar.call("is_point_solid", mapPos);
+		Vector2i mapPos = localToMap(localPosition);
+		if (!astar.isInBoundsv(mapPos)) return false;
+		return !astar.isPointSolid(mapPos);
 	}
 
 	@GodotMethod
@@ -63,10 +57,18 @@ public class AStarTileMap extends TileMapLayer {
 	@GodotMethod
 	public Vector2[] findPath(Vector2 localStart, Vector2 localEnd) {
 		if (astar == null) return new Vector2[0];
-		Object startMap = call("local_to_map", localStart);
-		Object endMap = call("local_to_map", localEnd);
-		Object pathObj = astar.call("get_point_path", startMap, endMap);
-		if (pathObj instanceof Vector2[]) return (Vector2[]) pathObj;
-		return new Vector2[0];
+		Vector2i startMap = localToMap(localStart);
+		Vector2i endMap = localToMap(localEnd);
+		return toVector2Array(astar.getPointPath(startMap, endMap));
+	}
+
+	private static Vector2[] toVector2Array(double[][] path) {
+		if (path == null) return new Vector2[0];
+		Vector2[] result = new Vector2[path.length];
+		for (int i = 0; i < path.length; i++) {
+			double[] point = path[i];
+			result[i] = point != null && point.length >= 2 ? new Vector2(point[0], point[1]) : Vector2.ZERO;
+		}
+		return result;
 	}
 }

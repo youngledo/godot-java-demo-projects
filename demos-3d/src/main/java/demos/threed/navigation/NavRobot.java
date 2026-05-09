@@ -5,7 +5,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector3;
 import org.godot.node.Marker3D;
-import org.godot.node.Node;
+import org.godot.node.NavigationAgent3D;
 
 @GodotClass(name = "NavRobot", parent = "Marker3D")
 public class NavRobot extends Marker3D {
@@ -15,7 +15,7 @@ public class NavRobot extends Marker3D {
 	@Export
 	public boolean showPath = true;
 
-	private org.godot.node.Node navAgent;
+	private NavigationAgent3D navAgent;
 	private org.godot.Godot navPathLine;
 	private boolean initialized = false;
 
@@ -24,7 +24,7 @@ public class NavRobot extends Marker3D {
 		if (initialized) return;
 		initialized = true;
 
-		navAgent = getNode("NavigationAgent3D");
+		navAgent = getNodeAs("NavigationAgent3D", NavigationAgent3D.class);
 
 		// Create a Line3D equivalent - we'll use a simple approach
 		// The original creates a Line3D (MeshInstance3D subclass) programmatically
@@ -34,10 +34,10 @@ public class NavRobot extends Marker3D {
 	public void _physicsProcess(double delta) {
 		if (navAgent == null) return;
 
-		boolean finished = (boolean) navAgent.call("is_navigation_finished");
+		boolean finished = navAgent.isNavigationFinished();
 		if (finished) return;
 
-		Vector3 nextPosition = (Vector3) navAgent.call("get_next_path_position");
+		Vector3 nextPosition = navAgent.getNextPathPosition();
 		Vector3 globalPos = getGlobalPosition();
 
 		if (nextPosition == null || globalPos == null) return;
@@ -74,6 +74,6 @@ public class NavRobot extends Marker3D {
 	@GodotMethod
 	public void setTargetPosition(Vector3 targetPosition) {
 		if (navAgent == null) return;
-		navAgent.call("set_target_position", targetPosition);
+		navAgent.setTargetPosition(targetPosition);
 	}
 }

@@ -59,14 +59,14 @@ public class PongGame extends Node2D {
 
 		// Ball
 		ball = ColorRect.create();
-		ball.call("set_color", new Color(1, 1, 1));
-		ball.call("set_size", new Vector2(BALL_SIZE, BALL_SIZE));
+		ball.setColor(new Color(1, 1, 1));
+		ball.setSize(new Vector2(BALL_SIZE, BALL_SIZE));
 		addChild(ball, false, 0);
 
 		// Paddles
 		leftPaddle = ColorRect.create();
-		leftPaddle.call("set_color", new Color(0, 1, 1));
-		leftPaddle.call("set_size", new Vector2(PADDLE_W, PADDLE_H));
+		leftPaddle.setColor(new Color(0, 1, 1));
+		leftPaddle.setSize(new Vector2(PADDLE_W, PADDLE_H));
 		addChild(leftPaddle, false, 0);
 
 		rightPaddle = ColorRect.create();

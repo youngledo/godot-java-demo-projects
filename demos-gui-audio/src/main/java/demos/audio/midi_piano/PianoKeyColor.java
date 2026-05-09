@@ -1,14 +1,12 @@
 package demos.audio.midi_piano;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
 import org.godot.node.ColorRect;
+import org.godot.node.InputEventMouseButton;
+import org.godot.node.Node;
 
-/**
- * PianoKeyColor - script attached to the ColorRect child of PianoKey.
- * Handles mouse click input on individual piano keys.
- */
 @GodotClass(name = "PianoKeyColor", parent = "ColorRect")
 public class PianoKeyColor extends ColorRect {
 
@@ -19,20 +17,15 @@ public class PianoKeyColor extends ColorRect {
         if (initialized) return;
         initialized = true;
 
-        connect("gui_input", new org.godot.core.Callable(this, "_onGuiInput"), 0);
+        connect("gui_input", new Callable(this, "_onGuiInput"), 0);
     }
 
     @GodotMethod
     public void _onGuiInput(Object inputEvent) {
-        Godot event = (Godot) inputEvent;
-        String className = (String) event.call("get_class");
-        if ("InputEventMouseButton".equals(className)) {
-            boolean pressed = (boolean) event.getProperty("pressed");
-            if (pressed) {
-                PianoKey parent = (PianoKey) getParent();
-                if (parent != null) {
-                    parent.activate();
-                }
+        if (inputEvent instanceof InputEventMouseButton event && event.isPressed()) {
+            Node parent = getParent();
+            if (parent instanceof PianoKey pianoKey) {
+                pianoKey.activate();
             }
         }
     }

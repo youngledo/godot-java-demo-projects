@@ -66,8 +66,8 @@ public class MPPong extends Node2D {
 
         if (gameEnded) {
             getNode("ExitGame").setProperty("visible", true);
-            Godot ball = (Godot) getNode("Ball");
-            ball.call("rpc", "stop");
+            Node ball = getNode("Ball");
+            ball.rpc("stop");
         }
     }
 

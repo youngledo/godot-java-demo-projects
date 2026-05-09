@@ -2,9 +2,12 @@ package demos.gui.translation;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.AudioStreamPlayer;
+import org.godot.node.PackedScene;
 import org.godot.node.Panel;
-import org.godot.node.Node;
 import org.godot.node.SceneTree;
+import org.godot.singleton.ResourceLoader;
+import org.godot.singleton.TranslationServer;
 
 @GodotClass(name = "TranslationPo", parent = "Panel")
 public class TranslationPo extends Panel {
@@ -21,41 +24,39 @@ public class TranslationPo extends Panel {
 
     @GodotMethod
     public void OnEnglishPressed() {
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        ts.call("set_locale", "en");
-        printIntro();
+        setLocale("en");
     }
 
     @GodotMethod
     public void OnSpanishPressed() {
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        ts.call("set_locale", "es");
-        printIntro();
+        setLocale("es");
     }
 
     @GodotMethod
     public void OnJapanesePressed() {
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        ts.call("set_locale", "ja");
-        printIntro();
+        setLocale("ja");
     }
 
     @GodotMethod
     public void OnPlayAudioPressed() {
-        org.godot.node.Node audio = getNode("Audio");
-        if (audio != null) audio.call("play");
+        AudioStreamPlayer audio = getNodeAs("Audio", AudioStreamPlayer.class);
+        if (audio != null) audio.play();
+    }
+
+    private void setLocale(String locale) {
+        TranslationServer.singleton().setLocale(locale);
+        printIntro();
     }
 
     private void printIntro() {
-        org.godot.singleton.TranslationServer ts = org.godot.singleton.TranslationServer.singleton();
-        String locale = (String) ts.call("get_locale");
-        String localeName = (String) ts.call("get_locale_name", locale);
+        TranslationServer ts = TranslationServer.singleton();
+        String locale = ts.getLocale();
+        String localeName = ts.getLocaleName(locale);
         System.out.println("\nLanguage: " + localeName + " (" + locale + ")");
-        System.out.println(call("tr", "Hello, this is a translation demo project."));
+        System.out.println(tr("Hello, this is a translation demo project."));
 
-        // PO plural translation example
         int daysPassed = 1 + (int) (Math.random() * 3);
-        String plural = (String) call("tr_n", "One day ago.", "{days} days ago.", daysPassed);
+        String plural = trN("One day ago.", "{days} days ago.", daysPassed);
         if (plural != null) {
             plural = plural.replace("{days}", String.valueOf(daysPassed));
             System.out.println(plural);
@@ -64,12 +65,9 @@ public class TranslationPo extends Panel {
 
     @GodotMethod
     public void OnGoToCsvTranslationDemoPressed() {
-        org.godot.node.SceneTree tree = getTree();
-        if (tree != null) {
-            org.godot.node.PackedScene packedScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://translation_demo_csv.tscn");
-            if (packedScene != null) {
-                tree.changeSceneToPacked(packedScene);
-            }
+        SceneTree tree = getTree();
+        if (tree != null && ResourceLoader.singleton().load("res://translation_demo_csv.tscn") instanceof PackedScene packedScene) {
+            tree.changeSceneToPacked(packedScene);
         }
     }
 }

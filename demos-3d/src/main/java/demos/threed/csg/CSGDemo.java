@@ -21,7 +21,7 @@ public class CSGDemo extends Node {
 
 	private org.godot.node.Node testers;
 	private org.godot.node.Camera3D cameraHolder;
-	private org.godot.node.Node rotationX;
+	private org.godot.node.Node3D rotationX;
 	private org.godot.node.Camera3D camera;
 	private boolean initialized = false;
 
@@ -32,14 +32,14 @@ public class CSGDemo extends Node {
 
 		testers = getNode("Testers");
 		cameraHolder = (org.godot.node.Camera3D) getNode("CameraHolder");
-		rotationX = getNode("CameraHolder/RotationX");
+		rotationX = getNodeAs("CameraHolder/RotationX", org.godot.node.Node3D.class);
 		camera = (org.godot.node.Camera3D) getNode("CameraHolder/RotationX/Camera3D");
 
 		if (cameraHolder != null) {
 			cameraHolder.setRotation(new Vector3(0, rotY, 0));
 		}
 		if (rotationX != null) {
-			rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+			rotationX.setRotation( new Vector3(rotX, 0, 0));
 		}
 		updateGui();
 	}
@@ -80,7 +80,7 @@ public class CSGDemo extends Node {
 					cameraHolder.setRotation(new Vector3(0, rotY, 0));
 				}
 				if (rotationX != null) {
-					rotationX.call("set_rotation", new Vector3(rotX, 0, 0));
+					rotationX.setRotation( new Vector3(rotX, 0, 0));
 				}
 				return true;
 			}
@@ -124,10 +124,10 @@ public class CSGDemo extends Node {
 
 	private void updateGui() {
 		if (testers == null) return;
-		org.godot.Godot currentTester = (org.godot.Godot) testers.getChild(testerIndex);
+		org.godot.node.Node currentTester = testers.getChild(testerIndex);
 		if (currentTester == null) return;
 
-		String name = (String) currentTester.call("get_name");
+		String name = currentTester.getName();
 		org.godot.node.Node testName = getNode("TestName");
 		if (testName != null) {
 			testName.setProperty("text", capitalize(name));

@@ -3,14 +3,22 @@ package demos.misc.window_management;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
+import org.godot.node.Button;
+import org.godot.node.CanvasItem;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.InputEventKey;
+import org.godot.node.InputEventMouseMotion;
+import org.godot.node.Label;
+import org.godot.singleton.DisplayServer;
+import org.godot.singleton.Input;
+import org.godot.singleton.OS;
 
 @GodotClass(name = "WindowControl", parent = "Control")
 public class WindowControl extends Control {
 
-    private org.godot.node.Node observer;
-    private org.godot.math.Vector2 mousePosition = new Vector2();
+    private Observer observer;
+    private Vector2 mousePosition = new Vector2();
     private boolean initialized = false;
 
     @Override
@@ -18,93 +26,92 @@ public class WindowControl extends Control {
         if (initialized) return;
         initialized = true;
 
-        observer = getNode("../Observer");
+        observer = getNodeAs("../Observer", Observer.class);
 
-        org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
+        OS os = OS.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
 
-        if ((boolean) os.call("has_feature", "web")) {
+        if (os.hasFeature("web")) {
             String[] buttonPaths = {
-                "Buttons/Button_FixedSize",
-                "Buttons/Button_Minimized",
-                "Buttons/Button_Maximized",
-                "Buttons/Button_MoveTo",
-                "Buttons/Button_Resize",
-                "Buttons/Button_MouseModeConfined",
-                "Buttons/Button_MouseModeConfinedHidden",
-                "CheckButton"
+                    "Buttons/Button_FixedSize",
+                    "Buttons/Button_Minimized",
+                    "Buttons/Button_Maximized",
+                    "Buttons/Button_MoveTo",
+                    "Buttons/Button_Resize",
+                    "Buttons/Button_MouseModeConfined",
+                    "Buttons/Button_MouseModeConfinedHidden",
+                    "CheckButton"
             };
             for (String path : buttonPaths) {
-                org.godot.node.Node btn = getNode(path);
-                if (btn != null) {
-                    btn.setProperty("disabled", true);
-                    String text = (String) btn.getProperty("text");
-                    btn.setProperty("text", text + " (not supported on Web)");
+                Button button = getNodeAs(path, Button.class);
+                if (button != null) {
+                    button.setDisabled(true);
+                    button.setText(button.getText() + " (not supported on Web)");
                 }
             }
         }
 
-        if (!checkWmApi() ) {
+        if (!checkWmApi()) {
             setPhysicsProcess(false);
             setProcessInput(false);
         }
 
-        org.godot.node.Node refreshLabel = getNode("Labels/Label_Screen0_RefreshRate");
+        Label refreshLabel = getNodeAs("Labels/Label_Screen0_RefreshRate", Label.class);
         if (refreshLabel != null) {
-            double rate = (double) ds.call("screen_get_refresh_rate");
-            refreshLabel.setProperty("text", String.format("Screen0 Refresh Rate: %.2f Hz", rate));
+            double rate = displayServer.screenGetRefreshRate();
+            refreshLabel.setText(String.format("Screen0 Refresh Rate: %.2f Hz", rate));
         }
 
-        long screenCount = (long) ds.call("get_screen_count");
+        int screenCount = displayServer.getScreenCount();
         if (screenCount > 1) {
-            org.godot.node.Node refreshLabel1 = getNode("Labels/Label_Screen1_RefreshRate");
+            Label refreshLabel1 = getNodeAs("Labels/Label_Screen1_RefreshRate", Label.class);
             if (refreshLabel1 != null) {
-                double rate1 = (double) ds.call("screen_get_refresh_rate", 1);
-                refreshLabel1.setProperty("text", String.format("Screen1 Refresh Rate: %.2f Hz", rate1));
+                double rate1 = displayServer.screenGetRefreshRate(1);
+                refreshLabel1.setText(String.format("Screen1 Refresh Rate: %.2f Hz", rate1));
             }
         }
     }
 
     @Override
     public void _physicsProcess(double delta) {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
+        Input input = Input.singleton();
 
-        long windowMode = (long) ds.call("window_get_mode");
+        int windowMode = displayServer.windowGetMode();
         String modeText = "Mode: ";
-        if (windowMode == 3) { // WINDOW_MODE_FULLSCREEN
+        if (windowMode == 3) {
             modeText += "Fullscreen\n";
         } else {
             modeText += "Windowed\n";
         }
 
-        boolean resizeDisabled = (boolean) ds.call("window_get_flag", 0); // WINDOW_FLAG_RESIZE_DISABLED
+        boolean resizeDisabled = displayServer.windowGetFlag(0);
         if (resizeDisabled) modeText += "Fixed Size\n";
-        if (windowMode == 2) modeText += "Minimized\n"; // WINDOW_MODE_MINIMIZED
+        if (windowMode == 2) modeText += "Minimized\n";
         if (windowMode == 3) modeText += "Maximized\n";
 
-        long mouseMode = (long) input.getMouseMode();
-        org.godot.node.CanvasItem keyInfoLabel = (org.godot.node.CanvasItem) getNode("Buttons/Label_MouseModeCaptured_KeyInfo");
-        if (mouseMode == 2) { // MOUSE_MODE_CAPTURED
+        long mouseMode = input.getMouseMode();
+        CanvasItem keyInfoLabel = getNodeAs("Buttons/Label_MouseModeCaptured_KeyInfo", CanvasItem.class);
+        if (mouseMode == 2) {
             modeText += "Mouse Captured\n";
             if (keyInfoLabel != null) keyInfoLabel.show();
-        } else {
-            if (keyInfoLabel != null) keyInfoLabel.hide();
+        } else if (keyInfoLabel != null) {
+            keyInfoLabel.hide();
         }
 
         setLabelText("Labels/Label_Mode", modeText);
-        setLabelText("Labels/Label_Position", "Position: " + ds.call("window_get_position"));
-        setLabelText("Labels/Label_Size", "Size: " + ds.call("window_get_size"));
+        setLabelText("Labels/Label_Position", "Position: " + displayServer.windowGetPosition());
+        setLabelText("Labels/Label_Size", "Size: " + displayServer.windowGetSize());
         setLabelText("Labels/Label_MousePosition", String.format("Mouse Position: %.4s", mousePosition));
-        setLabelText("Labels/Label_Screen_Count", "Screen_Count: " + ds.call("get_screen_count"));
-        setLabelText("Labels/Label_Screen_Current", "Screen: " + ds.call("window_get_current_screen"));
-        setLabelText("Labels/Label_Screen0_Resolution", "Screen0 Resolution:\n" + ds.call("screen_get_size"));
-        setLabelText("Labels/Label_Screen0_Position", "Screen0 Position:\n" + ds.call("screen_get_position"));
-        setLabelText("Labels/Label_Screen0_DPI", "Screen0 DPI: " + ds.call("screen_get_dpi"));
+        setLabelText("Labels/Label_Screen_Count", "Screen_Count: " + displayServer.getScreenCount());
+        setLabelText("Labels/Label_Screen_Current", "Screen: " + displayServer.windowGetCurrentScreen());
+        setLabelText("Labels/Label_Screen0_Resolution", "Screen0 Resolution:\n" + displayServer.screenGetSize());
+        setLabelText("Labels/Label_Screen0_Position", "Screen0 Position:\n" + displayServer.screenGetPosition());
+        setLabelText("Labels/Label_Screen0_DPI", "Screen0 DPI: " + displayServer.screenGetDpi());
 
-        long screenCount = (long) ds.call("get_screen_count");
-        org.godot.node.CanvasItem screen0Btn = (org.godot.node.CanvasItem) getNode("Buttons/Button_Screen0");
-        org.godot.node.CanvasItem screen1Btn = (org.godot.node.CanvasItem) getNode("Buttons/Button_Screen1");
+        int screenCount = displayServer.getScreenCount();
+        CanvasItem screen0Btn = getNodeAs("Buttons/Button_Screen0", CanvasItem.class);
+        CanvasItem screen1Btn = getNodeAs("Buttons/Button_Screen1", CanvasItem.class);
 
         if (screenCount > 1) {
             if (screen0Btn != null) screen0Btn.show();
@@ -112,9 +119,9 @@ public class WindowControl extends Control {
             setNodeVisible("Labels/Label_Screen1_Resolution", true);
             setNodeVisible("Labels/Label_Screen1_Position", true);
             setNodeVisible("Labels/Label_Screen1_DPI", true);
-            setLabelText("Labels/Label_Screen1_Resolution", "Screen1 Resolution:\n" + ds.call("screen_get_size", 1));
-            setLabelText("Labels/Label_Screen1_Position", "Screen1 Position:\n" + ds.call("screen_get_position", 1));
-            setLabelText("Labels/Label_Screen1_DPI", "Screen1 DPI: " + ds.call("screen_get_dpi", 1));
+            setLabelText("Labels/Label_Screen1_Resolution", "Screen1 Resolution:\n" + displayServer.screenGetSize(1));
+            setLabelText("Labels/Label_Screen1_Position", "Screen1 Position:\n" + displayServer.screenGetPosition(1));
+            setLabelText("Labels/Label_Screen1_DPI", "Screen1 DPI: " + displayServer.screenGetDpi(1));
         } else {
             if (screen0Btn != null) screen0Btn.hide();
             if (screen1Btn != null) screen1Btn.hide();
@@ -135,36 +142,31 @@ public class WindowControl extends Control {
 
     @Override
     public boolean _input(Object inputEvent) {
-        if (inputEvent instanceof org.godot.Godot) {
-            org.godot.Godot evt = (org.godot.Godot) inputEvent;
-            String className = (String) evt.call("get_class");
+        if (inputEvent instanceof InputEventMouseMotion event) {
+            mousePosition = event.getPosition();
+        }
 
-            if ("InputEventMouseMotion".equals(className)) {
-                mousePosition = (Vector2) evt.getProperty("position");
+        if (inputEvent instanceof InputEventKey) {
+            Input input = Input.singleton();
+
+            if (input.isActionPressed("mouse_mode_visible")) {
+                setObserverState(0);
+                OnButtonMouseModeVisiblePressed();
             }
-
-            if ("InputEventKey".equals(className)) {
-                org.godot.singleton.Input input = org.godot.singleton.Input.singleton();
-
-                if ((boolean) input.isActionPressed("mouse_mode_visible")) {
-                    setObserverState(0); // MENU
-                    OnButtonMouseModeVisiblePressed();
-                }
-                if ((boolean) input.isActionPressed("mouse_mode_hidden")) {
-                    setObserverState(0);
-                    OnButtonMouseModeHiddenPressed();
-                }
-                if ((boolean) input.isActionPressed("mouse_mode_captured")) {
-                    OnButtonMouseModeCapturedPressed();
-                }
-                if ((boolean) input.isActionPressed("mouse_mode_confined")) {
-                    setObserverState(0);
-                    OnButtonMouseModeConfinedPressed();
-                }
-                if ((boolean) input.isActionPressed("mouse_mode_confined_hidden")) {
-                    setObserverState(0);
-                    OnButtonMouseModeConfinedHiddenPressed();
-                }
+            if (input.isActionPressed("mouse_mode_hidden")) {
+                setObserverState(0);
+                OnButtonMouseModeHiddenPressed();
+            }
+            if (input.isActionPressed("mouse_mode_captured")) {
+                OnButtonMouseModeCapturedPressed();
+            }
+            if (input.isActionPressed("mouse_mode_confined")) {
+                setObserverState(0);
+                OnButtonMouseModeConfinedPressed();
+            }
+            if (input.isActionPressed("mouse_mode_confined_hidden")) {
+                setObserverState(0);
+                OnButtonMouseModeConfinedHiddenPressed();
             }
         }
         return false;
@@ -172,17 +174,17 @@ public class WindowControl extends Control {
 
     private void setObserverState(long state) {
         if (observer != null) {
-            observer.setProperty("state", state);
+            observer.state = state;
         }
     }
 
     private void setLabelText(String path, String text) {
-        org.godot.node.Node label = getNode(path);
-        if (label != null) label.setProperty("text", text);
+        Label label = getNodeAs(path, Label.class);
+        if (label != null) label.setText(text);
     }
 
     private void setNodeVisible(String path, boolean visible) {
-        org.godot.node.CanvasItem node = (org.godot.node.CanvasItem) getNode(path);
+        CanvasItem node = getNodeAs(path, CanvasItem.class);
         if (node != null) {
             if (visible) node.show();
             else node.hide();
@@ -190,117 +192,112 @@ public class WindowControl extends Control {
     }
 
     private void setButtonPressed(String path, boolean pressed) {
-        org.godot.node.Node btn = getNode(path);
-        if (btn != null) btn.setProperty("button_pressed", pressed);
+        Button button = getNodeAs(path, Button.class);
+        if (button != null) button.setButtonPressed(pressed);
     }
 
     private boolean checkWmApi() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
+        DisplayServer displayServer = DisplayServer.singleton();
         String s = "";
-        if (!(boolean) ds.hasMethod("get_screen_count")) s += " - getScreenCount()\n";
-        if (!(boolean) ds.hasMethod("window_get_current_screen")) s += " - windowGetCurrentScreen()\n";
-        if (!(boolean) ds.hasMethod("window_set_current_screen")) s += " - windowSetCurrentScreen()\n";
-        if (!(boolean) ds.hasMethod("screen_get_position")) s += " - screenGetPosition()\n";
-        if (!(boolean) ds.hasMethod("window_get_size")) s += " - windowGetSize()\n";
-        if (!(boolean) ds.hasMethod("window_get_position")) s += " - windowGetPosition()\n";
-        if (!(boolean) ds.hasMethod("window_set_position")) s += " - windowSetPosition()\n";
-        if (!(boolean) ds.hasMethod("window_set_size")) s += " - windowSetSize()\n";
+        if (!displayServer.hasMethod("get_screen_count")) s += " - getScreenCount()\n";
+        if (!displayServer.hasMethod("window_get_current_screen")) s += " - windowGetCurrentScreen()\n";
+        if (!displayServer.hasMethod("window_set_current_screen")) s += " - windowSetCurrentScreen()\n";
+        if (!displayServer.hasMethod("screen_get_position")) s += " - screenGetPosition()\n";
+        if (!displayServer.hasMethod("window_get_size")) s += " - windowGetSize()\n";
+        if (!displayServer.hasMethod("window_get_position")) s += " - windowGetPosition()\n";
+        if (!displayServer.hasMethod("window_set_position")) s += " - windowSetPosition()\n";
+        if (!displayServer.hasMethod("window_set_size")) s += " - windowSetSize()\n";
 
-        if (s.isEmpty()) return true;;
+        if (s.isEmpty()) return true;
 
-        org.godot.node.CanvasItem dialogText = (org.godot.node.CanvasItem) getNode("ImplementationDialog/Text");
+        Label dialogText = getNodeAs("ImplementationDialog/Text", Label.class);
         if (dialogText != null) {
-            String currentText = (String) dialogText.getProperty("text");
-            dialogText.setProperty("text", currentText + s);
+            dialogText.setText(dialogText.getText() + s);
         }
-        org.godot.node.CanvasItem dialog = (org.godot.node.CanvasItem) getNode("ImplementationDialog");
+        CanvasItem dialog = getNodeAs("ImplementationDialog", CanvasItem.class);
         if (dialog != null) dialog.show();
         return false;
     }
 
     @GodotMethod
     public void OnButtonMoveToPressed() {
-        org.godot.singleton.DisplayServer.singleton().call("window_set_position", new Vector2(100, 100));
+        DisplayServer.singleton().windowSetPosition(new Vector2i(100, 100));
     }
 
     @GodotMethod
     public void OnButtonResizePressed() {
-        org.godot.singleton.DisplayServer.singleton().call("window_set_size", new Vector2(1280, 720));
+        DisplayServer.singleton().windowSetSize(new Vector2i(1280, 720));
     }
 
     @GodotMethod
     public void OnButtonScreen0Pressed() {
-        org.godot.singleton.DisplayServer.singleton().call("window_set_current_screen", 0);
+        DisplayServer.singleton().windowSetCurrentScreen(0);
     }
 
     @GodotMethod
     public void OnButtonScreen1Pressed() {
-        org.godot.singleton.DisplayServer.singleton().call("window_set_current_screen", 1);
+        DisplayServer.singleton().windowSetCurrentScreen(1);
     }
 
     @GodotMethod
     public void OnButtonFullscreenPressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        long mode = (long) ds.call("window_get_mode");
-        if (mode == 3) { // WINDOW_MODE_FULLSCREEN
-            ds.call("window_set_mode", 0); // WINDOW_MODE_WINDOWED
+        DisplayServer displayServer = DisplayServer.singleton();
+        if (displayServer.windowGetMode() == 3) {
+            displayServer.windowSetMode(0);
         } else {
-            ds.call("window_set_mode", 3);
+            displayServer.windowSetMode(3);
         }
     }
 
     @GodotMethod
     public void OnButtonFixedSizePressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        boolean flag = (boolean) ds.call("window_get_flag", 0); // WINDOW_FLAG_RESIZE_DISABLED
-        ds.call("window_set_flag", 0, !flag);
+        DisplayServer displayServer = DisplayServer.singleton();
+        displayServer.windowSetFlag(0, !displayServer.windowGetFlag(0));
     }
 
     @GodotMethod
     public void OnButtonMinimizedPressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        long mode = (long) ds.call("window_get_mode");
-        if (mode == 2) { // WINDOW_MODE_MINIMIZED
-            ds.call("window_set_mode", 0);
+        DisplayServer displayServer = DisplayServer.singleton();
+        if (displayServer.windowGetMode() == 2) {
+            displayServer.windowSetMode(0);
         } else {
-            ds.call("window_set_mode", 2);
+            displayServer.windowSetMode(2);
         }
     }
 
     @GodotMethod
     public void OnButtonMaximizedPressed() {
-        org.godot.singleton.DisplayServer ds = org.godot.singleton.DisplayServer.singleton();
-        long mode = (long) ds.call("window_get_mode");
-        if (mode == 3) { // WINDOW_MODE_MAXIMIZED
-            ds.call("window_set_mode", 2);
+        DisplayServer displayServer = DisplayServer.singleton();
+        if (displayServer.windowGetMode() == 3) {
+            displayServer.windowSetMode(2);
         } else {
-            ds.call("window_set_mode", 3);
+            displayServer.windowSetMode(3);
         }
     }
 
     @GodotMethod
     public void OnButtonMouseModeVisiblePressed() {
-        org.godot.singleton.Input.singleton().setProperty("mouse_mode", 0);
+        Input.singleton().setMouseMode(0);
     }
 
     @GodotMethod
     public void OnButtonMouseModeHiddenPressed() {
-        org.godot.singleton.Input.singleton().setProperty("mouse_mode", 1);
+        Input.singleton().setMouseMode(1);
     }
 
     @GodotMethod
     public void OnButtonMouseModeCapturedPressed() {
-        org.godot.singleton.Input.singleton().setProperty("mouse_mode", 2);
-        setObserverState(1); // GRAB
+        Input.singleton().setMouseMode(2);
+        setObserverState(1);
     }
 
     @GodotMethod
     public void OnButtonMouseModeConfinedPressed() {
-        org.godot.singleton.Input.singleton().setProperty("mouse_mode", 3);
+        Input.singleton().setMouseMode(3);
     }
 
     @GodotMethod
     public void OnButtonMouseModeConfinedHiddenPressed() {
-        org.godot.singleton.Input.singleton().setProperty("mouse_mode", 4);
+        Input.singleton().setMouseMode(4);
     }
 }

@@ -1,24 +1,26 @@
 package demos.audio.midi_piano;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.godot.annotation.GodotClass;
+import org.godot.math.Vector2;
 import org.godot.node.Control;
+import org.godot.node.InputEventMIDI;
 import org.godot.node.Node;
+import org.godot.node.PackedScene;
+import org.godot.singleton.OS;
+import org.godot.singleton.ResourceLoader;
 
-/**
- * Piano demo - generates a piano keyboard and responds to MIDI input.
- * A standard 88-key piano spans keys from 21 to 108.
- */
 @GodotClass(name = "Piano", parent = "Control")
 public class Piano extends Control {
 
     private static final int START_KEY = 21;
     private static final int END_KEY = 108;
 
-    private org.godot.node.Node whiteKeys;
-    private org.godot.node.Node blackKeys;
+    private Node whiteKeys;
+    private Node blackKeys;
 
-    // Maps pitch index to PianoKey node.
-    private final java.util.Map<Integer, PianoKey> pianoKeyDict = new java.util.HashMap<>();
+    private final Map<Integer, PianoKey> pianoKeyDict = new HashMap<>();
 
     private boolean initialized = false;
 
@@ -30,48 +32,29 @@ public class Piano extends Control {
         whiteKeys = getNode("WhiteKeys");
         blackKeys = getNode("BlackKeys");
 
-        // Validate start key isn't a sharp note.
-        assert !isNoteIndexSharp(pitchIndexToNoteIndex(START_KEY))
-                : "The start key can't be a sharp note. Try 21.";
+        assert !isNoteIndexSharp(pitchIndexToNoteIndex(START_KEY)) : "The start key can't be a sharp note. Try 21.";
 
         for (int i = START_KEY; i <= END_KEY; i++) {
             pianoKeyDict.put(i, createPianoKey(i));
         }
 
-        int whiteCount = whiteKeys != null ? ((Number) whiteKeys.getChildCount()).intValue() : 0;
-        int blackCount = blackKeys != null ? ((Number) blackKeys.getChildCount()).intValue() : 0;
+        int whiteCount = whiteKeys != null ? whiteKeys.getChildCount() : 0;
+        int blackCount = blackKeys != null ? blackKeys.getChildCount() : 0;
         if (whiteCount != blackCount) {
             addPlaceholderKey(blackKeys);
         }
 
-        org.godot.singleton.OS.singleton().call("open_midi_inputs");
-
-        org.godot.collection.GodotArray midiInputs = (org.godot.collection.GodotArray) org.godot.singleton.OS.singleton().call("get_connected_midi_inputs");
-        if (midiInputs.size() > 0) {
-            for (int i = 0; i < midiInputs.size(); i++) {
-                System.out.println(midiInputs.get(i));
-            }
+        OS.singleton().openMidiInputs();
+        for (String midiInput : OS.singleton().getConnectedMidiInputs()) {
+            System.out.println(midiInput);
         }
     }
 
     @Override
     public void _exitTree() {
-        org.godot.singleton.OS.singleton().call("close_midi_inputs");
-        // Free dynamically created piano key nodes
-        if (whiteKeys != null) {
-            int childCount = ((Number) whiteKeys.getChildCount()).intValue();
-            for (int i = childCount - 1; i >= 0; i--) {
-                org.godot.node.Node child = (org.godot.node.Node) whiteKeys.getChild(i);
-                if (child != null) child.queueFree();
-            }
-        }
-        if (blackKeys != null) {
-            int childCount = ((Number) blackKeys.getChildCount()).intValue();
-            for (int i = childCount - 1; i >= 0; i--) {
-                org.godot.node.Node child = (org.godot.node.Node) blackKeys.getChild(i);
-                if (child != null) child.queueFree();
-            }
-        }
+        OS.singleton().closeMidiInputs();
+        freeChildren(whiteKeys);
+        freeChildren(blackKeys);
         pianoKeyDict.clear();
         whiteKeys = null;
         blackKeys = null;
@@ -79,15 +62,9 @@ public class Piano extends Control {
 
     @Override
     public boolean _input(Object inputEvent) {
-        if (!(inputEvent instanceof org.godot.Godot)) return false;
-        org.godot.node.Node event = (org.godot.node.Node) inputEvent;
+        if (!(inputEvent instanceof InputEventMIDI event)) return false;
 
-        String className = (String) event.call("get_class");
-        if (!"InputEventMIDI".equals(className)) {
-            return false;
-        }
-
-        int pitch = ((Number) event.getProperty("pitch")).intValue();
+        int pitch = (int) event.getPitch();
         if (pitch < START_KEY || pitch > END_KEY) {
             return false;
         }
@@ -97,8 +74,7 @@ public class Piano extends Control {
         PianoKey key = pianoKeyDict.get(pitch);
         if (key == null) return false;
 
-        int message = ((Number) event.getProperty("message")).intValue();
-        if (message == 7) { // MIDI_MESSAGE_NOTE_ON = 7
+        if (event.getMessage() == 7) {
             key.activate();
         } else {
             key.deactivate();
@@ -106,44 +82,53 @@ public class Piano extends Control {
         return false;
     }
 
-    private void addPlaceholderKey(org.godot.node.Node container) {
+    private void addPlaceholderKey(Node container) {
         if (container == null) return;
-        org.godot.Godot placeholder = Control.create();
-        placeholder.setProperty("size_flags_horizontal", 3L); // SIZE_EXPAND_FILL
-        placeholder.setProperty("mouse_filter", 2L); // MOUSE_FILTER_IGNORE
-        placeholder.setProperty("name", "Placeholder");
-        container.addChild((org.godot.node.Node) placeholder);
+        Control placeholder = Control.create();
+        placeholder.setSizeFlagsHorizontal(3);
+        placeholder.setMouseFilter(2);
+        placeholder.setName("Placeholder");
+        container.addChild(placeholder);
     }
 
     private PianoKey createPianoKey(int pitchIndex) {
         int noteIndex = pitchIndexToNoteIndex(pitchIndex);
-        PianoKey pianoKey;
+        String scenePath = isNoteIndexSharp(noteIndex)
+                ? "res://piano_keys/black_piano_key.tscn"
+                : "res://piano_keys/white_piano_key.tscn";
+        Node container = isNoteIndexSharp(noteIndex) ? blackKeys : whiteKeys;
 
-        if (isNoteIndexSharp(noteIndex)) {
-            // Black key
-            org.godot.node.PackedScene blackKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/black_piano_key.tscn", "", 1);
-            pianoKey = (PianoKey) blackKeyScene.instantiate();
-            if (blackKeys != null) blackKeys.addChild(pianoKey);
-        } else {
-            // White key
-            org.godot.node.PackedScene whiteKeyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://piano_keys/white_piano_key.tscn", "", 1);
-            pianoKey = (PianoKey) whiteKeyScene.instantiate();
-            if (whiteKeys != null) whiteKeys.addChild(pianoKey);
-            if (isNoteIndexLackingSharp(noteIndex)) {
-                addPlaceholderKey(blackKeys);
-            }
+        PianoKey pianoKey = null;
+        if (ResourceLoader.singleton().load(scenePath, "", 1) instanceof PackedScene packedScene
+                && packedScene.instantiate() instanceof PianoKey key) {
+            pianoKey = key;
+            if (container != null) container.addChild(pianoKey);
         }
-        pianoKey.setup(pitchIndex);
+
+        if (!isNoteIndexSharp(noteIndex) && isNoteIndexLackingSharp(noteIndex)) {
+            addPlaceholderKey(blackKeys);
+        }
+
+        if (pianoKey != null) {
+            pianoKey.setup(pitchIndex);
+        }
         return pianoKey;
     }
 
+    private void freeChildren(Node node) {
+        if (node == null) return;
+        int childCount = node.getChildCount();
+        for (int i = childCount - 1; i >= 0; i--) {
+            Node child = node.getChild(i);
+            if (child != null) child.queueFree();
+        }
+    }
+
     private boolean isNoteIndexLackingSharp(int noteIndex) {
-        // B and E, because no B# or E#
         return noteIndex == 2 || noteIndex == 7;
     }
 
     private boolean isNoteIndexSharp(int noteIndex) {
-        // A#, C#, D#, F#, and G#
         return noteIndex == 1 || noteIndex == 4 || noteIndex == 6 || noteIndex == 9 || noteIndex == 11;
     }
 
@@ -152,15 +137,15 @@ public class Piano extends Control {
         return pitch % 12;
     }
 
-    private void printMidiInfo(org.godot.Godot midiEvent) {
+    private void printMidiInfo(InputEventMIDI midiEvent) {
         System.out.println(midiEvent);
-        System.out.println("Channel: " + midiEvent.getProperty("channel"));
-        System.out.println("Message: " + midiEvent.getProperty("message"));
-        System.out.println("Pitch: " + midiEvent.getProperty("pitch"));
-        System.out.println("Velocity: " + midiEvent.getProperty("velocity"));
-        System.out.println("Instrument: " + midiEvent.getProperty("instrument"));
-        System.out.println("Pressure: " + midiEvent.getProperty("pressure"));
-        System.out.println("Controller number: " + midiEvent.getProperty("controller_number"));
-        System.out.println("Controller value: " + midiEvent.getProperty("controller_value"));
+        System.out.println("Channel: " + midiEvent.getChannel());
+        System.out.println("Message: " + midiEvent.getMessage());
+        System.out.println("Pitch: " + midiEvent.getPitch());
+        System.out.println("Velocity: " + midiEvent.getVelocity());
+        System.out.println("Instrument: " + midiEvent.getInstrument());
+        System.out.println("Pressure: " + midiEvent.getPressure());
+        System.out.println("Controller number: " + midiEvent.getControllerNumber());
+        System.out.println("Controller value: " + midiEvent.getControllerValue());
     }
 }

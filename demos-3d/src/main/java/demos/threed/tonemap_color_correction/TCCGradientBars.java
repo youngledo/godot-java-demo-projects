@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node3D;
 import org.godot.node.Node;
+import org.godot.node.ShaderMaterial;
 
 @GodotClass(name = "TCCGradientBars", parent = "Node3D")
 public class TCCGradientBars extends Node3D {
@@ -18,26 +19,23 @@ public class TCCGradientBars extends Node3D {
 
 	@GodotMethod
 	public void setNumSteps(int steps) {
-		if (hdrBar != null) {
-			org.godot.Godot mat = (org.godot.Godot) hdrBar.getProperty("material_override");
-			if (mat != null) mat.call("set_shader_parameter", "steps", Math.min(1, steps));
-		}
+		setShaderParameter(hdrBar, "steps", Math.min(1, steps));
 	}
 
 	@GodotMethod
 	public void setColor(org.godot.math.Color color) {
-		if (sdrBar != null) {
-			org.godot.Godot mat = (org.godot.Godot) sdrBar.getProperty("material_override");
-			if (mat != null) mat.call("set_shader_parameter", "my_color", color);
-		}
-		if (hdrBar != null) {
-			org.godot.Godot mat = (org.godot.Godot) hdrBar.getProperty("material_override");
-			if (mat != null) mat.call("set_shader_parameter", "my_color", color);
-		}
+		setShaderParameter(sdrBar, "my_color", color);
+		setShaderParameter(hdrBar, "my_color", color);
 		if (label != null) {
 			String hex = String.format("#%02x%02x%02x",
 				(int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255));
 			label.setProperty("text", hex);
+		}
+	}
+
+	private void setShaderParameter(org.godot.Godot bar, String parameter, Object value) {
+		if (bar != null && bar.getProperty("material_override") instanceof ShaderMaterial mat) {
+			mat.setShaderParameter(parameter, value);
 		}
 	}
 }

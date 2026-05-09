@@ -5,6 +5,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector2;
+import org.godot.node.PhysicsDirectBodyState2D;
 import org.godot.node.RigidBody2D;
 import org.godot.node.Node;
 import org.godot.singleton.Input;
@@ -37,6 +38,7 @@ public class PPPlayer extends RigidBody2D {
 	private org.godot.node.Node bulletShoot;
 	private org.godot.node.AudioStreamPlayer soundJump;
 	private org.godot.node.AudioStreamPlayer soundShoot;
+	private boolean floorContact = false;
 	private boolean initialized = false;
 
 	@Override
@@ -49,6 +51,22 @@ public class PPPlayer extends RigidBody2D {
 		bulletShoot = getNode("BulletShoot");
 		soundJump = (org.godot.node.AudioStreamPlayer) getNode("SoundJump");
 		soundShoot = (org.godot.node.AudioStreamPlayer) getNode("SoundShoot");
+	}
+
+	@Override
+	public void _integrateForces(Object stateObj) {
+		if (!(stateObj instanceof PhysicsDirectBodyState2D state)) return;
+
+		boolean foundFloor = false;
+		int contactCount = state.getContactCount();
+		for (long ci = 0; ci < contactCount; ci++) {
+			Vector2 normal = state.getContactLocalNormal(ci);
+			if (normal != null && normal.dot(new Vector2(0, -1)) > 0.6) {
+				foundFloor = true;
+				break;
+			}
+		}
+		floorContact = foundFloor;
 	}
 
 	@Override
@@ -69,19 +87,7 @@ public class PPPlayer extends RigidBody2D {
 		vel = new Vector2(vel.getX() - floorHVelocity, vel.getY());
 		floorHVelocity = 0.0;
 
-		// Simplified floor detection for RigidBody2D:
-		// Check contact count and if any contact has an upward-facing normal.
-		boolean foundFloor = false;
-		long contactCount = (long) call("get_contact_count");
-		for (int ci = 0; ci < contactCount; ci++) {
-			org.godot.math.Vector2 normal = (org.godot.math.Vector2) call("get_contact_local_normal", ci);
-			if (normal != null && normal.dot(new Vector2(0, -1)) > 0.6) {
-				foundFloor = true;
-				break;
-			}
-		}
-
-		if (foundFloor) {
+		if (floorContact) {
 			airborneTime = 0.0;
 		} else {
 			airborneTime += delta;

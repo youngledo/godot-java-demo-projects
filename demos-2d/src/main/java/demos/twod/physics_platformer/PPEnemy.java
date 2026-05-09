@@ -4,6 +4,7 @@ import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
+import org.godot.node.PhysicsDirectBodyState2D;
 import org.godot.node.RigidBody2D;
 import org.godot.node.Node;
 
@@ -25,8 +26,7 @@ public class PPEnemy extends RigidBody2D {
 
 	@Override
 	public void _integrateForces(java.lang.Object stateObj) {
-		org.godot.node.RigidBody2D bodyState = (org.godot.node.RigidBody2D) stateObj;
-		if (bodyState == null) return;
+		if (!(stateObj instanceof PhysicsDirectBodyState2D bodyState)) return;
 
 		Vector2 vel = (Vector2) bodyState.getLinearVelocity();
 		if (vel == null) vel = new Vector2(0, 0);
@@ -39,11 +39,11 @@ public class PPEnemy extends RigidBody2D {
 			newAnim = "walk";
 
 			double wallSide = 0;
-			long contactCount = (long) bodyState.getContactCount();
+			int contactCount = bodyState.getContactCount();
 
 			for (long i = 0; i < contactCount; i++) {
-				Object collider = bodyState.call("get_contact_collider_object", i);
-				Vector2 collisionNormal = (Vector2) bodyState.call("get_contact_local_normal", i);
+				Object collider = bodyState.getContactColliderObject(i);
+				Vector2 collisionNormal = bodyState.getContactLocalNormal(i);
 
 				if (collider != null && collisionNormal != null) {
 					if (collisionNormal.getX() > 0.9) {
@@ -60,8 +60,8 @@ public class PPEnemy extends RigidBody2D {
 			}
 
 			// Check raycasts for edge detection
-			org.godot.node.RayCast2D rcLeft = (org.godot.node.RayCast2D) call("get_node_or_null", "RaycastLeft");
-			org.godot.node.RayCast2D rcRight = (org.godot.node.RayCast2D) call("get_node_or_null", "RaycastRight");
+			org.godot.node.RayCast2D rcLeft = getNodeAs("RaycastLeft", org.godot.node.RayCast2D.class);
+			org.godot.node.RayCast2D rcRight = getNodeAs("RaycastRight", org.godot.node.RayCast2D.class);
 
 			boolean leftColliding = rcLeft != null && (boolean) rcLeft.isColliding();
 			boolean rightColliding = rcRight != null && (boolean) rcRight.isColliding();
@@ -112,9 +112,9 @@ public class PPEnemy extends RigidBody2D {
 
 	@Override
 	public void _exitTree() {
-		org.godot.node.AudioStreamPlayer soundHit = (org.godot.node.AudioStreamPlayer) call("get_node_or_null", "SoundHit");
+		org.godot.node.AudioStreamPlayer soundHit = getNodeAs("SoundHit", org.godot.node.AudioStreamPlayer.class);
 		if (soundHit != null) soundHit.stop();
-		org.godot.node.AudioStreamPlayer soundExplode = (org.godot.node.AudioStreamPlayer) call("get_node_or_null", "SoundExplode");
+		org.godot.node.AudioStreamPlayer soundExplode = getNodeAs("SoundExplode", org.godot.node.AudioStreamPlayer.class);
 		if (soundExplode != null) soundExplode.stop();
 	}
 

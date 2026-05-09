@@ -38,11 +38,9 @@ public class DTCMain extends Node {
 		if (scoreTimer != null) scoreTimer.connect("timeout", new Callable(this, "_on_score_timer_timeout"), 0);
 		if (startTimer != null) startTimer.connect("timeout", new Callable(this, "_on_start_timer_timeout"), 0);
 		if (player != null) {
-			player.call("add_user_signal", "hit");
 			player.connect("hit", new Callable(this, "_on_player_hit"), 0);
 		}
 		if (hud != null) {
-			hud.call("add_user_signal", "start_game");
 			hud.connect("start_game", new Callable(this, "new_game"), 0);
 		}
 	}

@@ -2,24 +2,21 @@ package demos.audio.audio_effects;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.AudioStreamPlayer;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.singleton.AudioServer;
 
-/**
- * Audio effects demo - toggles various AudioServer bus effects on and off,
- * and plays sound effects and music.
- */
 @GodotClass(name = "AudioEffects", parent = "Control")
 public class AudioEffects extends Control {
 
     @GodotMethod
     public void _onToggleMusicToggled(boolean buttonPressed) {
-        org.godot.node.Node music = getNode("SoundEffects/Music");
+        AudioStreamPlayer music = getNodeAs("SoundEffects/Music", AudioStreamPlayer.class);
         if (music == null) return;
         if (buttonPressed) {
-            music.call("play");
+            music.play();
         } else {
-            music.call("stop");
+            music.stop();
         }
     }
 
@@ -149,11 +146,11 @@ public class AudioEffects extends Control {
     }
 
     private void playSoundEffect(String name) {
-        org.godot.node.Node sfx = getNode("SoundEffects/" + name);
-        if (sfx != null) sfx.call("play");
+        AudioStreamPlayer sfx = getNodeAs("SoundEffects/" + name, AudioStreamPlayer.class);
+        if (sfx != null) sfx.play();
     }
 
     private void toggleEffect(int effectIndex, boolean enabled) {
-        org.godot.singleton.AudioServer.singleton().call("set_bus_effect_enabled", 0, effectIndex, enabled);
+        AudioServer.singleton().setBusEffectEnabled(0, effectIndex, enabled);
     }
 }

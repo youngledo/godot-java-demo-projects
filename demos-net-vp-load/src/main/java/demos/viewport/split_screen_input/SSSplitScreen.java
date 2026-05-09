@@ -8,6 +8,7 @@ import org.godot.math.Vector2;
 import org.godot.node.OptionButton;
 import org.godot.node.SubViewport;
 import org.godot.node.VBoxContainer;
+import org.godot.node.World2D;
 
 @GodotClass(name = "SSSplitScreen", parent = "VBoxContainer")
 public class SSSplitScreen extends VBoxContainer {
@@ -33,16 +34,16 @@ public class SSSplitScreen extends VBoxContainer {
         if (initialized) return;
         initialized = true;
 
-        opt = (OptionButton) getNode("OptionButton");
-        viewport = (SubViewport) getNode("InputRoutingViewportContainer/SubViewport");
-        inputRouter = (SSInputRoutingViewportContainer) getNode("InputRoutingViewportContainer");
-        play = (SSPlayer) getNode("InputRoutingViewportContainer/SubViewport/Player");
+        opt = getNodeAs("OptionButton", OptionButton.class);
+        viewport = getNodeAs("InputRoutingViewportContainer/SubViewport", SubViewport.class);
+        inputRouter = getNodeAs("InputRoutingViewportContainer", SSInputRoutingViewportContainer.class);
+        play = getNodeAs("InputRoutingViewportContainer/SubViewport/Player", SSPlayer.class);
     }
 
     @Override
     public void _exitTree() {
         if (viewport != null) {
-            viewport.setProperty("world_2d", null);
+            viewport.setWorld2d(null);
         }
     }
 
@@ -52,21 +53,21 @@ public class SSSplitScreen extends VBoxContainer {
         this.numJoypads = numJoypads;
 
         if (opt == null) {
-            opt = (OptionButton) getNode("OptionButton");
+            opt = getNodeAs("OptionButton", OptionButton.class);
         }
         if (play == null) {
-            play = (SSPlayer) getNode("InputRoutingViewportContainer/SubViewport/Player");
+            play = getNodeAs("InputRoutingViewportContainer/SubViewport/Player", SSPlayer.class);
         }
         if (viewport == null) {
-            viewport = (SubViewport) getNode("InputRoutingViewportContainer/SubViewport");
+            viewport = getNodeAs("InputRoutingViewportContainer/SubViewport", SubViewport.class);
         }
         if (inputRouter == null) {
-            inputRouter = (SSInputRoutingViewportContainer) getNode("InputRoutingViewportContainer");
+            inputRouter = getNodeAs("InputRoutingViewportContainer", SSInputRoutingViewportContainer.class);
         }
 
         if (play != null) {
-            play.setProperty("position", position);
-            play.setProperty("modulate", color);
+            play.setPosition(position);
+            play.setModulate(color);
         }
 
         if (opt != null) {
@@ -81,8 +82,8 @@ public class SSSplitScreen extends VBoxContainer {
             onOptionButtonItemSelected(index);
         }
 
-        if (viewport != null && world2d != null) {
-            viewport.setProperty("world_2d", world2d);
+        if (viewport != null && world2d instanceof World2D world) {
+            viewport.setWorld2d(world);
         }
     }
 
@@ -90,13 +91,12 @@ public class SSSplitScreen extends VBoxContainer {
     public void onOptionButtonItemSelected(int index) {
         if (opt == null || inputRouter == null) return;
 
-        String text = (String) opt.call("get_item_text", index);
+        String text = opt.getItemText(index);
         if (text != null && text.startsWith(JOYPAD_PREFIX)) {
             String numStr = text.substring(JOYPAD_PREFIX.length());
             int joypadId = Integer.parseInt(numStr) - 1;
             inputRouter.setInputConfig(new int[0], joypadId);
         } else {
-            // Find the keyboard index
             int keyIndex = -1;
             for (int i = 0; i < keyboardNames.length; i++) {
                 if (keyboardNames[i].equals(text)) {

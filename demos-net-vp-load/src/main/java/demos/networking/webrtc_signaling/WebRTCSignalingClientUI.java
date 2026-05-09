@@ -41,7 +41,7 @@ public class WebRTCSignalingClientUI extends Control {
 
     @GodotMethod
     public void ping(double argument) {
-        long senderId = (long) call("multiplayer.get_remote_sender_id");
+        int senderId = getMultiplayer().getRemoteSenderId();
         logMsg("[Multiplayer] Ping from peer " + senderId + ": arg: " + argument);
     }
 
@@ -102,7 +102,7 @@ public class WebRTCSignalingClientUI extends Control {
     @GodotMethod
     public void OnPingPressed() {
         double randVal = Math.random();
-        call("rpc", "ping", randVal);
+        rpc("ping", randVal);
     }
 
     @GodotMethod

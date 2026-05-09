@@ -2,8 +2,14 @@ package demos.loading.load_threaded;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.Button;
+import org.godot.node.HBoxContainer;
+import org.godot.node.Node;
+import org.godot.node.Resource;
+import org.godot.node.Texture2D;
+import org.godot.node.TextureRect;
 import org.godot.node.VBoxContainer;
-import org.godot.Godot;
+import org.godot.singleton.ResourceLoader;
 
 /**
  * Demonstrates how to use ResourceLoader for background (threaded) loading.
@@ -24,19 +30,18 @@ public class LoadThreaded extends VBoxContainer {
 
     @GodotMethod
     public void _onStartLoadingPressed() {
-        // Request threaded loading for each painting.
+        ResourceLoader resourceLoader = ResourceLoader.singleton();
         for (String path : PAINTING_PATHS) {
-            call("ResourceLoader.load_threaded_request", path);
+            resourceLoader.loadThreadedRequest(path);
         }
 
-        // Enable all buttons in the GetLoaded container.
-        Godot getLoaded = (Godot) getNode("GetLoaded");
+        HBoxContainer getLoaded = getNodeAs("GetLoaded", HBoxContainer.class);
         if (getLoaded != null) {
-            int childCount = (int) getLoaded.call("get_child_count");
+            int childCount = getLoaded.getChildCount();
             for (int i = 0; i < childCount; i++) {
-                Godot btn = (Godot) getLoaded.call("get_child", i);
-                if (btn != null) {
-                    btn.setProperty("disabled", false);
+                Node child = getLoaded.getChild(i);
+                if (child instanceof Button btn) {
+                    btn.setDisabled(false);
                 }
             }
         }
@@ -73,16 +78,15 @@ public class LoadThreaded extends VBoxContainer {
     }
 
     private void setPaintingTexture(String paintingNodePath, String resourcePath, String buttonNodePath) {
-        // Get the loaded texture from the threaded loader.
-        Object tex = call("ResourceLoader.load_threaded_get", resourcePath);
-        Godot painting = (Godot) getNode(paintingNodePath);
-        if (painting != null && tex != null) {
-            painting.setProperty("texture", tex);
+        Resource resource = ResourceLoader.singleton().loadThreadedGet(resourcePath);
+        TextureRect painting = getNodeAs(paintingNodePath, TextureRect.class);
+        if (painting != null && resource instanceof Texture2D texture) {
+            painting.setTexture(texture);
         }
-        // Disable the button after loading.
-        Godot btn = (Godot) getNode(buttonNodePath);
+
+        Button btn = getNodeAs(buttonNodePath, Button.class);
         if (btn != null) {
-            btn.setProperty("disabled", true);
+            btn.setDisabled(true);
         }
     }
 }

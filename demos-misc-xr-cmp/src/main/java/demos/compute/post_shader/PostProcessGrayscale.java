@@ -2,23 +2,27 @@ package demos.compute.post_shader;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.core.Callable;
+import org.godot.math.Vector2i;
 import org.godot.node.CompositorEffect;
+import org.godot.node.RDShaderFile;
+import org.godot.node.RDShaderSPIRV;
+import org.godot.node.RDUniform;
+import org.godot.node.RenderData;
+import org.godot.node.RenderSceneBuffers;
+import org.godot.node.RenderSceneBuffersRD;
+import org.godot.node.RenderingDevice;
+import org.godot.node.Resource;
+import org.godot.node.UniformSetCacheRD;
+import org.godot.singleton.RenderingServer;
+import org.godot.singleton.ResourceLoader;
 
-/**
- * Port of compute/post_shader/post_process_grayscale.gd
- *
- * A CompositorEffect that applies a grayscale post-processing effect
- * using a compute shader via the RenderingDevice API.
- *
- * Note: This is a @tool script that runs on the rendering thread.
- * In Java, we use call() extensively to access RenderingDevice methods.
- */
 @GodotClass(name = "PostProcessGrayscale", parent = "CompositorEffect")
 public class PostProcessGrayscale extends CompositorEffect {
 
-    private Object rd; // RenderingDevice
-    private Object shader; // RID
-    private Object pipeline; // RID
+    private RenderingDevice rd;
+    private long shader;
+    private long pipeline;
 
     private boolean initialized = false;
 
@@ -27,119 +31,78 @@ public class PostProcessGrayscale extends CompositorEffect {
         if (initialized) return;
         initialized = true;
 
-        // Set effect callback type to post-transparent (4)
-        setProperty("effect_callback_type", 4);
-
-        // Get the rendering device
-        rd = call("RenderingServer.get_rendering_device");
-
-        // Initialize compute on the render thread
-        call("RenderingServer.call_on_render_thread", "_initializeCompute");
+        setEffectCallbackType(4);
+        rd = RenderingServer.singleton().getRenderingDevice();
+        RenderingServer.singleton().callOnRenderThread(new Callable(this, "_initializeCompute"));
     }
 
-    public void _notification(int what) {
-        // NOTIFICATION_PREDELETE = 1
-        if (what == 1) {
-            if (rd != null && shader != null) {
-                boolean valid = (boolean) callOn(rd, "rid_is_valid", shader);
-                if (valid) {
-                    callOn(rd, "free_rid", shader);
-                }
-            }
+    @Override
+    public void onNotification(int what) {
+        if (what == 1 && rd != null && shader != 0) {
+            rd.freeRid(shader);
+            shader = 0;
+            pipeline = 0;
         }
     }
 
     @GodotMethod
     public void _initializeCompute() {
-        // Re-get rendering device (may be on different thread)
-        rd = call("RenderingServer.get_rendering_device");
+        rd = RenderingServer.singleton().getRenderingDevice();
         if (rd == null) return;
 
-        // Load the shader file
-        Object shaderFile = org.godot.singleton.ResourceLoader.singleton().load("res://post_process_grayscale.glsl");
-        Object shaderSpirv = callOn(shaderFile, "get_spirv");
+        Resource resource = ResourceLoader.singleton().load("res://post_process_grayscale.glsl");
+        if (!(resource instanceof RDShaderFile shaderFile)) return;
 
-        shader = callOn(rd, "shader_create_from_spirv", shaderSpirv);
-        if (shader != null) {
-            boolean valid = (boolean) callOn(rd, "rid_is_valid", shader);
-            if (valid) {
-                pipeline = callOn(rd, "compute_pipeline_create", shader);
-            }
-        }
+        RDShaderSPIRV shaderSpirv = shaderFile.getSpirv();
+        shader = rd.shaderCreateFromSpirv(shaderSpirv);
+        if (shader == 0) return;
+
+        pipeline = rd.computePipelineCreate(shader);
     }
 
     @GodotMethod
     public void _renderCallback(int effectCallbackType, Object renderData) {
-        // EFFECT_CALLBACK_TYPE_POST_TRANSPARENT = 4
-        if (rd == null || effectCallbackType != 4) return;
+        if (rd == null || effectCallbackType != 4 || pipeline == 0) return;
+        if (!(renderData instanceof RenderData renderDataObj)) return;
 
-        boolean pipelineValid = pipeline != null && (boolean) callOn(rd, "rid_is_valid", pipeline);
-        if (!pipelineValid) return;
+        RenderSceneBuffers renderSceneBuffersBase = renderDataObj.getRenderSceneBuffers();
+        if (!(renderSceneBuffersBase instanceof RenderSceneBuffersRD renderSceneBuffers)) return;
 
-        // Get render scene buffers
-        Object renderSceneBuffers = callOn(renderData, "get_render_scene_buffers");
-        if (renderSceneBuffers == null) return;
-
-        // Get internal size
-        Object sizeObj = callOn(renderSceneBuffers, "get_internal_size");
-        int sizeX, sizeY;
-        if (sizeObj instanceof org.godot.math.Vector2i) {
-            org.godot.math.Vector2i size = (org.godot.math.Vector2i) sizeObj;
-            sizeX = size.x;
-            sizeY = size.y;
-        } else {
-            return;
-        }
-
+        Vector2i size = renderSceneBuffers.getInternalSize();
+        int sizeX = size.x;
+        int sizeY = size.y;
         if (sizeX == 0 && sizeY == 0) return;
 
-        // Calculate dispatch groups
         int xGroups = (sizeX - 1) / 8 + 1;
         int yGroups = (sizeY - 1) / 8 + 1;
         int zGroups = 1;
 
-        // Create push constant (4 floats = 16 bytes)
-        float[] pushConstant = new float[]{
+        float[] pushConstant = new float[] {
             (float) sizeX,
             (float) sizeY,
             0.0f,
             0.0f
         };
 
-        // Get view count
-        int viewCount = ((Number) callOn(renderSceneBuffers, "get_view_count")).intValue();
-
+        long viewCount = renderSceneBuffers.getViewCount();
         for (int view = 0; view < viewCount; view++) {
-            // Get color image
-            Object inputImage = callOn(renderSceneBuffers, "get_color_layer", view);
+            long inputImage = renderSceneBuffers.getColorLayer(view);
 
-            // Create uniform
-            Object uniform = call("RDUniform.new");
-            callOn(uniform, "set", "uniform_type", 9); // UNIFORM_TYPE_IMAGE
-            callOn(uniform, "set", "binding", 0);
-            callOn(uniform, "add_id", inputImage);
+            RDUniform uniform = RDUniform.create();
+            uniform.setUniformType(9);
+            uniform.setBinding(0);
+            uniform.addId(inputImage);
 
-            // Get cached uniform set
-            Object uniformSet = call("UniformSetCacheRD.get_cache", shader, 0, new Object[]{uniform});
-
-            // Convert push constant to byte array
+            long uniformSet = UniformSetCacheRD.getCache(shader, 0, new RDUniform[] { uniform });
             byte[] pushConstantBytes = floatArrayToBytes(pushConstant);
 
-            // Run compute shader
-            Object computeList = callOn(rd, "compute_list_begin");
-            callOn(rd, "compute_list_bind_compute_pipeline", computeList, pipeline);
-            callOn(rd, "compute_list_bind_uniform_set", computeList, uniformSet, 0);
-            callOn(rd, "compute_list_set_push_constant", computeList, pushConstantBytes, pushConstantBytes.length);
-            callOn(rd, "compute_list_dispatch", computeList, xGroups, yGroups, zGroups);
-            callOn(rd, "compute_list_end");
+            long computeList = rd.computeListBegin();
+            rd.computeListBindComputePipeline(computeList, pipeline);
+            rd.computeListBindUniformSet(computeList, uniformSet, 0);
+            rd.computeListSetPushConstant(computeList, pushConstantBytes, pushConstantBytes.length);
+            rd.computeListDispatch(computeList, xGroups, yGroups, zGroups);
+            rd.computeListEnd();
         }
-    }
-
-    private Object callOn(Object obj, String method, Object... args) {
-        if (obj instanceof org.godot.Godot) {
-            return ((org.godot.Godot) obj).call(method, args);
-        }
-        return null;
     }
 
     private static byte[] floatArrayToBytes(float[] floats) {

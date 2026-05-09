@@ -50,10 +50,9 @@ public class FSPlayerStateMachine extends FSStateMachine {
         if (!active || currentState == null) return false;
 
         // Check for attack input globally
-        org.godot.Godot input = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent input = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (input != null) {
-            Object pressed = input.call("is_action_pressed", "attack");
-            if (pressed instanceof Boolean && (Boolean) pressed) {
+            if (input.isActionPressed("attack", false, false)) {
                 Object currentName = currentState.getProperty("name");
                 String name = currentName != null ? currentName.toString() : "";
                 if (name.equals(FSState.ATTACK) || name.equals(FSState.STAGGER)) {

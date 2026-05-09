@@ -3,6 +3,7 @@ package demos.twod.role_playing_game;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
+import org.godot.node.CanvasLayer;
 import org.godot.node.Node;
 
 @GodotClass(name = "RPCombat", parent = "Node")
@@ -28,6 +29,11 @@ public class RPCombat extends Node {
     @GodotMethod
     public void onFlee(org.godot.Godot winner, org.godot.Godot loser) {
         finishCombat(winner, loser);
+    }
+
+    public void show() {
+        CanvasLayer canvas = getNodeAs("CombatCanvas", CanvasLayer.class);
+        if (canvas != null) canvas.show();
     }
 
     public void initialize(Object[] combatScenes) {

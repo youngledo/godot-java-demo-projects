@@ -2,9 +2,11 @@ package demos.loading.serialization;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.Button;
 import org.godot.node.FileAccess;
 import org.godot.node.VBoxContainer;
-import org.godot.Godot;
+import org.godot.singleton.OS;
+import org.godot.singleton.ProjectSettings;
 
 /**
  * GUI container that initializes save/load button states and provides
@@ -15,23 +17,22 @@ public class Gui extends VBoxContainer {
 
     @Override
     public void _ready() {
-        // Don't allow loading files that don't exist yet.
-        Godot loadConfigBtn = (Godot) getNode("SaveLoad/LoadConfigFile");
+        Button loadConfigBtn = getNodeAs("SaveLoad/LoadConfigFile", Button.class);
         if (loadConfigBtn != null) {
             boolean exists = FileAccess.fileExists("user://save_config_file.ini");
-            loadConfigBtn.setProperty("disabled", !exists);
+            loadConfigBtn.setDisabled(!exists);
         }
 
-        Godot loadJsonBtn = (Godot) getNode("SaveLoad/LoadJSON");
+        Button loadJsonBtn = getNodeAs("SaveLoad/LoadJSON", Button.class);
         if (loadJsonBtn != null) {
             boolean exists = FileAccess.fileExists("user://save_json.json");
-            loadJsonBtn.setProperty("disabled", !exists);
+            loadJsonBtn.setDisabled(!exists);
         }
     }
 
     @GodotMethod
     public void _onOpenUserDataFolderPressed() {
-        String globalPath = (String) call("ProjectSettings.globalize_path", "user://");
-        call("OS.shell_open", globalPath);
+        String globalPath = ProjectSettings.singleton().globalizePath("user://");
+        OS.singleton().shellOpen(globalPath);
     }
 }

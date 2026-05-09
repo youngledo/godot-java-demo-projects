@@ -8,9 +8,9 @@ import org.godot.node.Node;
 @GodotClass(name = "ScreenShaders", parent = "Control")
 public class ScreenShaders extends Control {
 
-	private org.godot.node.Node effectBtn;
+	private org.godot.node.OptionButton effectBtn;
 	private org.godot.node.Node effects;
-	private org.godot.node.Node pictureBtn;
+	private org.godot.node.OptionButton pictureBtn;
 	private org.godot.node.Node pictures;
 	private boolean initialized = false;
 
@@ -19,9 +19,9 @@ public class ScreenShaders extends Control {
 		if (initialized) return;
 		initialized = true;
 
-		effectBtn = getNode("Effect");
+		effectBtn = (org.godot.node.OptionButton) getNode("Effect");
 		effects = getNode("Effects");
-		pictureBtn = getNode("Picture");
+		pictureBtn = (org.godot.node.OptionButton) getNode("Picture");
 		pictures = getNode("Pictures");
 
 		// Populate option buttons
@@ -31,7 +31,7 @@ public class ScreenShaders extends Control {
 				org.godot.node.CanvasItem child = (org.godot.node.CanvasItem) pictures.getChild(i);
 				if (child != null) {
 					String name = (String) child.getName();
-					pictureBtn.call("add_item", "PIC: " + name);
+					pictureBtn.addItem("PIC: " + name, i);
 				}
 			}
 		}
@@ -41,7 +41,7 @@ public class ScreenShaders extends Control {
 				org.godot.node.CanvasItem child = (org.godot.node.CanvasItem) effects.getChild(i);
 				if (child != null) {
 					String name = (String) child.getName();
-					effectBtn.call("add_item", "FX: " + name);
+					effectBtn.addItem("FX: " + name, i);
 				}
 			}
 		}

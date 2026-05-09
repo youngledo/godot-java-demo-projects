@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.node.CharacterBody2D;
 import org.godot.math.Vector2;
 import org.godot.node.SceneTree;
+import org.godot.node.Viewport;
 
 
 @GodotClass(name = "FSBullet", parent = "CharacterBody2D")
@@ -11,7 +12,7 @@ public class FSBullet extends CharacterBody2D {
 
     private Vector2 direction = Vector2.ZERO;
     private double speed = 1000.0;
-    private org.godot.Godot root;
+    private Viewport root;
     private boolean initialized = false;
 
     @Override
@@ -21,7 +22,7 @@ public class FSBullet extends CharacterBody2D {
         setAsTopLevel(true);
 
         org.godot.node.SceneTree tree = getTree();
-        if (tree != null) root = (org.godot.Godot) tree.getRoot();
+        if (tree != null && tree.getRoot() instanceof Viewport viewport) root = viewport;
 
         Object speedObj = getProperty("speed");
         if (speedObj instanceof Number) speed = ((Number) speedObj).doubleValue();
@@ -30,10 +31,12 @@ public class FSBullet extends CharacterBody2D {
     @Override
     public void _physicsProcess(double delta) {
         if (root != null) {
-            Object rect = root.call("get_visible_rect");
+            org.godot.math.Rect2 rect = root.getVisibleRect();
             Object pos = getProperty("position");
-            if (rect instanceof org.godot.Godot && pos instanceof Vector2) {
-                boolean hasPoint = (boolean) ((org.godot.Godot) rect).call("has_point", pos);
+            if (rect != null && pos instanceof Vector2) {
+                Vector2 p = (Vector2) pos;
+                boolean hasPoint = p.getX() >= rect.position.x && p.getX() <= rect.position.x + rect.size.x
+                        && p.getY() >= rect.position.y && p.getY() <= rect.position.y + rect.size.y;
                 if (!hasPoint) {
                     queueFree();
                     return;

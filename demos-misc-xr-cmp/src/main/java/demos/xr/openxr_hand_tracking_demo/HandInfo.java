@@ -1,15 +1,19 @@
 package demos.xr.openxr_hand_tracking_demo;
 
 import org.godot.annotation.GodotClass;
+import org.godot.node.Label3D;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
+import org.godot.node.XRPose;
+import org.godot.node.XRPositionalTracker;
+import org.godot.node.XRTracker;
+import org.godot.singleton.XRServer;
 
 @GodotClass(name = "HandInfo", parent = "Node3D")
 public class HandInfo extends Node3D {
 
-    private int hand = 0; // 0 = Left, 1 = Right
-    private org.godot.Godot fallbackMesh;
-    private org.godot.node.Node infoLabel;
+    private int hand = 0;
+    private Node3D fallbackMesh;
+    private Label3D infoLabel;
     private boolean initialized = false;
 
     @Override
@@ -17,7 +21,7 @@ public class HandInfo extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        infoLabel = getNode("Info");
+        infoLabel = getNodeAs("Info", Label3D.class);
     }
 
     @Override
@@ -31,39 +35,33 @@ public class HandInfo extends Node3D {
         }
 
         String controllerTrackerName = hand == 0 ? "left_hand" : "right_hand";
-        Object controllerTrackerObj = call("get_tracker", controllerTrackerName);
-        if (controllerTrackerObj != null) {
-            org.godot.Godot controllerTracker = (org.godot.Godot) controllerTrackerObj;
-            String profile = (String) controllerTracker.getProperty("profile");
+        XRTracker controllerTracker = XRServer.singleton().getTracker(controllerTrackerName);
+        if (controllerTracker instanceof XRPositionalTracker positionalTracker) {
+            String profile = positionalTracker.getProfile();
             if (profile != null) {
                 profile = profile.replace("/interaction_profiles/", "").replace("/", " ");
             }
             text.append("\nProfile: ").append(profile).append("\n");
 
-            Object poseObj = controllerTracker.call("get_pose", "palm_pose");
-            org.godot.Godot xrPose = null;
-            if (poseObj != null) {
-                xrPose = (org.godot.Godot) poseObj;
-                int confidence = (int) xrPose.getProperty("tracking_confidence");
-                if (confidence != 0) { // Not XR_TRACKING_CONFIDENCE_NONE
+            XRPose xrPose = positionalTracker.getPose("palm_pose");
+            if (xrPose != null) {
+                if (xrPose.getTrackingConfidence() != 0) {
                     text.append(" - Using palm pose\n");
                 } else {
-                    poseObj = controllerTracker.call("get_pose", "grip");
-                    if (poseObj != null) {
-                        xrPose = (org.godot.Godot) poseObj;
+                    xrPose = positionalTracker.getPose("grip");
+                    if (xrPose != null) {
                         text.append(" - Using grip pose\n");
                     }
                 }
             } else {
-                poseObj = controllerTracker.call("get_pose", "grip");
-                if (poseObj != null) {
-                    xrPose = (org.godot.Godot) poseObj;
+                xrPose = positionalTracker.getPose("grip");
+                if (xrPose != null) {
                     text.append(" - Using grip pose\n");
                 }
             }
 
             if (xrPose != null) {
-                int confidence = (int) xrPose.getProperty("tracking_confidence");
+                long confidence = xrPose.getTrackingConfidence();
                 if (confidence == 0) {
                     text.append("- No tracking data\n");
                 } else if (confidence == 1) {
@@ -81,12 +79,12 @@ public class HandInfo extends Node3D {
         }
 
         String handTrackerName = hand == 0 ? "/user/hand_tracker/left" : "/user/hand_tracker/right";
-        Object handTrackerObj = call("get_tracker", handTrackerName);
-        if (handTrackerObj != null) {
-            org.godot.Godot handTracker = (org.godot.Godot) handTrackerObj;
+        XRTracker handTracker = XRServer.singleton().getTracker(handTrackerName);
+        if (handTracker != null) {
             text.append("\nHand tracker found\n");
 
-            int source = (int) handTracker.getProperty("hand_tracking_source");
+            Object sourceValue = handTracker.getProperty("hand_tracking_source");
+            long source = sourceValue instanceof Number number ? number.longValue() : 0;
             if (source == 0) {
                 text.append("- Source: unknown\n");
             } else if (source == 1) {
@@ -99,16 +97,15 @@ public class HandInfo extends Node3D {
                 text.append("- Source: ").append(source).append("\n");
             }
 
-            boolean hasTrackingData = (boolean) handTracker.getProperty("has_tracking_data");
             if (fallbackMesh != null) {
-                fallbackMesh.setProperty("visible", !hasTrackingData);
+                fallbackMesh.setVisible(!Boolean.TRUE.equals(handTracker.getProperty("has_tracking_data")));
             }
         } else {
             text.append("\nNo hand tracker found!\n");
         }
 
         if (infoLabel != null) {
-            infoLabel.setProperty("text", text.toString());
+            infoLabel.setText(text.toString());
         }
     }
 }

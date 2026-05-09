@@ -16,11 +16,11 @@ public class Princess extends Area2D {
 
 	@GodotMethod
 	public void OnBodyEntered(Object body) {
-		String name = (String) ((org.godot.Godot) body).call("get_name");
+		String name = (String) ((org.godot.node.Node) body).getName();
 		if ("KCPlayer".equals(name)) {
-			Node winText = (Node) getNode("../WinText");
+			org.godot.node.CanvasItem winText = (org.godot.node.CanvasItem) getNode("../WinText");
 			if (winText != null) {
-				winText.call("show");
+				winText.show();
 			}
 		}
 	}

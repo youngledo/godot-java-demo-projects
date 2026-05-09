@@ -2,24 +2,22 @@ package demos.loading.scene_changer;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.PackedScene;
 import org.godot.node.Panel;
-import org.godot.Godot;
+import org.godot.node.Resource;
+import org.godot.node.SceneTree;
+import org.godot.singleton.ResourceLoader;
 
-/**
- * Scene B - changes scene to Scene A using SceneTree.changeSceneToPacked().
- * Loads the scene as a PackedScene first, then uses changeSceneToPacked().
- */
 @GodotClass(name = "SceneChangerB", parent = "Panel")
 public class SceneChangerB extends Panel {
 
     @GodotMethod
     public void _onGotoScenePressed() {
-        // Load the scene as a PackedScene.
-        org.godot.node.PackedScene scene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://scene_a.tscn");
-        if (scene != null) {
-            Godot tree = (Godot) getTree();
+        Resource resource = ResourceLoader.singleton().load("res://scene_a.tscn");
+        if (resource instanceof PackedScene scene) {
+            SceneTree tree = getTree();
             if (tree != null) {
-                tree.call("change_scene_to_packed", scene);
+                tree.changeSceneToPacked(scene);
             }
         }
     }

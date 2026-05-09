@@ -4,8 +4,8 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.Export;
 import org.godot.math.Vector3;
 import org.godot.node.Node3D;
+import org.godot.node.AnimatedSprite3D;
 import org.godot.singleton.Input;
-import org.godot.node.Node;
 
 @GodotClass(name = "Player3DSprite", parent = "Node3D")
 public class Player3DSprite extends Node3D {
@@ -13,14 +13,14 @@ public class Player3DSprite extends Node3D {
 	@Export
 	public double moveSpeed = 5.0;
 
-	private org.godot.node.Node sprite;
+	private AnimatedSprite3D sprite;
 	private boolean initialized = false;
 
 	@Override
 	public void _ready() {
 		if (initialized) return;
 		initialized = true;
-		sprite = getNode("AnimatedSprite3D");
+		sprite = getNodeAs("AnimatedSprite3D", AnimatedSprite3D.class);
 	}
 
 	@Override
@@ -28,10 +28,10 @@ public class Player3DSprite extends Node3D {
 		if (sprite == null) return;
 		Input input = Input.singleton();
 
-		double inputX = (double) input.call("get_action_strength", "move_right", false)
-				- (double) input.call("get_action_strength", "move_left", false);
-		double inputY = (double) input.call("get_action_strength", "move_back", false)
-				- (double) input.call("get_action_strength", "move_forward", false);
+		double inputX = input.getActionStrength("move_right", false)
+				- input.getActionStrength("move_left", false);
+		double inputY = input.getActionStrength("move_back", false)
+				- input.getActionStrength("move_forward", false);
 
 		if (Math.abs(inputX) > 0.01 || Math.abs(inputY) > 0.01) {
 			double len = Math.sqrt(inputX * inputX + inputY * inputY);
@@ -43,12 +43,12 @@ public class Player3DSprite extends Node3D {
 			translate(scaled);
 
 			if (Math.abs(inputX) > Math.abs(inputY)) {
-				sprite.call("play", inputX > 0 ? "walk_right" : "walk_left");
+				sprite.play( inputX > 0 ? "walk_right" : "walk_left");
 			} else {
-				sprite.call("play", inputY > 0 ? "walk_down" : "walk_up");
+				sprite.play( inputY > 0 ? "walk_down" : "walk_up");
 			}
 		} else {
-			sprite.call("stop");
+			sprite.stop();
 		}
 	}
 }

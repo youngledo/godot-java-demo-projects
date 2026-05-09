@@ -1,10 +1,10 @@
 package demos.networking.multiplayer_pong;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.Area2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "MPPongBall", parent = "Area2D")
 public class MPPongBall extends Area2D {
@@ -29,22 +29,22 @@ public class MPPongBall extends Area2D {
             translate(new Vector2(speed * delta * direction.getX(), speed * delta * direction.getY()));
         }
 
-        Vector2 ballPos = (Vector2) getProperty("position");
+        Vector2 ballPos = getPosition();
         if ((ballPos.getY() < 0 && direction.getY() < 0) || (ballPos.getY() > screenSize.getY() && direction.getY() > 0)) {
             direction = new Vector2(direction.getX(), -direction.getY());
         }
 
         if (isMultiplayerAuthority()) {
             if (ballPos.getX() < 0) {
-                Godot parent = (Godot) getParent();
-                parent.call("rpc", "update_score", false);
-                call("rpc", "_reset_ball", false);
+                Node parent = getParent();
+                parent.rpc("update_score", false);
+                rpc("_reset_ball", false);
             }
         } else {
             if (ballPos.getX() > screenSize.getX() ) {
-                Godot parent = (Godot) getParent();
-                parent.call("rpc", "update_score", true);
-                call("rpc", "_reset_ball", true);
+                Node parent = getParent();
+                parent.rpc("update_score", true);
+                rpc("_reset_ball", true);
             }
         }
     }
@@ -70,7 +70,7 @@ public class MPPongBall extends Area2D {
 
     @GodotMethod
     public void ResetBall(boolean forLeft) {
-        setProperty("position", new Vector2(screenSize.getX() / 2, screenSize.getY() / 2));
+        setPosition(new Vector2(screenSize.getX() / 2, screenSize.getY() / 2));
         if (forLeft) {
             direction = new Vector2(-1.0, 0.0);
         } else {

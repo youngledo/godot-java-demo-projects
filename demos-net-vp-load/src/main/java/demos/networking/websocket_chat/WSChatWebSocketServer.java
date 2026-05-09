@@ -135,7 +135,7 @@ public class WSChatWebSocketServer extends Node {
                 if (p.wasStringPacket()) {
                     msg = new String(pkt);
                 } else {
-                    msg = (String) call("bytes_to_var", pkt);
+                    msg = (String) bytesToVar(pkt);
                 }
                 emitSignal("message_received", entry.getKey(), msg);
             }

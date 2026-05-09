@@ -1,8 +1,8 @@
 package demos.networking.multiplayer_bomber;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.builtin.StringExtensions;
 import org.godot.node.AcceptDialog;
 import org.godot.node.Button;
 import org.godot.node.Control;
@@ -86,7 +86,7 @@ public class MPBomberLobby extends Control {
 
         LineEdit ipEdit = getNodeAs("Connect/IPAddress", LineEdit.class);
         String ip = ipEdit.getText();
-        if (!(boolean) ipEdit.call("is_valid_ip_address")) {
+        if (!StringExtensions.isValidIpAddress(ip)) {
             Label errorLabel = getNodeAs("Connect/ErrorLabel", Label.class);
             errorLabel.setText("Invalid IP address!");
             return;

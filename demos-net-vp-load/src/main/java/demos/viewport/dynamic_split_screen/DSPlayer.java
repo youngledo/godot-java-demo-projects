@@ -2,6 +2,7 @@ package demos.viewport.dynamic_split_screen;
 
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
+import org.godot.math.Vector2;
 import org.godot.math.Vector3;
 import org.godot.node.CharacterBody3D;
 import org.godot.singleton.Input;
@@ -26,33 +27,15 @@ public class DSPlayer extends CharacterBody3D {
     @Override
     public void _physicsProcess(double delta) {
         Input input = Input.singleton();
-
         String idStr = String.valueOf(playerId);
-        double moveX = (double) input.call("get_vector",
+        Vector2 moveDir = input.getVector(
             "move_left_player" + idStr,
             "move_right_player" + idStr,
             "move_up_player" + idStr,
             "move_down_player" + idStr
         );
 
-        // get_vector returns a single value for the horizontal axis when called this way
-        // In GDScript it's getVector(left, right, up, down) which returns Vector2
-        // We need to call it properly
-        Object moveDirObj = input.call("get_vector",
-            "move_left_player" + idStr,
-            "move_right_player" + idStr,
-            "move_up_player" + idStr,
-            "move_down_player" + idStr
-        );
-
-        org.godot.math.Vector2 moveDir;
-        if (moveDirObj instanceof org.godot.math.Vector2) {
-            moveDir = (org.godot.math.Vector2) moveDirObj;
-        } else {
-            moveDir = new org.godot.math.Vector2(0, 0);
-        }
-
-        Vector3 vel = (Vector3) getProperty("velocity");
+        Vector3 vel = getVelocity();
         if (vel == null) vel = new Vector3(0, 0, 0);
 
         vel = new Vector3(
@@ -61,10 +44,9 @@ public class DSPlayer extends CharacterBody3D {
             vel.getZ() + moveDir.getY() * walkSpeed
         );
 
-        // Apply friction
         vel = new Vector3(vel.getX() * 0.9, vel.getY(), vel.getZ() * 0.9);
 
-        setProperty("velocity", vel);
+        setVelocity(vel);
         moveAndSlide();
     }
 }

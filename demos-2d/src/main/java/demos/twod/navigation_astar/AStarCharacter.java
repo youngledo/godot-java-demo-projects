@@ -19,7 +19,7 @@ public class AStarCharacter extends Node2D {
 	private int state = 0; // 0=IDLE, 1=FOLLOW
 	private Vector2 velocity = new Vector2(0, 0);
 	private Vector2 clickPosition = new Vector2(0, 0);
-	private org.godot.node.TileMapLayer tileMap;
+	private AStarTileMap tileMap;
 	private java.util.List<Vector2> path = new java.util.ArrayList<>();
 	private Vector2 nextPoint = new Vector2(0, 0);
 	private boolean initialized = false;
@@ -29,7 +29,7 @@ public class AStarCharacter extends Node2D {
 		if (initialized) return;
 		initialized = true;
 
-		tileMap = (org.godot.node.TileMapLayer) getNode("../TileMapLayer");
+		tileMap = getNodeAs("../TileMapLayer", AStarTileMap.class);
 		changeState(0);
 	}
 
@@ -56,12 +56,12 @@ public class AStarCharacter extends Node2D {
 		if (viewport == null) return false;
 		clickPosition = (Vector2) viewport.getMousePosition();
 
-		if (tileMap != null && (boolean) tileMap.call("is_point_walkable", clickPosition)) {
+		if (tileMap != null && tileMap.isPointWalkable(clickPosition)) {
 			if ((boolean) ev.isActionPressed("teleport_to")) {
 				changeState(0);
-				Vector2 rounded = (Vector2) tileMap.call("round_local_position", clickPosition);
+				Vector2 rounded = tileMap.roundLocalPosition(clickPosition);
 				if (rounded != null) {
-					setProperty("global_position", rounded);
+					setGlobalPosition(rounded);
 					resetPhysicsInterpolation();
 				}
 				return true;
@@ -74,7 +74,7 @@ public class AStarCharacter extends Node2D {
 	}
 
 	private boolean moveTo(Vector2 localPosition) {
-		Vector2 pos = (Vector2) getProperty("position");
+		Vector2 pos = getPosition();
 		if (pos == null) return true;
 
 		Vector2 desired = new Vector2(
@@ -89,31 +89,26 @@ public class AStarCharacter extends Node2D {
 		Vector2 steering = new Vector2(desired.getX() - velocity.getX(), desired.getY() - velocity.getY());
 		velocity = new Vector2(velocity.getX() + steering.getX() / MASS, velocity.getY() + steering.getY() / MASS);
 
-		setProperty("position", new Vector2(pos.getX() + velocity.getX(), pos.getY() + velocity.getY()));
-		setProperty("rotation", Math.atan2(velocity.getY(), velocity.getX()));
+		Vector2 newPos = new Vector2(pos.getX() + velocity.getX(), pos.getY() + velocity.getY());
+		setPosition(newPos);
+		setRotation(Math.atan2(velocity.getY(), velocity.getX()));
 
 		double dist = Math.sqrt(
-			(localPosition.getX() - ((Vector2) getProperty("position")).getX()) *
-			(localPosition.getX() - ((Vector2) getProperty("position")).getX()) +
-			(localPosition.getY() - ((Vector2) getProperty("position")).getY()) *
-			(localPosition.getY() - ((Vector2) getProperty("position")).getY())
+			(localPosition.getX() - newPos.getX()) *
+			(localPosition.getX() - newPos.getX()) +
+			(localPosition.getY() - newPos.getY()) *
+			(localPosition.getY() - newPos.getY())
 		);
 		return dist < ARRIVE_DISTANCE;
 	}
 
 	private void changeState(int newState) {
 		if (newState == 0 && tileMap != null) {
-			tileMap.call("clear_path");
+			tileMap.clearPath();
 		} else if (newState == 1 && tileMap != null) {
-			Vector2 pos = (Vector2) getProperty("position");
-			Object pathResult = tileMap.call("find_path", pos, clickPosition);
-			if (pathResult instanceof Vector2[]) {
-				Vector2[] arr = (Vector2[]) pathResult;
-				path.clear();
-				for (Vector2 v : arr) path.add(v);
-			} else if (pathResult instanceof java.util.List) {
-				path = (java.util.List<Vector2>) pathResult;
-			}
+			Vector2[] pathResult = tileMap.findPath(getPosition(), clickPosition);
+			path.clear();
+			for (Vector2 v : pathResult) path.add(v);
 			if (path.size() < 2) {
 				changeState(0);
 				return;

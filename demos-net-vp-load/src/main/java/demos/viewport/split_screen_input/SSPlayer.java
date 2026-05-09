@@ -3,6 +3,8 @@ package demos.viewport.split_screen_input;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
+import org.godot.node.InputEvent;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "SSPlayer", parent = "CharacterBody2D")
 public class SSPlayer extends CharacterBody2D {
@@ -20,23 +22,17 @@ public class SSPlayer extends CharacterBody2D {
 
     @Override
     public boolean _unhandledInput(Object inputEvent) {
-        if (inputEvent instanceof org.godot.node.InputEvent) {
-            org.godot.node.InputEvent evt = (org.godot.node.InputEvent) inputEvent;
-
-            if ((boolean) evt.call("is_action_pressed", "ux_up", false) ||
-                (boolean) evt.call("is_action_released", "ux_down", false)) {
+        if (inputEvent instanceof InputEvent evt) {
+            if (evt.isActionPressed("ux_up", false) || evt.isActionReleased("ux_down", false)) {
                 movement = new Vector2(movement.getX(), movement.getY() - 1);
                 markInputHandled();
-            } else if ((boolean) evt.call("is_action_pressed", "ux_down", false) ||
-                       (boolean) evt.call("is_action_released", "ux_up", false)) {
+            } else if (evt.isActionPressed("ux_down", false) || evt.isActionReleased("ux_up", false)) {
                 movement = new Vector2(movement.getX(), movement.getY() + 1);
                 markInputHandled();
-            } else if ((boolean) evt.call("is_action_pressed", "ux_left", false) ||
-                       (boolean) evt.call("is_action_released", "ux_right", false)) {
+            } else if (evt.isActionPressed("ux_left", false) || evt.isActionReleased("ux_right", false)) {
                 movement = new Vector2(movement.getX() - 1, movement.getY());
                 markInputHandled();
-            } else if ((boolean) evt.call("is_action_pressed", "ux_right", false) ||
-                       (boolean) evt.call("is_action_released", "ux_left", false)) {
+            } else if (evt.isActionPressed("ux_right", false) || evt.isActionReleased("ux_left", false)) {
                 movement = new Vector2(movement.getX() + 1, movement.getY());
                 markInputHandled();
             }
@@ -51,9 +47,9 @@ public class SSPlayer extends CharacterBody2D {
     }
 
     private void markInputHandled() {
-        Object vp = getViewport();
+        Viewport vp = getViewport();
         if (vp != null) {
-            ((org.godot.Godot) vp).call("set_input_as_handled");
+            vp.setInputAsHandled();
         }
     }
 }

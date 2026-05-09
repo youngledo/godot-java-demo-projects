@@ -1,17 +1,12 @@
 package demos.threed.voxel;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
 import org.godot.node.Node;
 import org.godot.node.StaticBody3D;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/**
- * Manages chunk creation, deletion, and block lookups.
- * Port of world/voxel_world.gd.
- */
 @GodotClass(name = "VXVoxelWorld", parent = "Node")
 public class VXVoxelWorld extends Node {
 
@@ -33,7 +28,7 @@ public class VXVoxelWorld extends Node {
 
     private final Map<String, VXChunk.ChunkData> chunks = new LinkedHashMap<>();
 
-    private org.godot.node.Node player;
+    private VXPlayer player;
     private VXSettings settings;
     private boolean initialized = false;
 
@@ -42,11 +37,8 @@ public class VXVoxelWorld extends Node {
         if (initialized) return;
         initialized = true;
 
-        player = getNode("../Player");
-        java.lang.Object settingsObj = getNode("/root/Settings");
-        if (settingsObj instanceof VXSettings) {
-            settings = (VXSettings) settingsObj;
-        }
+        player = getNodeAs("../Player", VXPlayer.class);
+        settings = getNodeAs("/root/Settings", VXSettings.class);
     }
 
     @Override
@@ -58,7 +50,7 @@ public class VXVoxelWorld extends Node {
 
         if (player == null) return;
 
-        Vector3 playerPos = (Vector3) player.call("get_position");
+        Vector3 playerPos = player.getPosition();
         int pcx = (int) Math.round(playerPos.getX() / VXChunk.CHUNK_SIZE);
         int pcy = (int) Math.round(playerPos.getY() / VXChunk.CHUNK_SIZE);
         int pcz = (int) Math.round(playerPos.getZ() / VXChunk.CHUNK_SIZE);
@@ -70,7 +62,7 @@ public class VXVoxelWorld extends Node {
 
         if (!generating) return;
 
-        Vector3 velocity = (Vector3) player.getProperty("velocity");
+        Vector3 velocity = player.getVelocity();
         if (velocity != null) {
             double vy = velocity.getY();
             double clamped = Math.max(-renderDistance / 4.0, Math.min(renderDistance / 4.0, vy));
@@ -87,17 +79,15 @@ public class VXVoxelWorld extends Node {
                     String key = VXChunk.chunkKey(x, y, z);
                     if (chunks.containsKey(key)) continue;
 
-                    int worldType = (settings != null) ? settings.worldType : 0;
+                    int worldType = settings != null ? settings.worldType : 0;
 
                     StaticBody3D node = StaticBody3D.create();
                     VXChunk.ChunkData cd = VXChunk.initChunk(node, x, y, z, worldType);
                     chunks.put(key, cd);
                     addChild(node);
 
-                    // Try initial mesh generation.
                     tryInitialGenerateMesh(cd);
 
-                    // Check neighbors.
                     for (int[] dir : DIRECTIONS) {
                         String neighborKey = VXChunk.chunkKey(x + dir[0], y + dir[1], z + dir[2]);
                         VXChunk.ChunkData neighbor = chunks.get(neighborKey);
@@ -117,9 +107,6 @@ public class VXVoxelWorld extends Node {
         }
     }
 
-    /**
-     * Try to generate the initial mesh if all neighbors exist.
-     */
     private void tryInitialGenerateMesh(VXChunk.ChunkData cd) {
         for (int[] dir : DIRECTIONS) {
             String neighborKey = VXChunk.chunkKey(
@@ -132,9 +119,6 @@ public class VXVoxelWorld extends Node {
         VXChunk.generateChunkMesh(cd, this);
     }
 
-    /**
-     * Get the block ID at a given chunk position and block sub-position.
-     */
     public int getBlockInChunk(int cx, int cy, int cz, int bx, int by, int bz) {
         String chunkKey = VXChunk.chunkKey(cx, cy, cz);
         VXChunk.ChunkData cd = chunks.get(chunkKey);
@@ -146,9 +130,6 @@ public class VXVoxelWorld extends Node {
         return 0;
     }
 
-    /**
-     * Set a block at the given global position.
-     */
     public void setBlockGlobalPosition(int gx, int gy, int gz, int blockId) {
         int cx = (int) Math.floor((double) gx / VXChunk.CHUNK_SIZE);
         int cy = (int) Math.floor((double) gy / VXChunk.CHUNK_SIZE);
@@ -188,16 +169,13 @@ public class VXVoxelWorld extends Node {
         }
     }
 
-    /**
-     * Clean up all chunks and stop processing.
-     */
     public void cleanUp() {
         chunks.clear();
         setProcess(false);
 
         Node[] children = getChildren(false);
         for (Node child : children) {
-            child.call("free");
+            child.queueFree();
         }
     }
 

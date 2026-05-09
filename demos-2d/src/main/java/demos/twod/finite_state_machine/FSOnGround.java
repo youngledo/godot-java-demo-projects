@@ -11,12 +11,13 @@ public class FSOnGround extends FSMotion {
 
     @Override
     public boolean handleInput(Object inputEvent) {
-        org.godot.Godot event = (org.godot.Godot) inputEvent;
+        org.godot.node.InputEvent event = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (event != null) {
-            Object pressed = event.call("is_action_pressed", "jump");
-            if (pressed instanceof Boolean && (Boolean) pressed) {
+            if (event.isActionPressed("jump", false, false)) {
                 org.godot.Godot sm = getParent();
-                if (sm != null) sm.call("push_state", JUMP);
+                if (sm instanceof FSStateMachine stateMachine) {
+                    stateMachine.pushState(JUMP);
+                }
             }
         }
         return super.handleInput(inputEvent);

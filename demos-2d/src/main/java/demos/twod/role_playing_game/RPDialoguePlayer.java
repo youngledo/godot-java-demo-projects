@@ -2,6 +2,10 @@ package demos.twod.role_playing_game;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Signal;
+import org.godot.collection.GodotArray;
+import org.godot.collection.GodotDictionary;
+import org.godot.node.FileAccess;
+import org.godot.node.JSON;
 import org.godot.node.Node;
 import java.util.ArrayList;
 import java.util.Map;
@@ -73,26 +77,31 @@ public class RPDialoguePlayer extends Node {
         dialogueKeys.clear();
         if (dialogueFile.isEmpty()) return;
 
-        Object file = call("call", "FileAccess.open", dialogueFile, 1); // READ = 1
-        if (file == null) return;
+        String text = FileAccess.getFileAsString(dialogueFile);
+        if (text == null || text.isEmpty()) return;
 
-        Object textObj = ((org.godot.Godot) file).call("get_as_text");
-        if (textObj == null) return;
-
-        Object json = call("call", "JSON.new");
-        if (json instanceof org.godot.Godot) {
-            ((org.godot.Godot) json).call("parse", textObj);
-            Object data = ((org.godot.Godot) json).getProperty("data");
-            if (data instanceof org.godot.Godot) {
-                // Iterate dictionary keys
-                Object keys = ((org.godot.Godot) data).call("keys");
-                if (keys instanceof org.godot.Godot[]) {
-                    for (org.godot.Godot key : (org.godot.Godot[]) keys) {
-                        Object val = ((org.godot.Godot) data).call("get", key);
-                        if (val != null) dialogueKeys.add(val);
-                    }
-                }
+        Object data = JSON.parseString(text);
+        if (data instanceof GodotArray array) {
+            for (int i = 0; i < array.size(); i++) {
+                Object entry = array.get(i);
+                if (entry != null) dialogueKeys.add(entry);
             }
+        } else if (data instanceof Object[] entries) {
+            for (Object entry : entries) {
+                if (entry != null) dialogueKeys.add(entry);
+            }
+        } else if (data instanceof Map<?, ?> map) {
+            dialogueKeys.addAll(map.values());
+        } else if (data instanceof GodotDictionary dictionary) {
+            addNumericDictionaryEntries(dictionary);
+        }
+    }
+
+    private void addNumericDictionaryEntries(GodotDictionary dictionary) {
+        for (int i = 0; i < 1000; i++) {
+            Object entry = dictionary.get(String.valueOf(i));
+            if (entry == null) entry = dictionary.get(i);
+            if (entry != null) dialogueKeys.add(entry);
         }
     }
 

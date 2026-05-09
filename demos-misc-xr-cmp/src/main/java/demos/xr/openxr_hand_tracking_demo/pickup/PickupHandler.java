@@ -2,7 +2,11 @@ package demos.xr.openxr_hand_tracking_demo.pickup;
 
 import org.godot.annotation.GodotClass;
 import org.godot.node.Area3D;
+import org.godot.node.CollisionShape3D;
 import org.godot.node.Node;
+import org.godot.node.Shape3D;
+import org.godot.node.SphereShape3D;
+import org.godot.node.XRController3D;
 
 @GodotClass(name = "PickupHandler3D", parent = "Area3D")
 public class PickupHandler extends Area3D {
@@ -25,17 +29,16 @@ public class PickupHandler extends Area3D {
     }
 
     private void updateDetectRange() {
-        org.godot.node.CollisionShape3D collisionShape = (org.godot.node.CollisionShape3D) getNode("CollisionShape3D");
+        CollisionShape3D collisionShape = getNodeAs("CollisionShape3D", CollisionShape3D.class);
         if (collisionShape != null) {
-            org.godot.Godot shape = (org.godot.Godot) collisionShape.getProperty("shape");
-            if (shape != null) {
-                shape.setProperty("radius", detectRange);
+            Shape3D shape = collisionShape.getShape();
+            if (shape instanceof SphereShape3D sphereShape) {
+                sphereShape.setRadius(detectRange);
             }
         }
     }
 
     private void updateClosestBody() {
-        // Don't check if we've picked something up.
         if (pickedUpBody != null) {
             if (closestBody != null) {
                 closestBody.removeIsClosest(this);
@@ -51,15 +54,12 @@ public class PickupHandler extends Area3D {
         if (bodies != null) {
             org.godot.math.Vector3 globalPos = getGlobalPosition();
             for (Object bodyObj : bodies) {
-                if (bodyObj instanceof PickupAbleBody) {
-                    PickupAbleBody body = (PickupAbleBody) bodyObj;
-                    if (!body.isPickedUp()) {
-                        org.godot.math.Vector3 bodyPos = (org.godot.math.Vector3) body.getGlobalPosition();
-                        double distSq = bodyPos.distanceSquaredTo(globalPos);
-                        if (distSq < closestDistance) {
-                            newClosestBody = body;
-                            closestDistance = distSq;
-                        }
+                if (bodyObj instanceof PickupAbleBody body && !body.isPickedUp()) {
+                    org.godot.math.Vector3 bodyPos = body.getGlobalPosition();
+                    double distSq = bodyPos.distanceSquaredTo(globalPos);
+                    if (distSq < closestDistance) {
+                        newClosestBody = body;
+                        closestDistance = distSq;
                     }
                 }
             }
@@ -77,14 +77,13 @@ public class PickupHandler extends Area3D {
         }
     }
 
-    private org.godot.Godot getParentController() {
-        org.godot.Godot parent = (org.godot.Godot) getParent();
+    private XRController3D getParentController() {
+        Node parent = getParent();
         while (parent != null) {
-            String className = (String) parent.call("get_class");
-            if ("XRController3D".equals(className)) {
-                return parent;
+            if (parent instanceof XRController3D controller) {
+                return controller;
             }
-            parent = (org.godot.Godot) parent.call("get_parent");
+            parent = parent.getParent();
         }
         return null;
     }
@@ -93,22 +92,19 @@ public class PickupHandler extends Area3D {
     public void _physicsProcess(double delta) {
         updateClosestBody();
 
-        // Check if our pickup action is true.
         boolean pickupPressed = false;
-        org.godot.Godot controller = getParentController();
+        XRController3D controller = getParentController();
         if (controller != null) {
-            double pickupValue = (double) controller.call("get_float", pickupAction);
+            double pickupValue = controller.getFloat(pickupAction);
             double threshold = wasPickupPressed ? 0.4 : 0.6;
             pickupPressed = pickupValue > threshold;
         }
 
-        // Do we need to let go?
         if (pickedUpBody != null && !pickupPressed) {
             pickedUpBody.letGo();
             pickedUpBody = null;
         }
 
-        // Do we need to pick something up?
         if (pickedUpBody == null && !wasPickupPressed && pickupPressed && closestBody != null) {
             pickedUpBody = closestBody;
             pickedUpBody.pickUp(this);

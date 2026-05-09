@@ -1,15 +1,17 @@
 package demos.networking.multiplayer_bomber;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.annotation.Signal;
+import org.godot.math.Color;
 import org.godot.math.Vector2;
 import org.godot.node.ENetMultiplayerPeer;
 import org.godot.node.MultiplayerAPI;
 import org.godot.node.Node;
+import org.godot.node.Node2D;
 import org.godot.node.PackedScene;
 import org.godot.node.SceneTree;
+import org.godot.singleton.ResourceLoader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +53,7 @@ public class MPBomberGameState extends Node {
 
     @GodotMethod
     public void PlayerConnected(long id) {
-        call("rpc_id", (int) id, "register_player", playerName);
+        rpcId((int) id, "register_player", playerName);
     }
 
     @GodotMethod
@@ -97,8 +99,8 @@ public class MPBomberGameState extends Node {
 
     @GodotMethod
     public void loadWorld() {
-        Godot worldScene = (Godot) call("load", "res://world.tscn");
-        Node world = ((PackedScene) worldScene).instantiate();
+        PackedScene worldScene = (PackedScene) ResourceLoader.singleton().load("res://world.tscn");
+        Node world = worldScene.instantiate();
         SceneTree tree = getTree();
         Node root = tree.getRoot();
         root.addChild(world);
@@ -143,7 +145,7 @@ public class MPBomberGameState extends Node {
         SceneTree tree = getTree();
         Node root = tree.getRoot();
         Node world = root.getNode("World");
-        Godot playerScene = (Godot) call("load", "res://player.tscn");
+        PackedScene playerScene = (PackedScene) ResourceLoader.singleton().load("res://player.tscn");
 
         Map<Integer, Integer> spawnPoints = new HashMap<>();
         spawnPoints.put(1, 0);
@@ -156,16 +158,16 @@ public class MPBomberGameState extends Node {
         for (Map.Entry<Integer, Integer> entry : spawnPoints.entrySet() ) {
             int pId = entry.getKey();
             int spawnIdx = entry.getValue();
-            Node spawnPos = world.getNode("SpawnPoints/" + spawnIdx);
-            Vector2 pos = (Vector2) spawnPos.getProperty("position");
-            Node player = ((PackedScene) playerScene).instantiate();
+            Node2D spawnPos = world.getNodeAs("SpawnPoints/" + spawnIdx, Node2D.class);
+            Vector2 pos = spawnPos.getPosition();
+            Node player = playerScene.instantiate();
             player.setProperty("synced_position", pos);
             player.setProperty("name", String.valueOf(pId));
             Node playersNode = world.getNode("Players");
             playersNode.addChild(player);
             int uniqueId = getMultiplayer().getUniqueId();
             String pName = pId == uniqueId ? playerName : players.get(pId);
-            player.call("rpc", "set_player_name", pName);
+            player.rpc("set_player_name", pName);
         }
     }
 
@@ -182,7 +184,7 @@ public class MPBomberGameState extends Node {
     public Object getPlayerColor(String pName) {
         int hash = pName.hashCode();
         double hue = wrapF(hash * 0.001, 0.0, 1.0);
-        return call("Color.from_hsv", hue, 0.6, 1.0);
+        return Color.fromHsv(hue, 0.6, 1.0);
     }
 
     private double wrapF(double value, double min, double max) {

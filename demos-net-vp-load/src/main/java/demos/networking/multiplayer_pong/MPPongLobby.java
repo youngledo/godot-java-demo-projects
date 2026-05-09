@@ -1,8 +1,8 @@
 package demos.networking.multiplayer_pong;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.builtin.StringExtensions;
 import org.godot.core.Callable;
 import org.godot.node.Button;
 import org.godot.node.Control;
@@ -17,6 +17,7 @@ import org.godot.node.SceneTree;
 import org.godot.node.Window;
 import org.godot.singleton.OS;
 import org.godot.singleton.ProjectSettings;
+import org.godot.singleton.ResourceLoader;
 
 @GodotClass(name = "MPPongLobby", parent = "Control")
 public class MPPongLobby extends Control {
@@ -52,8 +53,8 @@ public class MPPongLobby extends Control {
 
     @GodotMethod
     public void PlayerConnected(long id) {
-        Godot pongScene = (Godot) call("load", "res://pong.tscn");
-        Node pong = ((PackedScene) pongScene).instantiate();
+        PackedScene pongScene = (PackedScene) ResourceLoader.singleton().load("res://pong.tscn");
+        Node pong = pongScene.instantiate();
         pong.connect("game_finished", new Callable(this, "_end_game"), 2);
 
         SceneTree tree = getTree();
@@ -138,7 +139,7 @@ public class MPPongLobby extends Control {
     @GodotMethod
     public void OnJoinPressed() {
         String ip = address.getText();
-        if (!(boolean) address.call("is_valid_ip_address")) {
+        if (!StringExtensions.isValidIpAddress(ip)) {
             setStatus("IP address is invalid.", false);
             return;
         }

@@ -1,45 +1,43 @@
 package demos.threed.platformer;
 
 import org.godot.annotation.GodotClass;
+import org.godot.node.DirectionalLight3D;
 import org.godot.node.Node3D;
-import org.godot.node.Node;
+import org.godot.singleton.RenderingServer;
 
 @GodotClass(name = "PLStage", parent = "Node3D")
 public class PLStage extends Node3D {
 
-	private boolean initialized = false;
-	private org.godot.node.Node newLight;
+    private boolean initialized = false;
+    private DirectionalLight3D newLight;
 
-	@Override
-	public void _ready() {
-		if (initialized) return;
-		initialized = true;
+    @Override
+    public void _ready() {
+        if (initialized) return;
+        initialized = true;
 
-		org.godot.singleton.RenderingServer rs = org.godot.singleton.RenderingServer.singleton();
-		if (rs == null) return;
+        RenderingServer rs = RenderingServer.singleton();
+        if (rs == null) return;
 
-		Object method = rs.call("get_current_rendering_method");
-		if (method != null && "gl_compatibility".equals(method.toString())) {
-			rs.call("directional_soft_shadow_filter_set_quality", 3);
+        if ("gl_compatibility".equals(rs.getCurrentRenderingMethod())) {
+            rs.directionalSoftShadowFilterSetQuality(3);
 
-			org.godot.node.DirectionalLight3D light = (org.godot.node.DirectionalLight3D) getNode("DirectionalLight3D");
-			if (light != null) {
-				light.setProperty("sky_mode", 0);
-				newLight = (org.godot.node.Node) light.duplicate();
-				if (newLight != null) {
-					newLight.setProperty("light_energy", 0.25);
-					newLight.setProperty("sky_mode", 1);
-					addChild((org.godot.node.Node) newLight);
-				}
-			}
-		}
-	}
+            DirectionalLight3D light = getNodeAs("DirectionalLight3D", DirectionalLight3D.class);
+            if (light != null && light.duplicate() instanceof DirectionalLight3D duplicated) {
+                light.setSkyMode(0L);
+                newLight = duplicated;
+                newLight.setLightEnergy(0.25);
+                newLight.setSkyMode(1L);
+                addChild(newLight);
+            }
+        }
+    }
 
-	@Override
-	public void _exitTree() {
-		if (newLight != null) {
-			newLight.queueFree();
-			newLight = null;
-		}
-	}
+    @Override
+    public void _exitTree() {
+        if (newLight != null) {
+            newLight.queueFree();
+            newLight = null;
+        }
+    }
 }

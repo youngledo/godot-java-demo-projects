@@ -1,8 +1,16 @@
 package demos.loading.serialization;
 
-import org.godot.annotation.GodotClass;
 import org.godot.Godot;
+import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
+import org.godot.collection.GodotDictionary;
 import org.godot.node.Button;
+import org.godot.node.ConfigFile;
+import org.godot.node.Node;
+import org.godot.node.Node2D;
+import org.godot.node.PackedScene;
+import org.godot.node.SceneTree;
+import org.godot.singleton.ResourceLoader;
 
 /**
  * Saves and loads game data using Godot's custom ConfigFile format.
@@ -17,76 +25,67 @@ public class SaveLoadConfigFile extends Button {
     // game_node and player_node are NodePath properties set in the scene.
 
     public void saveGame() {
-        Godot config = (Godot) call("ConfigFile.new");
+        ConfigFile config = ConfigFile.create();
 
-        // Get the player node.
         String playerPath = (String) getProperty("player_node");
         SerPlayer player = (SerPlayer) getNode(playerPath);
 
-        // Save player data.
-        config.call("set_value", "player", "position", player.getProperty("position"));
-        config.call("set_value", "player", "health", player.getHealth());
+        config.setValue("player", "position", player.getPosition());
+        config.setValue("player", "health", player.getHealth());
         Godot sprite = player.getSprite();
         if (sprite != null) {
-            config.call("set_value", "player", "rotation", sprite.getProperty("rotation"));
+            config.setValue("player", "rotation", sprite.getProperty("rotation"));
         }
 
-        // Save enemies.
-        Godot tree = (Godot) getTree();
-        Object[] enemies = (Object[]) tree.call("get_nodes_in_group", "enemy");
+        SceneTree tree = getTree();
+        Node[] enemies = tree.getNodesInGroup("enemy");
 
-        Godot enemyArray = (Godot) call("Array.new");
-        for (Object enemyObj : enemies) {
-            if (enemyObj instanceof Godot) {
-                Godot enemy = (Godot) enemyObj;
-                Godot dict = (Godot) call("Dictionary.new");
-                dict.setProperty("position", enemy.getProperty("position"));
-                enemyArray.call("push_back", dict);
+        GodotArray enemyArray = new GodotArray();
+        for (Node enemyNode : enemies) {
+            if (enemyNode instanceof Node2D enemy) {
+                GodotDictionary dict = new GodotDictionary();
+                dict.put("position", enemy.getPosition());
+                enemyArray.add(dict);
             }
         }
-        config.call("set_value", "enemies", "enemies", enemyArray);
+        config.setValue("enemies", "enemies", enemyArray);
 
-        config.call("save", SAVE_PATH);
+        config.save(SAVE_PATH);
 
-        // Enable the load button.
-        Godot loadBtn = (Godot) getNode("../LoadConfigFile");
-        if (loadBtn != null) loadBtn.setProperty("disabled", false);
+        Button loadBtn = getNodeAs("../LoadConfigFile", Button.class);
+        if (loadBtn != null) loadBtn.setDisabled(false);
     }
 
     public void loadGame() {
-        Godot config = (Godot) call("ConfigFile.new");
-        config.call("load", SAVE_PATH);
+        ConfigFile config = ConfigFile.create();
+        config.load(SAVE_PATH);
 
         String playerPath = (String) getProperty("player_node");
         SerPlayer player = (SerPlayer) getNode(playerPath);
 
-        // Restore player data.
-        player.setProperty("position", config.call("get_value", "player", "position"));
-        player.setHealth(((Number) config.call("get_value", "player", "health")).doubleValue());
+        player.setPosition((org.godot.math.Vector2) config.getValue("player", "position"));
+        player.setHealth(((Number) config.getValue("player", "health")).doubleValue());
         Godot sprite = player.getSprite();
         if (sprite != null) {
-            sprite.setProperty("rotation", config.call("get_value", "player", "rotation"));
+            sprite.setProperty("rotation", config.getValue("player", "rotation"));
         }
 
-        // Remove existing enemies.
-        Godot tree = (Godot) getTree();
-        tree.call("call_group", "enemy", "queue_free");
+        SceneTree tree = getTree();
+        tree.callGroup("enemy", "queue_free");
 
-        // Load enemies.
-        Object enemiesObj = config.call("get_value", "enemies", "enemies");
+        Object enemiesObj = config.getValue("enemies", "enemies");
         String gamePath = (String) getProperty("game_node");
-        Godot game = (Godot) getNode(gamePath);
+        Node game = getNode(gamePath);
 
-        if (enemiesObj instanceof Godot && game != null) {
-            Godot enemies = (Godot) enemiesObj;
-            int count = (int) enemies.call("size");
+        if (enemiesObj instanceof GodotArray enemies && game != null) {
+            int count = enemies.size();
             for (int i = 0; i < count; i++) {
-                Godot enemyConfig = (Godot) enemies.call("get", i);
-                org.godot.node.PackedScene enemyScene = (org.godot.node.PackedScene) org.godot.singleton.ResourceLoader.singleton().load("res://enemy.tscn");
+                GodotDictionary enemyConfig = (GodotDictionary) enemies.get(i);
+                PackedScene enemyScene = (PackedScene) ResourceLoader.singleton().load("res://enemy.tscn");
                 if (enemyScene != null) {
-                    Godot enemy = (Godot) ((Godot) enemyScene).call("instantiate");
-                    enemy.setProperty("position", enemyConfig.getProperty("position"));
-                    game.call("add_child", enemy);
+                    Node enemy = enemyScene.instantiate();
+                    enemy.setProperty("position", enemyConfig.get("position"));
+                    game.addChild(enemy);
                 }
             }
         }

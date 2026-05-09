@@ -1,9 +1,9 @@
 package demos.loading.serialization;
 
 import org.godot.annotation.GodotClass;
-import org.godot.Godot;
-import org.godot.node.Node2D;
+import org.godot.math.Vector2;
 import org.godot.node.Node;
+import org.godot.node.Node2D;
 
 /**
  * Enemy that moves right across the screen and damages the player on contact.
@@ -14,41 +14,32 @@ public class Enemy extends Node2D {
     private static final double MOVEMENT_SPEED = 75.0;
     private static final double DAMAGE_PER_SECOND = 15.0;
 
-    private Godot attacking = null;
+    private SerPlayer attacking = null;
 
     @Override
     public void _process(double delta) {
-        // Damage the player if in range.
-        if (attacking != null) {
-            boolean valid = (boolean) call("is_instance_valid", attacking);
-            if (valid) {
-                double health = ((Number) attacking.getProperty("health")).doubleValue();
-                health -= delta * DAMAGE_PER_SECOND;
-                attacking.setProperty("health", health);
-            }
+        if (attacking != null && isInstanceValid(attacking)) {
+            double health = attacking.getHealth();
+            health -= delta * DAMAGE_PER_SECOND;
+            attacking.setHealth(health);
         }
 
-        // Move right.
-        double posX = ((Number) getProperty("position")).doubleValue();
-        posX += MOVEMENT_SPEED * delta;
-        setProperty("position", posX);
+        Vector2 position = getPosition();
+        double posX = position.getX() + MOVEMENT_SPEED * delta;
+        setPosition(new Vector2(posX, position.getY()));
 
-        // Wrap around when going off-screen.
         if (posX >= 732) {
-            setProperty("position", -32);
+            setPosition(new Vector2(-32, position.getY()));
         }
     }
 
-    /** Called when a body enters the AttackArea. */
-    public void _onAttackAreaBodyEntered(Godot body) {
-        boolean isPlayer = (boolean) body.call("is_class", "SerPlayer");
-        if (isPlayer) {
-            attacking = body;
+    public void _onAttackAreaBodyEntered(Node body) {
+        if (body instanceof SerPlayer player) {
+            attacking = player;
         }
     }
 
-    /** Called when a body exits the AttackArea. */
-    public void _onAttackAreaBodyExited(Godot body) {
+    public void _onAttackAreaBodyExited(Node body) {
         attacking = null;
     }
 }

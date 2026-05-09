@@ -12,13 +12,10 @@ public class FSMotion extends FSState {
     public boolean handleInput(Object inputEvent) {
         org.godot.node.InputEvent event = inputEvent instanceof org.godot.node.InputEvent ? (org.godot.node.InputEvent) inputEvent : null;
         if (event != null) {
-            Object pressed = event.call("is_action_pressed", "simulate_damage");
-            if (pressed instanceof Boolean && (Boolean) pressed) {
+            if (event.isActionPressed("simulate_damage", false, false)) {
                 org.godot.Godot sm = getParent();
-                if (sm instanceof FSStateMachine) {
-                    ((FSStateMachine) sm).pushState(STAGGER);
-                } else {
-                    sm.call("push_state", STAGGER);
+                if (sm instanceof FSStateMachine stateMachine) {
+                    stateMachine.pushState(STAGGER);
                 }
             }
         }
@@ -28,8 +25,8 @@ public class FSMotion extends FSState {
     protected Vector2 getInputDirection() {
         Input input = Input.singleton();
         if (input == null) return Vector2.ZERO;
-        Object result = input.call("get_vector", "move_left", "move_right", "move_up", "move_down");
-        return result instanceof Vector2 ? (Vector2) result : Vector2.ZERO;
+        Vector2 result = input.getVector("move_left", "move_right", "move_up", "move_down", 0.5);
+        return result != null ? result : Vector2.ZERO;
     }
 
     protected void updateLookDirection(Vector2 direction) {
@@ -39,7 +36,9 @@ public class FSMotion extends FSState {
             Object lookDir = owner.getProperty("look_direction");
             Vector2 current = lookDir instanceof Vector2 ? (Vector2) lookDir : Vector2.ZERO;
             if (current.x != direction.x || current.y != direction.y) {
-                owner.call("set_look_direction", direction);
+                if (owner instanceof FSPlayerController playerController) {
+                    playerController.setLookDirection(direction);
+                }
             }
         }
     }

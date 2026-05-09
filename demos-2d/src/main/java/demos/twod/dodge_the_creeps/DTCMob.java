@@ -2,8 +2,8 @@ package demos.twod.dodge_the_creeps;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.node.RigidBody2D;
-import org.godot.node.Node;
 
 @GodotClass(name = "DTCMob", parent = "RigidBody2D")
 public class DTCMob extends RigidBody2D {
@@ -20,12 +20,16 @@ public class DTCMob extends RigidBody2D {
 		org.godot.node.VisibleOnScreenNotifier2D notifier = (org.godot.node.VisibleOnScreenNotifier2D) getNode("VisibleOnScreenNotifier2D");
 
 		if (animatedSprite != null) {
-			org.godot.node.SpriteFrames spriteFrames = (org.godot.node.SpriteFrames) animatedSprite.getProperty("sprite_frames");
+			org.godot.node.SpriteFrames spriteFrames = animatedSprite.getSpriteFrames();
 			if (spriteFrames != null) {
-				String[] animNames = (String[]) spriteFrames.call("get_animation_names");
-				if (animNames != null && animNames.length > 0) {
-					int idx = (int) (Math.random() * animNames.length);
-					animatedSprite.call("set_animation", animNames[idx]);
+				GodotArray animArr = spriteFrames.getAnimations();
+				if (animArr != null && animArr.size() > 0) {
+					int idx = (int) (Math.random() * animArr.size());
+					Object entry = animArr.get(idx);
+					if (entry instanceof org.godot.Godot) {
+						Object nameObj = ((org.godot.Godot) entry).getProperty("name");
+						if (nameObj != null) animatedSprite.setAnimation(nameObj.toString());
+					}
 				}
 			}
 			animatedSprite.play();

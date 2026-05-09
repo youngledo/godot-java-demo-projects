@@ -67,7 +67,7 @@ public class FSJump extends FSMotion {
         org.godot.node.Node owner = (org.godot.node.Node) getProperty("owner");
         if (owner != null) {
             owner.setProperty("velocity", horizontalVelocity);
-            owner.call("move_and_slide");
+            ((org.godot.node.CharacterBody2D) owner).moveAndSlide();
         }
     }
 

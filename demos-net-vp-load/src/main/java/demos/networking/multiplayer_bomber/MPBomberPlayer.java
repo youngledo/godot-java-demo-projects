@@ -1,11 +1,11 @@
 package demos.networking.multiplayer_bomber;
 
-import org.godot.Godot;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.AnimationPlayer;
+import org.godot.node.CanvasItem;
 import org.godot.node.CharacterBody2D;
 import org.godot.node.Label;
 import org.godot.node.MultiplayerAPI;
@@ -25,13 +25,13 @@ public class MPBomberPlayer extends CharacterBody2D {
 
     private double lastBombTime = BOMB_RATE;
     private String currentAnim = "";
-    private Godot inputs;
+    private MPBomberPlayerControls inputs;
 
     @Override
     public void _ready() {
         stunned = false;
-        setProperty("position", syncedPosition);
-        inputs = (Godot) getNode("Inputs");
+        setPosition(syncedPosition);
+        inputs = getNodeAs("Inputs", MPBomberPlayerControls.class);
 
         String nameStr = (String) getProperty("name");
         try {
@@ -50,35 +50,35 @@ public class MPBomberPlayer extends CharacterBody2D {
         int uniqueId = mp.getUniqueId();
 
         if (mpPeer == null || String.valueOf(uniqueId).equals(nameStr)) {
-            inputs.call("update");
+            inputs.update();
         }
 
         if (mpPeer == null || isMultiplayerAuthority()) {
-            Vector2 pos = (Vector2) getProperty("position");
+            Vector2 pos = getPosition();
             syncedPosition = pos;
             lastBombTime += delta;
 
-            boolean isBombing = (boolean) inputs.getProperty("bombing");
+            boolean isBombing = inputs.bombing;
             if (!stunned && isMultiplayerAuthority() && isBombing && lastBombTime >= BOMB_RATE) {
                 lastBombTime = 0.0;
-                Godot bombSpawner = (Godot) getNode("../../BombSpawner");
-                Vector2 position = (Vector2) getProperty("position");
+                MPBomberBombSpawner bombSpawner = getNodeAs("../../BombSpawner", MPBomberBombSpawner.class);
+                Vector2 position = getPosition();
                 Object[] spawnData = new Object[]{position, Integer.parseInt(nameStr)};
-                bombSpawner.call("spawn", new Object[]{spawnData});
+                bombSpawner.spawnData(spawnData);
             }
         } else {
-            setProperty("position", syncedPosition);
+            setPosition(syncedPosition);
         }
 
         if (!stunned) {
-            Vector2 motion = (Vector2) inputs.getProperty("motion");
+            Vector2 motion = inputs.motion;
             double mx = motion != null ? motion.getX() : 0;
             double my = motion != null ? motion.getY() : 0;
-            setProperty("velocity", new Vector2(mx * MOTION_SPEED, my * MOTION_SPEED));
+            setVelocity(new Vector2(mx * MOTION_SPEED, my * MOTION_SPEED));
             moveAndSlide();
         }
 
-        Vector2 motion = (Vector2) inputs.getProperty("motion");
+        Vector2 motion = inputs.motion;
         double mx = motion != null ? motion.getX() : 0;
         double my = motion != null ? motion.getY() : 0;
 
@@ -104,8 +104,8 @@ public class MPBomberPlayer extends CharacterBody2D {
         MPBomberGameState gamestate = getNodeAs("/root/gamestate", MPBomberGameState.class);
         Object color = gamestate.getPlayerColor(value);
         label.setProperty("modulate", color);
-        Godot sprite = (Godot) getNode("sprite");
-        sprite.setProperty("modulate", new org.godot.math.Color(0.5, 0.5, 0.5));
+        CanvasItem sprite = getNodeAs("sprite", CanvasItem.class);
+        sprite.setModulate(new org.godot.math.Color(0.5, 0.5, 0.5));
     }
 
     @GodotMethod

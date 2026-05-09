@@ -1,20 +1,19 @@
 package demos.networking.webrtc_minimal;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.node.Node;
 import org.godot.node.PackedScene;
 import org.godot.node.SceneTree;
 import org.godot.node.SceneTreeTimer;
+import org.godot.singleton.ResourceLoader;
 
 @GodotClass(name = "WebRTCMinimalMain", parent = "Node")
 public class WebRTCMinimalMain extends Node {
 
     @Override
     public void _ready() {
-        Godot chatScene = (Godot) call("load", "res://chat.tscn");
-        if (chatScene == null) return;
-        PackedScene scene = (PackedScene) chatScene;
+        PackedScene scene = (PackedScene) ResourceLoader.singleton().load("res://chat.tscn");
+        if (scene == null) return;
         Node p1 = scene.instantiate();
         Node p2 = scene.instantiate();
         if (p1 != null) addChild(p1);

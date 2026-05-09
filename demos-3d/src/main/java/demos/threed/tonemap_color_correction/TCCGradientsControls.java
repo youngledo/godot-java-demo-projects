@@ -3,6 +3,7 @@ package demos.threed.tonemap_color_correction;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Node;
+import org.godot.node.ShaderMaterial;
 
 @GodotClass(name = "TCCGradientsControls", parent = "Node")
 public class TCCGradientsControls extends Node {
@@ -26,24 +27,18 @@ public class TCCGradientsControls extends Node {
 	}
 
 	private void setShaderParamOnAllBars(String param, Object value) {
-		// Iterate children looking for TCCGradientBars nodes
-		long childCount = (long) getChildCount();
+		long childCount = getChildCount();
 		for (int i = 0; i < childCount; i++) {
-			org.godot.node.Node child = getChild(i);
-			if (child == null) continue;
-			String className = child.get_class_();
-			if ("TCCGradientBars".equals(className)) {
-				org.godot.Godot hdrBar = (org.godot.Godot) child.getProperty("hdr_bar");
-				if (hdrBar != null) {
-					org.godot.Godot mat = (org.godot.Godot) hdrBar.getProperty("material_override");
-					if (mat != null) mat.call("set_shader_parameter", param, value);
-				}
-				org.godot.Godot sdrBar = (org.godot.Godot) child.getProperty("sdr_bar");
-				if (sdrBar != null) {
-					org.godot.Godot mat = (org.godot.Godot) sdrBar.getProperty("material_override");
-					if (mat != null) mat.call("set_shader_parameter", param, value);
-				}
+			if (getChild(i) instanceof TCCGradientBars bars) {
+				setShaderParameter(bars.hdrBar, param, value);
+				setShaderParameter(bars.sdrBar, param, value);
 			}
+		}
+	}
+
+	private void setShaderParameter(org.godot.Godot bar, String parameter, Object value) {
+		if (bar != null && bar.getProperty("material_override") instanceof ShaderMaterial mat) {
+			mat.setShaderParameter(parameter, value);
 		}
 	}
 }

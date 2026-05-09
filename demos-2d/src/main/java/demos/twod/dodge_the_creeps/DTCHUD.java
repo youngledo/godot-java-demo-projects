@@ -2,12 +2,16 @@ package demos.twod.dodge_the_creeps;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
 import org.godot.core.Callable;
 import org.godot.node.CanvasLayer;
 import org.godot.node.Node;
 
 @GodotClass(name = "DTCHUD", parent = "CanvasLayer")
 public class DTCHUD extends CanvasLayer {
+
+	@Signal(name = "start_game")
+	public void startGame() {}
 
 	private org.godot.node.Label messageLabel;
 	private org.godot.node.Timer messageTimer;
@@ -20,7 +24,6 @@ public class DTCHUD extends CanvasLayer {
 		if (initialized) return;
 		initialized = true;
 
-		call("add_user_signal", "start_game");
 		messageLabel = (org.godot.node.Label) getNode("MessageLabel");
 		messageTimer = (org.godot.node.Timer) getNode("MessageTimer");
 		startButton = (org.godot.node.Button) getNode("StartButton");

@@ -1,43 +1,53 @@
 package demos.compute.heightmap;
 
-import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
-import org.godot.node.Control;
-import org.godot.math.Vector2i;
 import org.godot.math.Color;
+import org.godot.math.Vector2i;
+import org.godot.node.Button;
+import org.godot.node.Control;
+import org.godot.node.FastNoiseLite;
+import org.godot.node.Gradient;
+import org.godot.node.GradientTexture1D;
+import org.godot.node.Image;
+import org.godot.node.ImageTexture;
+import org.godot.node.Label;
+import org.godot.node.RDShaderFile;
+import org.godot.node.RDShaderSPIRV;
+import org.godot.node.RDTextureFormat;
+import org.godot.node.RDTextureView;
+import org.godot.node.RDUniform;
+import org.godot.node.RandomNumberGenerator;
+import org.godot.node.RenderingDevice;
+import org.godot.node.Resource;
+import org.godot.node.SpinBox;
+import org.godot.node.TextureRect;
+import org.godot.singleton.OS;
+import org.godot.singleton.RenderingServer;
+import org.godot.singleton.ResourceLoader;
+import org.godot.singleton.Time;
 
-/**
- * Port of compute/heightmap/main.gd
- *
- * Demonstrates GPU compute shaders for heightmap generation.
- * Uses RenderingDevice API to run a compute shader that generates
- * an island from noise data.
- */
 @GodotClass(name = "HeightmapMain", parent = "Control")
 public class HeightmapMain extends Control {
 
-    // Export properties
     private String shaderFile = "";
     private int dimension = 512;
 
-    // Node references
-    private Godot seedInput;
-    private Godot heightmapRect;
-    private Godot islandRect;
+    private SpinBox seedInput;
+    private TextureRect heightmapRect;
+    private TextureRect islandRect;
 
-    // Noise and gradient objects
-    private Godot noise;
-    private Godot gradient;
-    private Godot gradientTex;
+    private FastNoiseLite noise;
+    private Gradient gradient;
+    private GradientTexture1D gradientTex;
+    private RandomNumberGenerator randomNumberGenerator;
 
-    // GPU resources
-    private Godot rd; // RenderingDevice
-    private Godot shaderRid; // RID
-    private Godot heightmapRid; // RID
-    private Godot gradientRid; // RID
-    private Godot uniformSet; // RID
-    private Godot pipeline; // RID
+    private RenderingDevice rd;
+    private long shaderRid;
+    private long heightmapRid;
+    private long gradientRid;
+    private long uniformSet;
+    private long pipeline;
 
     private int po2Dimensions;
     private long startTime;
@@ -49,184 +59,157 @@ public class HeightmapMain extends Control {
         if (initialized) return;
         initialized = true;
 
-        // Read export properties
         shaderFile = (String) getProperty("shader_file");
         if (shaderFile == null) shaderFile = "";
         Object dimObj = getProperty("dimension");
-        if (dimObj instanceof Number) {
-            dimension = ((Number) dimObj).intValue();
+        if (dimObj instanceof Number number) {
+            dimension = number.intValue();
         }
 
-        // Get node references
-        seedInput = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/GridContainer/SeedInput");
-        heightmapRect = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/GridContainer/RawHeightmap");
-        islandRect = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/GridContainer/ComputedHeightmap");
+        seedInput = getNodeAs("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/GridContainer/SeedInput", SpinBox.class);
+        heightmapRect = getNodeAs("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/GridContainer/RawHeightmap", TextureRect.class);
+        islandRect = getNodeAs("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/GridContainer/ComputedHeightmap", TextureRect.class);
 
-        // Create noise
-        noise = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "FastNoiseLite");
-        noise.setProperty("noise_type", 2); // TYPE_SIMPLEX_SMOOTH
-        noise.setProperty("fractal_octaves", 5);
-        noise.setProperty("fractal_lacunarity", 1.9);
+        noise = FastNoiseLite.create();
+        noise.setNoiseType(2);
+        noise.setFractalOctaves(5);
+        noise.setFractalLacunarity(1.9);
 
-        // Create gradient
-        gradient = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "Gradient");
-        gradient.call("add_point", 0.6, new Color(0.9, 0.9, 0.9, 1.0));
-        gradient.call("add_point", 0.8, new Color(1.0, 1.0, 1.0, 1.0));
-        gradient.call("reverse");
+        gradient = Gradient.create();
+        gradient.addPoint(0.6, new Color(0.9, 0.9, 0.9, 1.0));
+        gradient.addPoint(0.8, new Color(1.0, 1.0, 1.0, 1.0));
+        gradient.reverse();
 
-        // Create gradient texture
-        gradientTex = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "GradientTexture1D");
-        gradientTex.setProperty("gradient", gradient);
+        gradientTex = GradientTexture1D.create();
+        gradientTex.setGradient(gradient);
 
+        randomNumberGenerator = RandomNumberGenerator.create();
+        randomNumberGenerator.randomize();
         randomizeSeed();
 
-        // Find nearest power of 2
         po2Dimensions = nearestPo2(dimension);
 
         double frequency = 0.003 / ((double) po2Dimensions / 512.0);
-        noise.setProperty("frequency", frequency);
+        noise.setFrequency(frequency);
 
-        // Append GPU and CPU model names
-        String gpuName = (String) call("RenderingServer.get_video_adapter_name");
-        String cpuName = org.godot.singleton.OS.singleton().getProcessorName();
-        Godot gpuButton = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonGPU");
-        Godot cpuButton = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonCPU");
+        String gpuName = RenderingServer.singleton().getVideoAdapterName();
+        String cpuName = OS.singleton().getProcessorName();
+        Button gpuButton = getNodeAs("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonGPU", Button.class);
+        Button cpuButton = getNodeAs("CenterContainer/VBoxContainer/PanelContainer/VBoxContainer/HBoxContainer/CreateButtonCPU", Button.class);
         if (gpuButton != null) {
-            String gpuText = (String) gpuButton.getProperty("text");
-            gpuButton.setProperty("text", gpuText + "\n" + gpuName);
+            gpuButton.setText(gpuButton.getText() + "\n" + gpuName);
         }
         if (cpuButton != null) {
-            String cpuText = (String) cpuButton.getProperty("text");
-            cpuButton.setProperty("text", cpuText + "\n" + cpuName);
+            cpuButton.setText(cpuButton.getText() + "\n" + cpuName);
         }
     }
 
     @Override
     public void onNotification(int what) {
-        // NOTIFICATION_PREDELETE = 1
         if (what == 1) {
             cleanupGpu();
         }
     }
 
     private void randomizeSeed() {
-        if (seedInput != null) {
-            Object randVal = call("randi");
-            seedInput.setProperty("value", randVal);
+        if (seedInput != null && randomNumberGenerator != null) {
+            seedInput.setValue(randomNumberGenerator.randi());
         }
     }
 
-    private Godot prepareImage() {
-        startTime = (Long) call("Time.get_ticks_usec");
+    private Image prepareImage() {
+        startTime = Time.singleton().getTicksUsec().longValue();
 
-        Object seedVal = seedInput.getProperty("value");
-        noise.setProperty("seed", seedVal);
+        if (seedInput != null) {
+            noise.setSeed((long) seedInput.getValue());
+        }
 
-        // Create image from noise
-        Godot heightmap = (Godot) noise.call("get_image", po2Dimensions, po2Dimensions, false, false);
+        Image heightmap = noise.getImage(po2Dimensions, po2Dimensions, false, false);
 
-        // Create a clone for display
-        Godot clone = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "Image");
-        clone.call("copy_from", heightmap);
-        clone.call("resize", 512, 512, 0); // INTERPOLATE_NEAREST = 0
-        Godot cloneTex = (Godot) call("ImageTexture.create_from_image", clone);
-        heightmapRect.setProperty("texture", cloneTex);
+        Image clone = Image.create();
+        clone.copyFrom(heightmap);
+        clone.resize(512, 512, 0);
+        ImageTexture cloneTex = ImageTexture.createFromImage(clone);
+        if (heightmapRect != null) {
+            heightmapRect.setTexture(cloneTex);
+        }
 
         return heightmap;
     }
 
     private void initGpu() {
-        // Create a local rendering device
-        rd = (Godot) call("RenderingServer.create_local_rendering_device");
+        rd = RenderingServer.singleton().createLocalRenderingDevice();
 
         if (rd == null) {
-            call("OS.alert",
-                "Couldn't create local RenderingDevice.\n\n" +
-                "Note: RenderingDevice is only available in the Forward+ and Mobile rendering methods, not Compatibility.");
+            OS.singleton().alert(
+                    "Couldn't create local RenderingDevice.\n\n"
+                            + "Note: RenderingDevice is only available in the Forward+ and Mobile rendering methods, not Compatibility.");
             return;
         }
 
-        // Load the shader
         shaderRid = loadShader(rd, shaderFile);
 
-        // Create format for heightmap
-        Godot heightmapFormat = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDTextureFormat");
-        heightmapFormat.setProperty("format", 41); // DATA_FORMAT_R8_UNORM
-        heightmapFormat.setProperty("width", po2Dimensions);
-        heightmapFormat.setProperty("height", po2Dimensions);
-        // TEXTURE_USAGE_STORAGE_BIT + TEXTURE_USAGE_CAN_UPDATE_BIT + TEXTURE_USAGE_CAN_COPY_FROM_BIT
-        heightmapFormat.setProperty("usage_bits", 8 + 64 + 128);
+        RDTextureFormat heightmapFormat = RDTextureFormat.create();
+        heightmapFormat.setFormat(41);
+        heightmapFormat.setWidth(po2Dimensions);
+        heightmapFormat.setHeight(po2Dimensions);
+        heightmapFormat.setUsageBits(8 + 64 + 128);
 
-        // Create heightmap texture
-        Godot heightmapView = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDTextureView");
-        heightmapRid = (Godot) rd.call("texture_create", heightmapFormat, heightmapView);
+        RDTextureView heightmapView = RDTextureView.create();
+        heightmapRid = rd.textureCreate(heightmapFormat, heightmapView);
 
-        // Create uniform for heightmap
-        Godot heightmapUniform = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDUniform");
-        heightmapUniform.setProperty("uniform_type", 9); // UNIFORM_TYPE_IMAGE
-        heightmapUniform.setProperty("binding", 0);
-        heightmapUniform.call("add_id", heightmapRid);
+        RDUniform heightmapUniform = RDUniform.create();
+        heightmapUniform.setUniformType(9);
+        heightmapUniform.setBinding(0);
+        heightmapUniform.addId(heightmapRid);
 
-        // Create format for gradient
-        Godot gradientFormat = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDTextureFormat");
-        gradientFormat.setProperty("format", 43); // DATA_FORMAT_R8G8B8A8_UNORM
-        Object gradientWidth = gradientTex.getProperty("width");
-        gradientFormat.setProperty("width", gradientWidth);
-        gradientFormat.setProperty("height", 1);
-        // TEXTURE_USAGE_STORAGE_BIT + TEXTURE_USAGE_CAN_UPDATE_BIT
-        gradientFormat.setProperty("usage_bits", 8 + 64);
+        RDTextureFormat gradientFormat = RDTextureFormat.create();
+        gradientFormat.setFormat(43);
+        gradientFormat.setWidth(gradientTex.getWidth());
+        gradientFormat.setHeight(1);
+        gradientFormat.setUsageBits(8 + 64);
 
-        // Get gradient image data
-        Godot gradientImage = (Godot) gradientTex.call("get_image");
-        Object gradientData = gradientImage.call("get_data");
+        Image gradientImage = gradientTex.getImage();
+        byte[] gradientData = gradientImage.getImageData();
 
-        // Storage gradient as texture
-        Godot gradientView = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDTextureView");
-        gradientRid = (Godot) rd.call("texture_create", gradientFormat, gradientView, new Object[]{gradientData});
+        RDTextureView gradientView = RDTextureView.create();
+        gradientRid = rd.textureCreate(gradientFormat, gradientView, new Object[] { gradientData });
 
-        // Create uniform for gradient
-        Godot gradientUniform = (Godot) org.godot.singleton.ClassDB.singleton().call("instantiate", "RDUniform");
-        gradientUniform.setProperty("uniform_type", 9); // UNIFORM_TYPE_IMAGE
-        gradientUniform.setProperty("binding", 1);
-        gradientUniform.call("add_id", gradientRid);
+        RDUniform gradientUniform = RDUniform.create();
+        gradientUniform.setUniformType(9);
+        gradientUniform.setBinding(1);
+        gradientUniform.addId(gradientRid);
 
-        uniformSet = (Godot) rd.call("uniform_set_create", new Object[]{heightmapUniform, gradientUniform}, shaderRid, 0);
-        pipeline = (Godot) rd.call("compute_pipeline_create", shaderRid);
+        uniformSet = rd.uniformSetCreate(new RDUniform[] { heightmapUniform, gradientUniform }, shaderRid, 0);
+        pipeline = rd.computePipelineCreate(shaderRid);
     }
 
-    private void computeIslandGpu(Godot heightmap) {
+    private void computeIslandGpu(Image heightmap) {
         if (rd == null) {
             initGpu();
         }
 
         if (rd == null) {
-            Godot label = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/HBoxContainer2/Label2");
+            Label label = getNodeAs("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/HBoxContainer2/Label2", Label.class);
             if (label != null) {
-                label.setProperty("text", "RenderingDevice is not available on the current rendering driver");
+                label.setText("RenderingDevice is not available on the current rendering driver");
             }
             return;
         }
 
-        // Store heightmap as texture
-        Object heightmapData = heightmap.call("get_data");
-        rd.call("texture_update", heightmapRid, 0, heightmapData);
+        rd.textureUpdate(heightmapRid, 0, heightmap.getImageData());
 
-        // Begin compute list
-        Object computeList = rd.call("compute_list_begin");
-        rd.call("compute_list_bind_compute_pipeline", computeList, pipeline);
-        rd.call("compute_list_bind_uniform_set", computeList, uniformSet, 0);
-        // Dispatch with work group size 8x8x1
-        rd.call("compute_list_dispatch", computeList, po2Dimensions / 8, po2Dimensions / 8, 1);
-        rd.call("compute_list_end");
+        long computeList = rd.computeListBegin();
+        rd.computeListBindComputePipeline(computeList, pipeline);
+        rd.computeListBindUniformSet(computeList, uniformSet, 0);
+        rd.computeListDispatch(computeList, po2Dimensions / 8, po2Dimensions / 8, 1);
+        rd.computeListEnd();
 
-        // Submit and sync
-        rd.call("submit");
-        rd.call("sync");
+        rd.submit();
+        rd.sync();
 
-        // Retrieve processed data
-        Object outputBytes = rd.call("texture_get_data", heightmapRid, 0);
-        // Create image from output bytes - FORMAT_L8 = 4
-        Godot islandImg = (Godot) call("Image.create_from_data", po2Dimensions, po2Dimensions, false, 4, outputBytes);
+        byte[] outputBytes = rd.textureGetData(heightmapRid, 0);
+        Image islandImg = Image.createFromData(po2Dimensions, po2Dimensions, false, 4, outputBytes);
 
         displayIsland(islandImg);
     }
@@ -234,77 +217,77 @@ public class HeightmapMain extends Control {
     private void cleanupGpu() {
         if (rd == null) return;
 
-        // Free all GPU resources
-        rd.call("free_rid", pipeline);
-        pipeline = null;
+        if (pipeline != 0) {
+            rd.freeRid(pipeline);
+            pipeline = 0;
+        }
+        if (uniformSet != 0) {
+            rd.freeRid(uniformSet);
+            uniformSet = 0;
+        }
+        if (gradientRid != 0) {
+            rd.freeRid(gradientRid);
+            gradientRid = 0;
+        }
+        if (heightmapRid != 0) {
+            rd.freeRid(heightmapRid);
+            heightmapRid = 0;
+        }
+        if (shaderRid != 0) {
+            rd.freeRid(shaderRid);
+            shaderRid = 0;
+        }
 
-        rd.call("free_rid", uniformSet);
-        uniformSet = null;
-
-        rd.call("free_rid", gradientRid);
-        gradientRid = null;
-
-        rd.call("free_rid", heightmapRid);
-        heightmapRid = null;
-
-        rd.call("free_rid", shaderRid);
-        shaderRid = null;
-
-        rd.call("free");
+        rd.free();
         rd = null;
     }
 
-    private Godot loadShader(Godot pRd, String path) {
-        Object shaderFileData = org.godot.singleton.ResourceLoader.singleton().load(path, "", 1);
-        Object shaderSpirv = ((Godot) shaderFileData).call("get_spirv");
-        return (Godot) pRd.call("shader_create_from_spirv", shaderSpirv);
+    private long loadShader(RenderingDevice renderingDevice, String path) {
+        Resource shaderFileData = ResourceLoader.singleton().load(path, "", 1);
+        if (!(shaderFileData instanceof RDShaderFile shaderFileResource)) return 0;
+        RDShaderSPIRV shaderSpirv = shaderFileResource.getSpirv();
+        return renderingDevice.shaderCreateFromSpirv(shaderSpirv);
     }
 
-    private void computeIslandCpu(Godot heightmap) {
+    private void computeIslandCpu(Image heightmap) {
         Vector2i center = new Vector2i(po2Dimensions / 2, po2Dimensions / 2);
 
         for (int y = 0; y < po2Dimensions; y++) {
             for (int x = 0; x < po2Dimensions; x++) {
-                Vector2i coordObj = new Vector2i(x, y);
-                Object pixel = heightmap.call("get_pixelv", coordObj);
+                Vector2i coord = new Vector2i(x, y);
+                Color pixel = heightmap.getPixelv(coord);
 
-                // Calculate distance
                 double cx = center.x;
                 double cy = center.y;
                 double dist = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
                 double t = dist / cx;
 
-                // Sample gradient
-                Object gradientColor = gradient.call("sample", t);
+                Color gradientColor = gradient.sample(t);
 
-                // Get the 'v' (value/hsv) component
-                double pixelV = ((Number) ((Godot) pixel).getProperty("v")).doubleValue();
-                double gradientV = ((Number) ((Godot) gradientColor).getProperty("v")).doubleValue();
-
-                pixelV *= gradientV;
+                double pixelV = colorValue(pixel) * colorValue(gradientColor);
                 if (pixelV < 0.2) {
                     pixelV = 0.0;
                 }
 
-                ((Godot) pixel).setProperty("v", pixelV);
-                heightmap.call("set_pixelv", coordObj, pixel);
+                heightmap.setPixelv(coord, withValue(pixel, pixelV));
             }
         }
 
         displayIsland(heightmap);
     }
 
-    private void displayIsland(Godot island) {
-        Godot islandTex = (Godot) call("ImageTexture.create_from_image", island);
-        islandRect.setProperty("texture", islandTex);
+    private void displayIsland(Image island) {
+        ImageTexture islandTex = ImageTexture.createFromImage(island);
+        if (islandRect != null) {
+            islandRect.setTexture(islandTex);
+        }
 
-        // Calculate and display elapsed time
-        long stopTime = (Long) call("Time.get_ticks_usec");
+        long stopTime = Time.singleton().getTicksUsec().longValue();
         long elapsed = stopTime - startTime;
         String elapsedStr = String.format("%.1f", elapsed * 0.001);
-        Godot label = (Godot) getNode("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/HBoxContainer/Label2");
+        Label label = getNodeAs("CenterContainer/VBoxContainer/PanelContainer2/VBoxContainer/HBoxContainer/Label2", Label.class);
         if (label != null) {
-            label.setProperty("text", elapsedStr + " ms");
+            label.setText(elapsedStr + " ms");
         }
     }
 
@@ -315,24 +298,23 @@ public class HeightmapMain extends Control {
 
     @GodotMethod
     public void OnCreateButtonGpuPressed() {
-        Godot heightmap = prepareImage();
-        // Use call_deferred for the compute operation
+        Image heightmap = prepareImage();
         callDeferred("_onCreateButtonGpuDeferred", heightmap);
     }
 
     @GodotMethod
-    public void _onCreateButtonGpuDeferred(Godot heightmap) {
+    public void _onCreateButtonGpuDeferred(Image heightmap) {
         computeIslandGpu(heightmap);
     }
 
     @GodotMethod
     public void OnCreateButtonCpuPressed() {
-        Godot heightmap = prepareImage();
+        Image heightmap = prepareImage();
         callDeferred("_onCreateButtonCpuDeferred", heightmap);
     }
 
     @GodotMethod
-    public void _onCreateButtonCpuDeferred(Godot heightmap) {
+    public void _onCreateButtonCpuDeferred(Image heightmap) {
         computeIslandCpu(heightmap);
     }
 
@@ -342,5 +324,22 @@ public class HeightmapMain extends Control {
             po2 *= 2;
         }
         return po2;
+    }
+
+    private double colorValue(Color color) {
+        return Math.max(color.r, Math.max(color.g, color.b));
+    }
+
+    private Color withValue(Color color, double value) {
+        double currentValue = colorValue(color);
+        if (currentValue <= 0.0) {
+            return new Color(value, value, value, color.a);
+        }
+        double scale = value / currentValue;
+        return new Color(clampColor(color.r * scale), clampColor(color.g * scale), clampColor(color.b * scale), color.a);
+    }
+
+    private double clampColor(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 }

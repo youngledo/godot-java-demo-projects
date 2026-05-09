@@ -76,7 +76,7 @@ public class GITest extends Node3D {
 		if (fpsLabel != null) {
 			org.godot.singleton.Engine engine = org.godot.singleton.Engine.singleton();
 			if (engine != null) {
-				long fps = (long) engine.call("get_frames_per_second");
+				long fps = (long) engine.getFramesPerSecond();
 				double mspf = fps > 0 ? 1000.0 / fps : 0;
 				fpsLabel.setProperty("text", fps + " FPS (" + String.format("%.2f", mspf) + " mspf)");
 			}

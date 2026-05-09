@@ -7,7 +7,11 @@ import org.godot.annotation.GodotMethod;
 import org.godot.math.Color;
 import org.godot.node.Button;
 import org.godot.node.Control;
+import org.godot.node.Image;
+import org.godot.node.ImageTexture;
 import org.godot.node.TextureRect;
+import org.godot.node.Viewport;
+import org.godot.node.ViewportTexture;
 
 @GodotClass(name = "ScreenCapture", parent = "Control")
 public class ScreenCapture extends Control {
@@ -22,11 +26,10 @@ public class ScreenCapture extends Control {
         if (initialized) return;
         initialized = true;
 
-        capturedImage = (TextureRect) getNode("CapturedImage");
-        captureButton = (Button) getNode("CaptureButton");
+        capturedImage = getNodeAs("CapturedImage", TextureRect.class);
+        captureButton = getNodeAs("CaptureButton", Button.class);
 
-        // Focus button for keyboard/gamepad-friendly navigation
-        if (captureButton != null && (boolean) captureButton.isInsideTree()) {
+        if (captureButton != null && captureButton.isInsideTree()) {
             captureButton.grabFocus();
         }
     }
@@ -35,30 +38,23 @@ public class ScreenCapture extends Control {
     public void OnCaptureButtonPressed() {
         if (!isInsideTree()) return;
 
-        // Retrieve the captured image
-        Object vp = getViewport();
+        Viewport vp = getViewport();
         if (vp == null) return;
 
-        Object texture = ((org.godot.Godot) vp).call("get_texture");
+        ViewportTexture texture = vp.getTexture();
         if (texture == null) return;
 
-        Object img = ((org.godot.Godot) texture).call("get_image");
-        if (img == null) return;
+        Image image = texture.getImage();
+        if (image == null) return;
 
-        // Create a texture from the image
-        Object tex = call("ImageTexture.create_from_image", img);
-
-        // Set the texture to the captured image node
+        ImageTexture tex = ImageTexture.createFromImage(image);
         if (capturedImage != null && tex != null) {
-            capturedImage.call("set_texture", tex);
+            capturedImage.setTexture(tex);
         }
 
-        // Colorize the button with a random color
         if (captureButton != null) {
-            // Random color using HSV-like approach
             double h = random.nextDouble();
             double s = 0.2 + random.nextDouble() * 0.6;
-            // Convert HSV to RGB (simplified)
             int i = (int) (h * 6);
             double f = h * 6 - i;
             double p = 1.0 * (1 - s);
@@ -73,7 +69,7 @@ public class ScreenCapture extends Control {
                 case 4: r = t; g = p; b = 1; break;
                 default: r = 1; g = p; b = q; break;
             }
-            captureButton.setProperty("modulate", new Color(r, g, b));
+            captureButton.setModulate(new Color(r, g, b));
         }
     }
 }

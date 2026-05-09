@@ -2,15 +2,27 @@ package demos.viewport.gui_in_threed;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.builtin.Transform3DExtensions;
 import org.godot.core.Callable;
+import org.godot.math.Transform3D;
 import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
 import org.godot.math.Vector3;
 import org.godot.node.Area3D;
+import org.godot.node.BaseMaterial3D;
 import org.godot.node.Camera3D;
+import org.godot.node.InputEvent;
+import org.godot.node.InputEventMouse;
+import org.godot.node.InputEventMouseMotion;
+import org.godot.node.InputEventScreenDrag;
+import org.godot.node.InputEventScreenTouch;
+import org.godot.node.Material;
+import org.godot.node.Mesh;
 import org.godot.node.MeshInstance3D;
 import org.godot.node.Node3D;
+import org.godot.node.PlaneMesh;
 import org.godot.node.SubViewport;
-import org.godot.node.Node;
+import org.godot.node.Viewport;
 
 @GodotClass(name = "GUI3D", parent = "Node3D")
 public class GUI3D extends Node3D {
@@ -30,27 +42,18 @@ public class GUI3D extends Node3D {
         if (initialized) return;
         initialized = true;
 
-        nodeViewport = (SubViewport) getNode("SubViewport");
-        nodeQuad = (MeshInstance3D) getNode("Quad");
-        nodeArea = (Area3D) getNode("Quad/Area3D");
+        nodeViewport = getNodeAs("SubViewport", SubViewport.class);
+        nodeQuad = getNodeAs("Quad", MeshInstance3D.class);
+        nodeArea = getNodeAs("Quad/Area3D", Area3D.class);
 
-        // Connect signals
         if (nodeArea != null) {
             nodeArea.connect("mouse_entered", new Callable(this, "_mouseEnteredArea"), 0);
             nodeArea.connect("mouse_exited", new Callable(this, "_mouseExitedArea"), 0);
             nodeArea.connect("input_event", new Callable(this, "_mouseInputEvent"), 0);
         }
 
-        // Check if billboard is enabled
         if (nodeQuad != null) {
-            Object material = nodeQuad.call("get_surface_override_material", 0);
-            if (material != null) {
-                Object billboardMode = ((org.godot.Godot) material).getProperty("billboard_mode");
-                if (billboardMode instanceof Number) {
-                    int mode = ((Number) billboardMode).intValue();
-                    billboardEnabled = mode > 0;
-                }
-            }
+            billboardEnabled = getBillboardMode() > 0;
         }
 
         if (!billboardEnabled) {
@@ -67,21 +70,8 @@ public class GUI3D extends Node3D {
 
     @Override
     public boolean _unhandledInput(Object inputEvent) {
-        if (inputEvent instanceof org.godot.Godot) {
-            org.godot.Godot evt = (org.godot.Godot) inputEvent;
-            String className = (String) evt.call("get_class");
-
-            // If the event is a mouse/touch event, ignore it - handled via physics picking
-            if ("InputEventMouseButton".equals(className) ||
-                "InputEventMouseMotion".equals(className) ||
-                "InputEventScreenDrag".equals(className) ||
-                "InputEventScreenTouch".equals(className)) {
-                return false;
-            }
-
-            if (nodeViewport != null) {
-                nodeViewport.call("push_input", evt);
-            }
+        if (inputEvent instanceof InputEvent event && !isMouseOrTouchEvent(event) && nodeViewport != null) {
+            nodeViewport.pushInput(event);
         }
         return false;
     }
@@ -89,156 +79,153 @@ public class GUI3D extends Node3D {
     @GodotMethod
     public void _mouseEnteredArea() {
         isMouseInside = true;
-        // Notify the viewport that the mouse is now hovering it
         if (nodeViewport != null) {
-            nodeViewport.notification(42); // NOTIFICATION_VP_MOUSE_ENTER
+            nodeViewport.notification(42);
         }
     }
 
     @GodotMethod
     public void _mouseExitedArea() {
         if (nodeViewport != null) {
-            nodeViewport.notification(43); // NOTIFICATION_VP_MOUSE_EXIT
+            nodeViewport.notification(43);
         }
         isMouseInside = false;
     }
 
     @GodotMethod
     public void _mouseInputEvent(Object camera, Object inputEvent, Object eventPosition, Object normal, Object shapeIdx) {
-        if (nodeQuad == null || nodeViewport == null) return;
+        if (nodeQuad == null || nodeViewport == null || !(eventPosition instanceof Vector3 eventPos3D)) return;
 
-        // Get mesh size
-        Object meshObj = nodeQuad.getProperty("mesh");
-        Vector2 quadMeshSize = new Vector2(3, 2);
-        if (meshObj != null) {
-            Object sizeObj = ((org.godot.Godot) meshObj).getProperty("size");
-            if (sizeObj instanceof Vector2) {
-                quadMeshSize = (Vector2) sizeObj;
-            }
-        }
-
-        Vector3 eventPos3D = (Vector3) eventPosition;
-        if (eventPos3D == null) return;
-
+        Vector2 quadMeshSize = getQuadMeshSize();
         double now = System.currentTimeMillis() / 1000.0;
 
-        // Convert position to a coordinate space relative to the Area3D node
-        Object globalTransform = nodeQuad.call("get_global_transform");
-        if (globalTransform != null) {
-            Object inverse = ((org.godot.Godot) globalTransform).call("affine_inverse");
-            if (inverse != null) {
-                Object transformed = ((org.godot.Godot) inverse).call("xform", eventPos3D);
-                if (transformed instanceof Vector3) {
-                    eventPos3D = (Vector3) transformed;
-                }
-            }
-        }
+        Transform3D inverse = Transform3DExtensions.affineInverse(nodeQuad.getGlobalTransform());
+        eventPos3D = inverse.apply(eventPos3D);
 
-        Vector2 eventPos2D = new Vector2();
-
+        Vector2 eventPos2D;
         if (isMouseInside) {
             eventPos2D = new Vector2(eventPos3D.getX(), -eventPos3D.getY());
-
-            // Convert from (-quad_size/2 -> quad_size/2) to (0 -> 1)
             eventPos2D = new Vector2(
                 eventPos2D.getX() / quadMeshSize.getX() + 0.5,
                 eventPos2D.getY() / quadMeshSize.getY() + 0.5
             );
 
-            // Convert to (0 -> viewport.size)
-            Vector2 vpSize = (Vector2) nodeViewport.getProperty("size");
-            if (vpSize != null) {
-                eventPos2D = new Vector2(
-                    eventPos2D.getX() * vpSize.getX(),
-                    eventPos2D.getY() * vpSize.getY()
-                );
-            }
+            Vector2i vpSize = nodeViewport.getSize();
+            eventPos2D = new Vector2(
+                eventPos2D.getX() * vpSize.getX(),
+                eventPos2D.getY() * vpSize.getY()
+            );
         } else {
             eventPos2D = lastEventPos2D;
         }
 
-        org.godot.Godot evt = (org.godot.Godot) inputEvent;
-        if (evt != null) {
-            evt.setProperty("position", eventPos2D);
-
-            String className = (String) evt.call("get_class");
-            if ("InputEventMouse".equals(className)) {
-                evt.setProperty("global_position", eventPos2D);
+        if (inputEvent instanceof InputEventMouse mouseEvent) {
+            mouseEvent.setPosition(eventPos2D);
+            mouseEvent.setGlobalPosition(eventPos2D);
+            if (mouseEvent instanceof InputEventMouseMotion mouseMotion) {
+                updateMotionEvent(mouseMotion, eventPos2D, now);
             }
-
-            if ("InputEventMouseMotion".equals(className) || "InputEventScreenDrag".equals(className)) {
-                Vector2 rel = new Vector2(eventPos2D.getX() - lastEventPos2D.getX(), eventPos2D.getY() - lastEventPos2D.getY());
-                evt.setProperty("relative", rel);
-                double dt = now - lastEventTime;
-                if (dt > 0) {
-                    evt.setProperty("velocity", new Vector2(rel.getX() / dt, rel.getY() / dt));
-                }
-            }
+        } else if (inputEvent instanceof InputEventScreenDrag screenDrag) {
+            screenDrag.setPosition(eventPos2D);
+            updateMotionEvent(screenDrag, eventPos2D, now);
+        } else if (inputEvent instanceof InputEventScreenTouch screenTouch) {
+            screenTouch.setPosition(eventPos2D);
         }
 
         lastEventPos2D = eventPos2D;
         lastEventTime = now;
 
-        if (nodeViewport != null && evt != null) {
-            nodeViewport.call("push_input", evt);
+        if (inputEvent instanceof InputEvent event) {
+            nodeViewport.pushInput(event);
         }
     }
 
     private void rotateAreaToBillboard() {
-        if (nodeQuad == null || nodeArea == null) return;
+        if (nodeQuad == null || nodeArea == null || getBillboardMode() <= 0) return;
 
-        Object material = nodeQuad.call("get_surface_override_material", 0);
-        if (material == null) return;
+        Viewport vp = getViewport();
+        if (vp == null) return;
 
-        Object billboardMode = ((org.godot.Godot) material).getProperty("billboard_mode");
-        int mode = 0;
-        if (billboardMode instanceof Number) {
-            mode = ((Number) billboardMode).intValue();
+        Camera3D camera = vp.getCamera3d();
+        if (camera == null) return;
+
+        Vector3 camOrigin = camera.getGlobalTransform().getOrigin();
+        Vector3 lookTarget = camera.toGlobal(new Vector3(0, 0, -100));
+        if (lookTarget == null || camOrigin == null) return;
+
+        Vector3 look = new Vector3(
+            lookTarget.getX() - camOrigin.getX(),
+            lookTarget.getY() - camOrigin.getY(),
+            lookTarget.getZ() - camOrigin.getZ()
+        );
+
+        Vector3 areaPos = nodeArea.getPosition();
+        if (areaPos == null) areaPos = new Vector3(0, 0, 0);
+
+        look = new Vector3(
+            areaPos.getX() + look.getX(),
+            areaPos.getY() + look.getY(),
+            areaPos.getZ() + look.getZ()
+        );
+
+        if (getBillboardMode() == 2) {
+            look = new Vector3(look.getX(), 0, look.getZ());
         }
 
-        if (mode > 0) {
-            Object vp = getViewport();
-            if (vp == null) return;
+        nodeArea.lookAt(look, new Vector3(0, 1, 0));
+        Vector3 camRotation = camera.getRotation();
+        if (camRotation != null) {
+            nodeArea.rotateObjectLocal(new Vector3(0, 0, 1), camRotation.getZ());
+        }
+    }
 
-            Object cam = ((org.godot.Godot) vp).call("get_camera_3d");
-            if (cam == null) return;
+    private boolean isMouseOrTouchEvent(InputEvent event) {
+        return event instanceof InputEventMouse || event instanceof InputEventScreenDrag || event instanceof InputEventScreenTouch;
+    }
 
-            org.godot.Godot camera = (org.godot.Godot) cam;
+    private int getBillboardMode() {
+        Material material = nodeQuad.getSurfaceOverrideMaterial(0);
+        if (material instanceof BaseMaterial3D baseMaterial) {
+            return (int) baseMaterial.getBillboardMode();
+        }
+        return 0;
+    }
 
-            Object camGlobalTransform = camera.getProperty("global_transform");
-            if (camGlobalTransform == null) return;
+    private Vector2 getQuadMeshSize() {
+        Mesh mesh = nodeQuad.getMesh();
+        if (mesh instanceof PlaneMesh planeMesh) {
+            return planeMesh.getSize();
+        }
+        return new Vector2(3, 2);
+    }
 
-            Vector3 camOrigin = (Vector3) ((org.godot.Godot) camGlobalTransform).getProperty("origin");
-            Vector3 lookTarget = (Vector3) camera.call("to_global", new Vector3(0, 0, -100));
-            if (lookTarget == null || camOrigin == null) return;
+    private void updateMotionEvent(InputEventMouseMotion event, Vector2 eventPos2D, double now) {
+        Vector2 rel = getEventRelative(eventPos2D);
+        event.setRelative(rel);
+        setEventVelocity(event, rel, now);
+    }
 
-            Vector3 look = new Vector3(
-                lookTarget.getX() - camOrigin.getX(),
-                lookTarget.getY() - camOrigin.getY(),
-                lookTarget.getZ() - camOrigin.getZ()
-            );
+    private void updateMotionEvent(InputEventScreenDrag event, Vector2 eventPos2D, double now) {
+        Vector2 rel = getEventRelative(eventPos2D);
+        event.setRelative(rel);
+        setEventVelocity(event, rel, now);
+    }
 
-            Vector3 areaPos = (Vector3) nodeArea.getProperty("position");
-            if (areaPos == null) areaPos = new Vector3(0, 0, 0);
+    private Vector2 getEventRelative(Vector2 eventPos2D) {
+        return new Vector2(eventPos2D.getX() - lastEventPos2D.getX(), eventPos2D.getY() - lastEventPos2D.getY());
+    }
 
-            look = new Vector3(
-                areaPos.getX() + look.getX(),
-                areaPos.getY() + look.getY(),
-                areaPos.getZ() + look.getZ()
-            );
+    private void setEventVelocity(InputEventMouseMotion event, Vector2 rel, double now) {
+        double dt = now - lastEventTime;
+        if (dt > 0) {
+            event.setVelocity(new Vector2(rel.getX() / dt, rel.getY() / dt));
+        }
+    }
 
-            // Y-Billboard: Lock Y rotation
-            if (mode == 2) {
-                look = new Vector3(look.getX(), 0, look.getZ());
-            }
-
-            nodeArea.call("look_at", look, new Vector3(0, 1, 0));
-
-            // Rotate in the Z axis to compensate camera tilt
-            Vector3 camRotation = (Vector3) camera.getProperty("rotation");
-            if (camRotation != null) {
-                nodeArea.call("rotate_object_local", new Vector3(0, 0, 1), camRotation.getZ());
-            }
+    private void setEventVelocity(InputEventScreenDrag event, Vector2 rel, double now) {
+        double dt = now - lastEventTime;
+        if (dt > 0) {
+            event.setVelocity(new Vector2(rel.getX() / dt, rel.getY() / dt));
         }
     }
 }

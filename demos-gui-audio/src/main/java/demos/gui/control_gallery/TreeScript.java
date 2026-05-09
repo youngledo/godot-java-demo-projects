@@ -1,7 +1,10 @@
 package demos.gui.control_gallery;
 
 import org.godot.annotation.GodotClass;
+import org.godot.node.Font;
+import org.godot.node.StyleBox;
 import org.godot.node.Tree;
+import org.godot.node.TreeItem;
 
 @GodotClass(name = "TreeScript", parent = "Tree")
 public class TreeScript extends Tree {
@@ -13,36 +16,26 @@ public class TreeScript extends Tree {
         if (initialized) return;
         initialized = true;
 
-        // Fix: The default theme sets title_button_font to null, which triggers
-        // ERR_FAIL_COND_V in Tree::_get_title_button_height(). Override it with
-        // the default font so the theme cache has a valid reference.
-        Object defaultFont = call("get_theme_default_font");
+        Font defaultFont = getThemeDefaultFont();
         if (defaultFont != null) {
-            call("add_theme_font_override", "title_button_font", defaultFont);
+            addThemeFontOverride("title_button_font", defaultFont);
         }
 
-        // Also override the title_button StyleBox to prevent null check error
-        Object defaultStylebox = call("get_theme_stylebox", "title_button");
+        StyleBox defaultStylebox = getThemeStylebox("title_button");
         if (defaultStylebox == null) {
-            Object panelStylebox = call("get_theme_stylebox", "panel", "Tree");
+            StyleBox panelStylebox = getThemeStylebox("panel", "Tree");
             if (panelStylebox != null) {
-                call("add_theme_stylebox_override", "title_button", panelStylebox);
+                addThemeStyleboxOverride("title_button", panelStylebox);
             }
         }
 
-        Object root = call("create_item");
-        call("set_text", 0, "Tree - Root");
-        Object child1 = call("create_item", root);
-        callOnItem(child1, "set_text", 0, "Tree - Child 1");
-        Object child2 = call("create_item", root);
-        callOnItem(child2, "set_text", 0, "Tree - Child 2");
-        Object subchild1 = call("create_item", child1);
-        callOnItem(subchild1, "set_text", 0, "Tree - Subchild 1");
-    }
-
-    private void callOnItem(Object item, String method, int column, String text) {
-        if (item instanceof org.godot.Godot) {
-            ((org.godot.Godot) item).call(method, column, text);
-        }
+        TreeItem root = createItem();
+        root.setText(0, "Tree - Root");
+        TreeItem child1 = createItem(root);
+        child1.setText(0, "Tree - Child 1");
+        TreeItem child2 = createItem(root);
+        child2.setText(0, "Tree - Child 2");
+        TreeItem subchild1 = createItem(child1);
+        subchild1.setText(0, "Tree - Subchild 1");
     }
 }

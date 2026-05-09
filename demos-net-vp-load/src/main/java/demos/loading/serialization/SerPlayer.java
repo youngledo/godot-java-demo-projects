@@ -1,9 +1,11 @@
 package demos.loading.serialization;
 
-import org.godot.annotation.GodotClass;
-import org.godot.node.CharacterBody2D;
 import org.godot.Godot;
+import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
+import org.godot.node.CharacterBody2D;
+import org.godot.node.InputEvent;
+import org.godot.node.SceneTree;
 import org.godot.singleton.Input;
 
 /**
@@ -34,32 +36,26 @@ public class SerPlayer extends CharacterBody2D {
     public void _process(double delta) {
         if (input == null) return;
 
-        // Get movement input.
-        Object moveVec = input.call("get_vector", "move_left", "move_right", "move_up", "move_down");
-        if (moveVec instanceof Vector2) {
-            Vector2 vec = (Vector2) moveVec;
-            double lengthSq = vec.x * vec.x + vec.y * vec.y;
-            if (lengthSq > 1.0) {
-                double len = Math.sqrt(lengthSq);
-                vec = new Vector2(vec.x / len, vec.y / len);
-            }
-            setProperty("velocity", new Vector2(vec.x * MOVEMENT_SPEED, vec.y * MOVEMENT_SPEED));
+        Vector2 vec = input.getVector("move_left", "move_right", "move_up", "move_down");
+        double lengthSq = vec.x * vec.x + vec.y * vec.y;
+        if (lengthSq > 1.0) {
+            double len = Math.sqrt(lengthSq);
+            vec = new Vector2(vec.x / len, vec.y / len);
         }
+        setVelocity(new Vector2(vec.x * MOVEMENT_SPEED, vec.y * MOVEMENT_SPEED));
         moveAndSlide();
     }
 
     @Override
     public boolean _input(Object inputEvent) {
         if (sprite == null) return false;
-        if (!(inputEvent instanceof Godot)) return false;
-        Godot event = (Godot) inputEvent;
+        if (!(inputEvent instanceof InputEvent event)) return false;
 
         String[] actions = {"move_left", "move_right", "move_up", "move_down"};
         double[] rotations = {Math.PI / 2, -Math.PI / 2, Math.PI, 0.0};
 
         for (int i = 0; i < actions.length; i++) {
-            boolean pressed = (boolean) event.call("is_action_pressed", actions[i]);
-            if (pressed) {
+            if (event.isActionPressed(actions[i])) {
                 sprite.setProperty("rotation", rotations[i]);
                 break;
             }
@@ -77,9 +73,8 @@ public class SerPlayer extends CharacterBody2D {
             progressBar.setProperty("value", value);
         }
         if (health <= 0.0) {
-            // The player died - reload scene.
-            Godot tree = (Godot) getTree();
-            if (tree != null) tree.call("reload_current_scene");
+            SceneTree tree = getTree();
+            if (tree != null) tree.reloadCurrentScene();
         }
     }
 

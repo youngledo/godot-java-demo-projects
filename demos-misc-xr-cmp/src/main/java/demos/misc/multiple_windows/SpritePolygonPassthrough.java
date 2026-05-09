@@ -1,81 +1,81 @@
 package demos.misc.multiple_windows;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.math.Rect2i;
+import org.godot.math.Vector2;
+import org.godot.math.Vector2i;
+import org.godot.node.BitMap;
+import org.godot.node.Image;
 import org.godot.node.Node;
+import org.godot.node.Sprite2D;
+import org.godot.node.Texture2D;
+import org.godot.node.Window;
 
 @GodotClass(name = "MWSpritePolygonPassthrough", parent = "Node")
 public class SpritePolygonPassthrough extends Node {
 
     @Export
-    public org.godot.Godot sprite;
+    public Sprite2D sprite;
 
     @GodotMethod
     public void generatePolygon() {
         if (sprite == null) return;
 
-        Object textureObj = sprite.getProperty("texture");
-        if (textureObj == null) return;
-        org.godot.Godot texture = (org.godot.Godot) textureObj;
+        Texture2D texture = sprite.getTexture();
+        if (texture == null) return;
 
-        Object imageObj = texture.call("get_image");
-        if (imageObj == null) return;
-        org.godot.Godot image = (org.godot.Godot) imageObj;
+        Image image = texture.getImage();
+        if (image == null) return;
 
-        // Create bitmap from image alpha
-        org.godot.Godot bitmap = (org.godot.Godot) call("BitMap.new");
-        bitmap.call("create_from_image_alpha", image);
+        BitMap bitmap = BitMap.create();
+        bitmap.createFromImageAlpha(image);
 
-        org.godot.math.Vector2 bitmapSize = (org.godot.math.Vector2) bitmap.call("get_size");
-        long hframes = (long) sprite.getProperty("hframes");
-        long vframes = (long) sprite.getProperty("vframes");
+        Vector2i bitmapSize = bitmap.getSize();
+        long hframes = sprite.getHframes();
+        long vframes = sprite.getVframes();
         if (hframes == 0) hframes = 1;
         if (vframes == 0) vframes = 1;
 
-        double cellSizeX = bitmapSize.getX() / (double) hframes;
-        double cellSizeY = bitmapSize.getY() / (double) vframes;
+        double cellSizeX = bitmapSize.x / (double) hframes;
+        double cellSizeY = bitmapSize.y / (double) vframes;
 
-        org.godot.math.Vector2 frameCoords = (org.godot.math.Vector2) sprite.getProperty("frame_coords");
-        double frameX = frameCoords != null ? frameCoords.getX() : 0;
-        double frameY = frameCoords != null ? frameCoords.getY() : 0;
-        org.godot.math.Rect2 cellRect = new org.godot.math.Rect2(
-            cellSizeX * frameX, cellSizeY * frameY, cellSizeX, cellSizeY);
+        Vector2i frameCoords = sprite.getFrameCoords();
+        int frameX = frameCoords != null ? frameCoords.x : 0;
+        int frameY = frameCoords != null ? frameCoords.y : 0;
+        Rect2i cellRect = new Rect2i(
+            (int) Math.round(cellSizeX * frameX),
+            (int) Math.round(cellSizeY * frameY),
+            (int) Math.round(cellSizeX),
+            (int) Math.round(cellSizeY));
 
-        bitmap.call("grow_mask", 1, cellRect);
-        Object polygonsObj = bitmap.call("opaque_to_polygons", cellRect, 1.0);
+        bitmap.growMask(1, cellRect);
+        Object[] polygonsArray = bitmap.opaqueToPolygons(cellRect, 1.0);
 
-        org.godot.math.Vector2 spritePos = (org.godot.math.Vector2) sprite.getProperty("position");
-        org.godot.math.Vector2 spriteOffset = (org.godot.math.Vector2) sprite.getProperty("offset");
-        org.godot.math.Vector2 offset = new org.godot.math.Vector2(
-            (spritePos != null ? spritePos.getX() : 0) + (spriteOffset != null ? spriteOffset.getX() : 0),
-            (spritePos != null ? spritePos.getY() : 0) + (spriteOffset != null ? spriteOffset.getY() : 0)
+        Vector2 spritePos = sprite.getPosition();
+        Vector2 spriteOffset = sprite.getOffset();
+        Vector2 offset = new Vector2(
+            (spritePos != null ? spritePos.x : 0) + (spriteOffset != null ? spriteOffset.x : 0),
+            (spritePos != null ? spritePos.y : 0) + (spriteOffset != null ? spriteOffset.y : 0)
         );
 
-        boolean centered = (boolean) sprite.getProperty("centered");
-        if (centered) {
-            offset = new org.godot.math.Vector2(
-                offset.getX() - cellSizeX / 2.0,
-                offset.getY() - cellSizeY / 2.0
-            );
+        if (sprite.isCentered()) {
+            offset = new Vector2(offset.x - cellSizeX / 2.0, offset.y - cellSizeY / 2.0);
         }
 
-        // Build polygon from bitmap polygons
-        java.util.List<org.godot.math.Vector2> polygon = new java.util.ArrayList<>();
-        org.godot.math.Vector2 firstPoint = null;
+        List<double[]> polygon = new ArrayList<>();
+        double[] firstPoint = null;
 
-        if (polygonsObj instanceof Object[]) {
-            Object[] polygonsArray = (Object[]) polygonsObj;
+        if (polygonsArray != null) {
             for (Object polyObj : polygonsArray) {
-                if (polyObj instanceof org.godot.math.Vector2[]) {
-                    org.godot.math.Vector2[] polyArr = (org.godot.math.Vector2[]) polyObj;
-                    for (int i = 0; i < polyArr.length; i++) {
-                        org.godot.math.Vector2 point = polyArr[i];
-                        polygon.add(new org.godot.math.Vector2(
-                            point.getX() + offset.getX(),
-                            point.getY() + offset.getY()
-                        ));
-                        if (firstPoint == null) firstPoint = polygon.get(0);
+                if (polyObj instanceof Vector2[] polyArr) {
+                    for (Vector2 point : polyArr) {
+                        double[] polygonPoint = new double[] {point.x + offset.x, point.y + offset.y};
+                        polygon.add(polygonPoint);
+                        if (firstPoint == null) firstPoint = polygonPoint;
                     }
                     if (firstPoint != null) {
                         polygon.add(firstPoint);
@@ -85,9 +85,9 @@ public class SpritePolygonPassthrough extends Node {
             }
         }
 
-        org.godot.Godot win = getWindow();
-        if (win != null) {
-            win.setProperty("mouse_passthrough_polygon", polygon.toArray(new org.godot.math.Vector2[0]));
+        Window window = getWindow();
+        if (window != null) {
+            window.setMousePassthroughPolygon(polygon.toArray(new double[0][]));
         }
     }
 }

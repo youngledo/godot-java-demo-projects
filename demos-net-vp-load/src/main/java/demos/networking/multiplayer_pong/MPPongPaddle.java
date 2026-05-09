@@ -6,6 +6,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2;
 import org.godot.node.Area2D;
+import org.godot.node.Node;
 
 @GodotClass(name = "MPPongPaddle", parent = "Area2D")
 public class MPPongPaddle extends Area2D {
@@ -39,23 +40,23 @@ public class MPPongPaddle extends Area2D {
 
             motion *= MOTION_SPEED;
 
-            Vector2 pos = (Vector2) getProperty("position");
-            call("rpc", "set_pos_and_motion", pos, motion);
+            Vector2 pos = getPosition();
+            rpc("set_pos_and_motion", pos, motion);
         } else {
             if (!youHidden) {
                 hideYouLabel();
             }
         }
 
-        Vector2 pos = (Vector2) getProperty("position");
+        Vector2 pos = getPosition();
         double newY = pos.getY() + motion * delta;
         newY = Math.max(16, Math.min(screenSizeY - 16, newY));
-        setProperty("position", new Vector2(pos.getX(), newY));
+        setPosition(new Vector2(pos.getX(), newY));
     }
 
     @GodotMethod
     public void setPosAndMotion(Vector2 pos, double motionVal) {
-        setProperty("position", pos);
+        setPosition(pos);
         motion = motionVal;
     }
 
@@ -65,10 +66,10 @@ public class MPPongPaddle extends Area2D {
     }
 
     @GodotMethod
-    public void OnPaddleAreaEnter(Object area) {
+    public void OnPaddleAreaEnter(Node area) {
         if (isMultiplayerAuthority()) {
             double randVal = Math.random();
-            ((Godot) area).call("rpc", "bounce", left, randVal);
+            area.rpc("bounce", left, randVal);
         }
     }
 }

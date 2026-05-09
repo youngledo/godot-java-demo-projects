@@ -2,7 +2,6 @@ package demos.twod.instancing;
 
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector2;
-import org.godot.node.Node;
 import org.godot.node.Node2D;
 import org.godot.singleton.Input;
 
@@ -11,14 +10,10 @@ public class BallFactory extends Node2D {
 
 	@Override
 	public boolean _unhandledInput(Object inputEvent) {
-		String eventType = (String) call("get_class");
-		// inputEvent is a Godot object with call() available through the wrapper
-		// But inputEvent comes as a raw Object, need to check type via godot
-		if (!(boolean) Input.singleton().isActionJustPressed( "click")) {
+		if (!Input.singleton().isActionJustPressed("click")) {
 			return false;
 		}
-		Vector2 pos = (Vector2) call("get_global_mouse_position");
-		spawn(pos);
+		spawn(getGlobalMousePosition());
 		return true;
 	}
 
@@ -27,10 +22,9 @@ public class BallFactory extends Node2D {
 		if (ballScene == null) {
 			return;
 		}
-		Object instance = ballScene.instantiate();
-		if (instance != null) {
-			((org.godot.Godot) instance).call("set_global_position", spawnPos);
-			addChild((Node) instance, false, 0);
+		if (ballScene.instantiate() instanceof Node2D instance) {
+			instance.setGlobalPosition(spawnPos);
+			addChild(instance, false, 0);
 		}
 	}
 }

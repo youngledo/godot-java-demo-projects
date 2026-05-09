@@ -31,10 +31,10 @@ public class FogCamera extends Camera3D {
 	public void _process(double delta) {
 		Input input = Input.singleton();
 
-		double mx = (double) input.call("get_action_strength", "move_right", false)
-				- (double) input.call("get_action_strength", "move_left", false);
-		double mz = (double) input.call("get_action_strength", "move_back", false)
-				- (double) input.call("get_action_strength", "move_forward", false);
+		double mx = input.getActionStrength("move_right", false)
+				- input.getActionStrength("move_left", false);
+		double mz = input.getActionStrength("move_back", false)
+				- input.getActionStrength("move_forward", false);
 
 		double len = Math.sqrt(mx * mx + mz * mz);
 		if (len > 0) { mx /= len; mz /= len; }

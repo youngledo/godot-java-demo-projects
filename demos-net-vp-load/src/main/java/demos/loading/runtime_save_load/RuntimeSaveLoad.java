@@ -2,9 +2,34 @@ package demos.loading.runtime_save_load;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.AudioStream;
+import org.godot.node.AudioStreamMP3;
+import org.godot.node.AudioStreamOggVorbis;
+import org.godot.node.AudioStreamPlayer;
+import org.godot.node.AudioStreamWAV;
+import org.godot.node.Button;
+import org.godot.node.Camera3D;
 import org.godot.node.Control;
+import org.godot.node.FBXDocument;
+import org.godot.node.FBXState;
 import org.godot.node.FileAccess;
-import org.godot.Godot;
+import org.godot.node.FileDialog;
+import org.godot.node.FontFile;
+import org.godot.node.GLTFDocument;
+import org.godot.node.GLTFState;
+import org.godot.node.HSplitContainer;
+import org.godot.node.Image;
+import org.godot.node.ImageTexture;
+import org.godot.node.ItemList;
+import org.godot.node.Label;
+import org.godot.node.LineEdit;
+import org.godot.node.Node;
+import org.godot.node.Node3D;
+import org.godot.node.SubViewportContainer;
+import org.godot.node.Texture2D;
+import org.godot.node.TextureRect;
+import org.godot.node.ZIPPacker;
+import org.godot.node.ZIPReader;
 
 /**
  * Demonstrates how to load and save various file types at runtime without
@@ -14,92 +39,87 @@ import org.godot.Godot;
 @GodotClass(name = "RuntimeSaveLoad", parent = "Control")
 public class RuntimeSaveLoad extends Control {
 
-    private Godot filePathEdit;
-    private Godot fileDialog;
-    private Godot plainTextViewer;
-    private Godot plainTextViewerLabel;
-    private Godot textureViewer;
-    private Godot audioPlayer;
-    private Godot audioPlayerInformation;
-    private Godot audioStreamPlayer;
-    private Godot sceneViewer;
-    private Godot sceneViewerCamera;
-    private Godot fontViewer;
-    private Godot zipViewer;
-    private Godot zipViewerFileList;
-    private Godot zipViewerFilePreview;
-    private Godot errorLabel;
-    private Godot exportButton;
-    private Godot exportFileDialog;
+    private LineEdit filePathEdit;
+    private FileDialog fileDialog;
+    private Control plainTextViewer;
+    private Label plainTextViewerLabel;
+    private TextureRect textureViewer;
+    private Button audioPlayer;
+    private Label audioPlayerInformation;
+    private AudioStreamPlayer audioStreamPlayer;
+    private SubViewportContainer sceneViewer;
+    private Camera3D sceneViewerCamera;
+    private Label fontViewer;
+    private HSplitContainer zipViewer;
+    private ItemList zipViewerFileList;
+    private Label zipViewerFilePreview;
+    private Label errorLabel;
+    private Button exportButton;
+    private FileDialog exportFileDialog;
 
-    private Godot zipReader;
-    private Godot sceneViewerRootNode;
+    private ZIPReader zipReader;
+    private Node sceneViewerRootNode;
 
     @Override
     public void _ready() {
-        filePathEdit = (Godot) getNode("MarginContainer/VBoxContainer/HBoxContainer/FilePath");
-        fileDialog = (Godot) getNode("MarginContainer/VBoxContainer/HBoxContainer/FileDialog");
-        plainTextViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/PlainTextViewer");
-        plainTextViewerLabel = (Godot) getNode("MarginContainer/VBoxContainer/Result/PlainTextViewer/Label");
-        textureViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/TextureViewer");
-        audioPlayer = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer");
-        audioPlayerInformation = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer/Information");
-        audioStreamPlayer = (Godot) getNode("MarginContainer/VBoxContainer/Result/AudioPlayer/AudioStreamPlayer");
-        sceneViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/SceneViewer");
-        sceneViewerCamera = (Godot) getNode("MarginContainer/VBoxContainer/Result/SceneViewer/SubViewport/Camera3D");
-        fontViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/FontViewer");
-        zipViewer = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer");
-        zipViewerFileList = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer/FileList");
-        zipViewerFilePreview = (Godot) getNode("MarginContainer/VBoxContainer/Result/ZIPViewer/FilePreview");
-        errorLabel = (Godot) getNode("MarginContainer/VBoxContainer/Result/ErrorLabel");
-        exportButton = (Godot) getNode("MarginContainer/VBoxContainer/Export");
-        exportFileDialog = (Godot) getNode("MarginContainer/VBoxContainer/Export/FileDialog");
+        filePathEdit = getNodeAs("MarginContainer/VBoxContainer/HBoxContainer/FilePath", LineEdit.class);
+        fileDialog = getNodeAs("MarginContainer/VBoxContainer/HBoxContainer/FileDialog", FileDialog.class);
+        plainTextViewer = getNodeAs("MarginContainer/VBoxContainer/Result/PlainTextViewer", Control.class);
+        plainTextViewerLabel = getNodeAs("MarginContainer/VBoxContainer/Result/PlainTextViewer/Label", Label.class);
+        textureViewer = getNodeAs("MarginContainer/VBoxContainer/Result/TextureViewer", TextureRect.class);
+        audioPlayer = getNodeAs("MarginContainer/VBoxContainer/Result/AudioPlayer", Button.class);
+        audioPlayerInformation = getNodeAs("MarginContainer/VBoxContainer/Result/AudioPlayer/Information", Label.class);
+        audioStreamPlayer = getNodeAs("MarginContainer/VBoxContainer/Result/AudioPlayer/AudioStreamPlayer",
+                AudioStreamPlayer.class);
+        sceneViewer = getNodeAs("MarginContainer/VBoxContainer/Result/SceneViewer", SubViewportContainer.class);
+        sceneViewerCamera = getNodeAs("MarginContainer/VBoxContainer/Result/SceneViewer/SubViewport/Camera3D", Camera3D.class);
+        fontViewer = getNodeAs("MarginContainer/VBoxContainer/Result/FontViewer", Label.class);
+        zipViewer = getNodeAs("MarginContainer/VBoxContainer/Result/ZIPViewer", HSplitContainer.class);
+        zipViewerFileList = getNodeAs("MarginContainer/VBoxContainer/Result/ZIPViewer/FileList", ItemList.class);
+        zipViewerFilePreview = getNodeAs("MarginContainer/VBoxContainer/Result/ZIPViewer/FilePreview", Label.class);
+        errorLabel = getNodeAs("MarginContainer/VBoxContainer/Result/ErrorLabel", Label.class);
+        exportButton = getNodeAs("MarginContainer/VBoxContainer/Export", Button.class);
+        exportFileDialog = getNodeAs("MarginContainer/VBoxContainer/Export/FileDialog", FileDialog.class);
 
-        // Create the ZIP reader instance.
-        zipReader = (Godot) call("ZIPReader.new");
+        zipReader = ZIPReader.create();
     }
 
     private void resetVisibility() {
-        if (plainTextViewer != null) plainTextViewer.setProperty("visible", false);
-        if (textureViewer != null) textureViewer.setProperty("visible", false);
-        if (audioPlayer != null) audioPlayer.setProperty("visible", false);
+        if (plainTextViewer != null) plainTextViewer.setVisible(false);
+        if (textureViewer != null) textureViewer.setVisible(false);
+        if (audioPlayer != null) audioPlayer.setVisible(false);
 
         if (sceneViewer != null) {
-            sceneViewer.setProperty("visible", false);
-            int childCount = (int) sceneViewer.call("get_child_count");
+            sceneViewer.setVisible(false);
+            int childCount = sceneViewer.getChildCount();
             if (childCount > 0) {
-                Godot lastChild = (Godot) sceneViewer.call("get_child", childCount - 1);
-                if (lastChild != null) {
-                    Object isNode3D = lastChild.call("is_class", "Node3D");
-                    if (Boolean.TRUE.equals(isNode3D)) {
-                        sceneViewer.call("remove_child", lastChild);
-                        lastChild.call("queue_free");
-                    }
+                Node lastChild = sceneViewer.getChild(childCount - 1);
+                if (lastChild instanceof Node3D) {
+                    sceneViewer.removeChild(lastChild);
+                    lastChild.queueFree();
                 }
             }
         }
 
-        if (fontViewer != null) fontViewer.setProperty("visible", false);
+        if (fontViewer != null) fontViewer.setVisible(false);
         if (zipViewer != null) {
-            zipViewer.setProperty("visible", false);
-            if (zipViewerFileList != null) zipViewerFileList.call("clear");
+            zipViewer.setVisible(false);
+            if (zipViewerFileList != null) zipViewerFileList.clear();
         }
-        if (errorLabel != null) errorLabel.setProperty("visible", false);
-        if (exportButton != null) exportButton.setProperty("disabled", false);
+        if (errorLabel != null) errorLabel.setVisible(false);
+        if (exportButton != null) exportButton.setDisabled(false);
     }
 
     @GodotMethod
     public void _onBrowsePressed() {
-        if (fileDialog != null) fileDialog.call("popup_centered_ratio");
+        if (fileDialog != null) fileDialog.popupCenteredRatio();
     }
 
     @GodotMethod
     public void _onFilePathTextSubmitted(String newText) {
         openFile(newText);
-        // Put the caret at the end of the submitted text.
         if (filePathEdit != null) {
-            int textLength = ((String) filePathEdit.getProperty("text")).length();
-            filePathEdit.setProperty("caret_column", textLength);
+            filePathEdit.setCaretColumn(filePathEdit.getText().length());
         }
     }
 
@@ -110,241 +130,204 @@ public class RuntimeSaveLoad extends Control {
 
     @GodotMethod
     public void _onAudioPlayerPressed() {
-        if (audioStreamPlayer != null) audioStreamPlayer.call("play");
+        if (audioStreamPlayer != null) audioStreamPlayer.play();
     }
 
     @GodotMethod
     public void _onSceneViewerZoomValueChanged(double value) {
-        // Slider uses negative value so that it can be inverted easily.
         if (sceneViewerCamera != null) {
-            sceneViewerCamera.setProperty("size", Math.abs(value));
+            sceneViewerCamera.setSize(Math.abs(value));
         }
     }
 
     @GodotMethod
     public void _onZipViewerItemSelected(int index) {
         if (zipViewerFileList != null && zipReader != null && zipViewerFilePreview != null) {
-            String itemText = (String) zipViewerFileList.call("get_item_text", index);
-            Object data = zipReader.call("read_file", itemText);
+            String itemText = zipViewerFileList.getItemText(index);
+            byte[] data = zipReader.readFile(itemText);
             if (data != null) {
-                String text = (String) call("get_string_from_utf8", new Object[]{data});
-                zipViewerFilePreview.setProperty("text", text);
+                zipViewerFilePreview.setText(getStringFromUtf8(data));
             }
         }
     }
 
-    // --- File exporting ---
-
     @GodotMethod
     public void _onExportPressed() {
-        if (exportFileDialog != null) exportFileDialog.call("popup_centered_ratio");
+        if (exportFileDialog != null) exportFileDialog.popupCenteredRatio();
     }
 
     @GodotMethod
     public void _onExportFileDialogFileSelected(String path) {
-        if (Boolean.TRUE.equals(plainTextViewer.getProperty("visible"))) {
-            FileAccess fa = FileAccess.open(path, 2); // FileAccess.WRITE = 2
+        if (plainTextViewer.isVisible()) {
+            FileAccess fa = FileAccess.open(path, 2);
             if (fa != null) {
-                fa.storeString((String) plainTextViewerLabel.getProperty("text"));
+                fa.storeString(plainTextViewerLabel.getText());
                 fa.close();
             }
-        } else if (Boolean.TRUE.equals(textureViewer.getProperty("visible"))) {
-            Object image = textureViewer.call("get_image");
+        } else if (textureViewer.isVisible()) {
+            Texture2D texture = textureViewer.getTexture();
+            Image image = texture != null ? texture.getImage() : null;
             if (image != null) {
                 String pathLower = path.toLowerCase();
                 if (pathLower.endsWith(".png")) {
-                    ((Godot) image).call("save_png", path);
+                    image.savePng(path);
                 } else if (pathLower.endsWith(".jpg") || pathLower.endsWith(".jpeg")) {
-                    ((Godot) image).call("save_jpg", path, 0.9);
+                    image.saveJpg(path, 0.9);
                 } else if (pathLower.endsWith(".webp")) {
-                    ((Godot) image).call("save_webp", path);
+                    image.saveWebp(path);
                 }
             }
-        }
-        // Audio: Ogg Vorbis and MP3 can't be exported at runtime to standard format.
-        // Font: Can't be exported at runtime to standard format.
-        else if (Boolean.TRUE.equals(sceneViewer.getProperty("visible"))) {
+        } else if (sceneViewer.isVisible()) {
             if (sceneViewerRootNode != null) {
-                Godot gltfDocument = (Godot) call("GLTFDocument.new");
-                Godot gltfState = (Godot) call("GLTFState.new");
-                gltfDocument.call("append_from_scene", sceneViewerRootNode, gltfState);
-                gltfDocument.call("write_to_filesystem", gltfState, path);
+                GLTFDocument gltfDocument = GLTFDocument.create();
+                GLTFState gltfState = GLTFState.create();
+                gltfDocument.appendFromScene(sceneViewerRootNode, gltfState);
+                gltfDocument.writeToFilesystem(gltfState, path);
             }
-        } else if (Boolean.TRUE.equals(zipViewer.getProperty("visible"))) {
-            Godot zipPacker = (Godot) call("ZIPPacker.new");
-            Object error = zipPacker.call("open", path);
-            if (error != null && !error.toString().equals("0")) {
+        } else if (zipViewer.isVisible()) {
+            ZIPPacker zipPacker = ZIPPacker.create();
+            int error = zipPacker.open(path);
+            if (error != 0) {
                 return;
             }
 
-            Object filesObj = zipReader.call("get_files");
-            if (filesObj instanceof Godot) {
-                Godot files = (Godot) filesObj;
-                int fileCount = (int) files.call("size");
-                for (int i = 0; i < fileCount; i++) {
-                    String file = (String) files.call("get", i);
-                    zipPacker.call("start_file", file);
-                    Object fileData = zipReader.call("read_file", file);
-                    zipPacker.call("write_file", fileData);
-                    zipPacker.call("close_file");
-                }
+            for (String file : zipReader.getFiles()) {
+                zipPacker.startFile(file);
+                zipPacker.writeFile(zipReader.readFile(file));
+                zipPacker.closeFile();
             }
-            zipPacker.call("close");
+            zipPacker.close();
         }
     }
 
     private void showError(String message) {
         resetVisibility();
         if (errorLabel != null) {
-            errorLabel.setProperty("text", "ERROR: " + message);
-            errorLabel.setProperty("visible", true);
+            errorLabel.setText("ERROR: " + message);
+            errorLabel.setVisible(true);
         }
     }
 
     public void openFile(String path) {
         System.out.println("Opening: " + path);
-        if (filePathEdit != null) filePathEdit.setProperty("text", path);
+        if (filePathEdit != null) filePathEdit.setText(path);
         String pathLower = path.toLowerCase();
 
-        // Images.
         if (pathLower.endsWith(".jpg") || pathLower.endsWith(".jpeg") ||
             pathLower.endsWith(".png") || pathLower.endsWith(".webp") ||
             pathLower.endsWith(".svg") || pathLower.endsWith(".tga") ||
             pathLower.endsWith(".bmp")) {
 
-            Object image = call("Image.load_from_file", path);
+            Image image = Image.loadFromFile(path);
             resetVisibility();
             if (exportFileDialog != null) {
-                exportFileDialog.setProperty("filters", new String[]{"*.png ; PNG Image", "*.jpg, *.jpeg ; JPEG Image", "*.webp ; WebP Image"});
+                exportFileDialog.setFilters(new String[]{"*.png ; PNG Image", "*.jpg, *.jpeg ; JPEG Image",
+                        "*.webp ; WebP Image"});
             }
             if (textureViewer != null) {
-                textureViewer.setProperty("visible", true);
-                Object tex = call("ImageTexture.create_from_image", image);
-                textureViewer.setProperty("texture", tex);
+                textureViewer.setVisible(true);
+                ImageTexture tex = ImageTexture.createFromImage(image);
+                textureViewer.setTexture(tex);
             }
-        }
-        // Audio.
-        else if (pathLower.endsWith(".ogg") || pathLower.endsWith(".mp3") || pathLower.endsWith(".wav")) {
-            Object stream = null;
+        } else if (pathLower.endsWith(".ogg") || pathLower.endsWith(".mp3") || pathLower.endsWith(".wav")) {
+            AudioStream stream = null;
             if (pathLower.endsWith(".ogg")) {
-                stream = call("AudioStreamOggVorbis.load_from_file", path);
+                stream = AudioStreamOggVorbis.loadFromFile(path);
             } else if (pathLower.endsWith(".mp3")) {
-                stream = call("AudioStreamMP3.load_from_file", path);
+                stream = AudioStreamMP3.loadFromFile(path);
             } else if (pathLower.endsWith(".wav")) {
-                stream = call("AudioStreamWAV.load_from_file", path);
+                stream = AudioStreamWAV.loadFromFile(path);
             }
-            if (audioStreamPlayer != null) audioStreamPlayer.setProperty("stream", stream);
+            if (audioStreamPlayer != null) audioStreamPlayer.setStream(stream);
             resetVisibility();
-            if (exportButton != null) exportButton.setProperty("disabled", true);
-            if (audioPlayer != null) audioPlayer.setProperty("visible", true);
+            if (exportButton != null) exportButton.setDisabled(true);
+            if (audioPlayer != null) audioPlayer.setVisible(true);
 
             if (stream != null && audioPlayerInformation != null) {
-                double duration = ((Number) ((Godot) stream).getProperty("length")).doubleValue();
-                long roundedDuration = Math.round(duration);
+                long roundedDuration = Math.round(stream.getLength());
                 long minutes = roundedDuration / 60;
                 long seconds = roundedDuration % 60;
-                audioPlayerInformation.setProperty("text",
-                    String.format("Duration: %02d:%02d", minutes, seconds));
+                audioPlayerInformation.setText(String.format("Duration: %02d:%02d", minutes, seconds));
             }
-        }
-        // 3D scenes.
-        else if (pathLower.endsWith(".gltf") || pathLower.endsWith(".glb")) {
-            Godot gltfDocument = (Godot) call("GLTFDocument.new");
-            Godot gltfState = (Godot) call("GLTFState.new");
-            Object error = gltfDocument.call("append_from_file", path, gltfState);
-            if (error != null && error.toString().equals("0")) {
-                sceneViewerRootNode = (Godot) gltfDocument.call("generate_scene", gltfState);
+        } else if (pathLower.endsWith(".gltf") || pathLower.endsWith(".glb")) {
+            GLTFDocument gltfDocument = GLTFDocument.create();
+            GLTFState gltfState = GLTFState.create();
+            int error = gltfDocument.appendFromFile(path, gltfState);
+            if (error == 0) {
+                sceneViewerRootNode = gltfDocument.generateScene(gltfState);
                 resetVisibility();
                 if (sceneViewer != null) {
-                    sceneViewer.call("add_child", sceneViewerRootNode);
-                    sceneViewer.setProperty("visible", true);
+                    sceneViewer.addChild(sceneViewerRootNode);
+                    sceneViewer.setVisible(true);
                 }
                 if (exportFileDialog != null) {
-                    exportFileDialog.setProperty("filters", new String[]{"*.gltf ; glTF Text Scene", "*.glb ; glTF Binary Scene"});
+                    exportFileDialog.setFilters(new String[]{"*.gltf ; glTF Text Scene", "*.glb ; glTF Binary Scene"});
                 }
             } else {
                 showError("Couldn't load the file as a glTF scene.");
             }
         } else if (pathLower.endsWith(".fbx")) {
-            Godot fbxDocument = (Godot) call("FBXDocument.new");
-            Godot fbxState = (Godot) call("FBXState.new");
-            Object error = fbxDocument.call("append_from_file", path, fbxState);
-            if (error != null && error.toString().equals("0")) {
-                sceneViewerRootNode = (Godot) fbxDocument.call("generate_scene", fbxState);
+            FBXDocument fbxDocument = FBXDocument.create();
+            FBXState fbxState = FBXState.create();
+            int error = fbxDocument.appendFromFile(path, fbxState);
+            if (error == 0) {
+                sceneViewerRootNode = fbxDocument.generateScene(fbxState);
                 resetVisibility();
                 if (sceneViewer != null) {
-                    sceneViewer.call("add_child", sceneViewerRootNode);
-                    sceneViewer.setProperty("visible", true);
+                    sceneViewer.addChild(sceneViewerRootNode);
+                    sceneViewer.setVisible(true);
                 }
                 if (exportFileDialog != null) {
-                    exportFileDialog.setProperty("filters", new String[]{"*.fbx ; FBX Scene"});
+                    exportFileDialog.setFilters(new String[]{"*.fbx ; FBX Scene"});
                 }
             } else {
                 showError("Couldn't load the file as a FBX scene.");
             }
-        }
-        // Fonts.
-        else if (pathLower.endsWith(".ttf") || pathLower.endsWith(".otf") ||
+        } else if (pathLower.endsWith(".ttf") || pathLower.endsWith(".otf") ||
                  pathLower.endsWith(".woff") || pathLower.endsWith(".woff2") ||
                  pathLower.endsWith(".pfb") || pathLower.endsWith(".pfm") ||
                  pathLower.endsWith(".fnt") || pathLower.endsWith(".font")) {
-            Godot fontFile = (Godot) call("FontFile.new");
+            FontFile fontFile = FontFile.create();
             if (pathLower.endsWith(".fnt") || pathLower.endsWith(".font")) {
-                fontFile.call("load_bitmap_font", path);
+                fontFile.loadBitmapFont(path);
             } else {
-                fontFile.call("load_dynamic_font", path);
+                fontFile.loadDynamicFont(path);
             }
 
-            Object data = fontFile.getProperty("data");
-            boolean hasData = false;
-            if (data instanceof byte[]) {
-                hasData = ((byte[]) data).length > 0;
-            } else if (data instanceof Godot) {
-                hasData = true; // assume non-null Godot object means data exists
-            }
-
-            if (hasData && fontViewer != null) {
-                fontViewer.call("add_theme_font_override", "font", fontFile);
+            byte[] data = fontFile.getData();
+            if (data != null && data.length > 0 && fontViewer != null) {
+                fontViewer.addThemeFontOverride("font", fontFile);
                 resetVisibility();
-                fontViewer.setProperty("visible", true);
-                if (exportButton != null) exportButton.setProperty("disabled", true);
+                fontViewer.setVisible(true);
+                if (exportButton != null) exportButton.setDisabled(true);
             } else {
                 showError("Couldn't load the file as a font.");
             }
-        }
-        // ZIP archives.
-        else if (pathLower.endsWith(".zip")) {
+        } else if (pathLower.endsWith(".zip")) {
             if (zipReader != null) {
-                zipReader.call("open", path);
-                Object filesObj = zipReader.call("get_files");
+                zipReader.open(path);
                 if (exportFileDialog != null) {
-                    exportFileDialog.setProperty("filters", new String[]{"*.zip ; ZIP Archive"});
+                    exportFileDialog.setFilters(new String[]{"*.zip ; ZIP Archive"});
                 }
                 resetVisibility();
-                if (filesObj instanceof Godot && zipViewerFileList != null) {
-                    Godot files = (Godot) filesObj;
-                    int fileCount = (int) files.call("size");
-                    for (int i = 0; i < fileCount; i++) {
-                        String file = (String) files.call("get", i);
-                        zipViewerFileList.call("add_item", file, null);
-                        // Make folders disabled in the list.
-                        zipViewerFileList.call("set_item_disabled", -1, file.endsWith("/"));
+                if (zipViewerFileList != null) {
+                    for (String file : zipReader.getFiles()) {
+                        zipViewerFileList.addItem(file);
+                        zipViewerFileList.setItemDisabled(-1, file.endsWith("/"));
                     }
                 }
-                if (zipViewer != null) zipViewer.setProperty("visible", true);
+                if (zipViewer != null) zipViewer.setVisible(true);
             }
-        }
-        // Fallback - plain text.
-        else {
+        } else {
             String fileContents = FileAccess.getFileAsString(path);
-            if (fileContents == null || fileContents.isEmpty() ) {
+            if (fileContents == null || fileContents.isEmpty()) {
                 showError("File is empty or is a binary file.");
             } else {
                 if (plainTextViewerLabel != null) {
-                    plainTextViewerLabel.setProperty("text", fileContents);
+                    plainTextViewerLabel.setText(fileContents);
                 }
                 resetVisibility();
-                if (plainTextViewer != null) plainTextViewer.setProperty("visible", true);
+                if (plainTextViewer != null) plainTextViewer.setVisible(true);
             }
         }
     }

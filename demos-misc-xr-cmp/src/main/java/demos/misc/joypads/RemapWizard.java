@@ -1,10 +1,21 @@
 package demos.misc.joypads;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.node.BaseButton;
+import org.godot.node.CanvasItem;
+import org.godot.node.InputEventJoypadButton;
+import org.godot.node.InputEventJoypadMotion;
+import org.godot.node.Label;
 import org.godot.node.Node;
-
-import java.util.*;
+import org.godot.node.TextEdit;
+import org.godot.node.Window;
+import org.godot.singleton.Input;
+import org.godot.singleton.JavaScriptBridge;
+import org.godot.singleton.OS;
 
 @GodotClass(name = "RemapWizard", parent = "Node")
 public class RemapWizard extends Node {
@@ -18,11 +29,11 @@ public class RemapWizard extends Node {
     private Map<String, Object> curMapping = new LinkedHashMap<>();
     private String lastMapping = "";
 
-    private org.godot.node.Node joyButtons;
-    private org.godot.node.Node joyAxes;
-    private org.godot.node.Label joyMappingText;
-    private org.godot.node.Node joyMappingFullAxis;
-    private org.godot.node.Node joyMappingAxisInvert;
+    private Node joyButtons;
+    private Node joyAxes;
+    private Label joyMappingText;
+    private BaseButton joyMappingFullAxis;
+    private BaseButton joyMappingAxisInvert;
 
     private boolean initialized = false;
 
@@ -33,35 +44,26 @@ public class RemapWizard extends Node {
 
         joyButtons = getNode("Mapping/Margin/VBox/SubViewportContainer/SubViewport/JoypadDiagram/Buttons");
         joyAxes = getNode("Mapping/Margin/VBox/SubViewportContainer/SubViewport/JoypadDiagram/Axes");
-        joyMappingText = (org.godot.node.Label) getNode("Mapping/Margin/VBox/Info/Text/Value");
-        joyMappingFullAxis = getNode("Mapping/Margin/VBox/Info/Extra/FullAxis");
-        joyMappingAxisInvert = getNode("Mapping/Margin/VBox/Info/Extra/InvertAxis");
+        joyMappingText = getNodeAs("Mapping/Margin/VBox/Info/Text/Value", Label.class);
+        joyMappingFullAxis = getNodeAs("Mapping/Margin/VBox/Info/Extra/FullAxis", BaseButton.class);
+        joyMappingAxisInvert = getNodeAs("Mapping/Margin/VBox/Info/Extra/InvertAxis", BaseButton.class);
     }
 
     @Override
     public boolean _input(Object inputEvent) {
         if (curStep == -1) return false;
-        if (!(inputEvent instanceof org.godot.Godot)) return false;
-
-        org.godot.Godot evt = (org.godot.Godot) inputEvent;
-        String className = (String) evt.call("get_class");
-
-        if (!"InputEventJoypadButton".equals(className) && !"InputEventJoypadMotion".equals(className)) return false;
-
-        long device = (long) evt.getProperty("device");
-        if (device != joyIndex) return false;
 
         String[] steps = getBaseKeys();
 
-        if ("InputEventJoypadMotion".equals(className)) {
-            getViewport().call("set_input_as_handled");
-            double axisValue = (double) evt.getProperty("axis_value");
-            long axisIdx = (long) evt.getProperty("axis");
+        if (inputEvent instanceof InputEventJoypadMotion event) {
+            if (event.getDevice() != joyIndex) return false;
+            getViewport().setInputAsHandled();
+            double axisValue = event.getAxisValue();
+            long axisIdx = event.getAxis();
 
             if (Math.abs(axisValue) > DEADZONE && joyMappingText != null) {
-                // Create a mapping entry string
-                boolean isInverted = joyMappingAxisInvert != null && (boolean) joyMappingAxisInvert.getProperty("button_pressed");
-                boolean isFullAxis = joyMappingFullAxis != null && (boolean) joyMappingFullAxis.getProperty("button_pressed");
+                boolean isInverted = joyMappingAxisInvert != null && joyMappingAxisInvert.isButtonPressed();
+                boolean isFullAxis = joyMappingFullAxis != null && joyMappingFullAxis.isButtonPressed();
 
                 String prefix = "";
                 if (!isFullAxis) {
@@ -71,17 +73,17 @@ public class RemapWizard extends Node {
                 String mapString = prefix + "a" + axisIdx + suffix;
                 String humanString = "Axis " + prefix + axisIdx + suffix;
 
-                joyMappingText.setProperty("text", humanString);
+                joyMappingText.setText(humanString);
                 curMapping.put(steps[curStep], mapString);
             }
-        } else if ("InputEventJoypadButton".equals(className)) {
-            boolean pressed = (boolean) evt.getProperty("pressed");
-            if (pressed) {
-                getViewport().call("set_input_as_handled");
-                long buttonIndex = (long) evt.getProperty("button_index");
+        } else if (inputEvent instanceof InputEventJoypadButton event) {
+            if (event.getDevice() != joyIndex) return false;
+            if (event.isPressed()) {
+                getViewport().setInputAsHandled();
+                long buttonIndex = event.getButtonIndex();
                 String mapString = "b" + buttonIndex;
                 if (joyMappingText != null) {
-                    joyMappingText.setProperty("text", "Button " + buttonIndex);
+                    joyMappingText.setText("Button " + buttonIndex);
                 }
                 curMapping.put(steps[curStep], mapString);
             }
@@ -113,18 +115,17 @@ public class RemapWizard extends Node {
     @GodotMethod
     public void start(long idx) {
         joyIndex = (int) idx;
-        joyGuid = (String) org.godot.singleton.Input.singleton().getJoyGuid(idx);
-        joyName = (String) org.godot.singleton.Input.singleton().getJoyName(idx);
-        if (joyGuid == null || joyGuid.isEmpty() ) {
-            call("push_error", "Unable to find controller");
+        joyGuid = Input.singleton().getJoyGuid(idx);
+        joyName = Input.singleton().getJoyName(idx);
+        if (joyGuid == null || joyGuid.isEmpty()) {
+            System.err.println("Unable to find controller");
             return;
         }
-        org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        if ((boolean) os.call("has_feature", "web")) {
-            org.godot.node.Node startWin = getNode("Start");
+        if (OS.singleton().hasFeature("web")) {
+            Window startWin = getNodeAs("Start", Window.class);
             if (startWin != null) {
-                startWin.setProperty("window_title", joyGuid + " - " + joyName);
-                startWin.call("popup_centered");
+                startWin.setTitle(joyGuid + " - " + joyName);
+                startWin.popupCentered();
             }
         } else {
             OnWizardPressed();
@@ -133,11 +134,11 @@ public class RemapWizard extends Node {
 
     @GodotMethod
     public void OnWizardPressed() {
-        org.godot.singleton.Input.singleton().removeJoyMapping(joyGuid);
-        org.godot.node.Node startWin = getNode("Start");
-        if (startWin != null) startWin.call("hide");
-        org.godot.node.Node mappingWin = getNode("Mapping");
-        if (mappingWin != null) mappingWin.call("popup_centered");
+        Input.singleton().removeJoyMapping(joyGuid);
+        Window startWin = getNodeAs("Start", Window.class);
+        if (startWin != null) startWin.hide();
+        Window mappingWin = getNodeAs("Mapping", Window.class);
+        if (mappingWin != null) mappingWin.popupCentered();
         curStep = 0;
         stepNext();
     }
@@ -188,20 +189,20 @@ public class RemapWizard extends Node {
 
     @GodotMethod
     public void OnStartCloseRequested() {
-        org.godot.node.Node startWin = getNode("Start");
-        if (startWin != null) startWin.call("hide");
+        Window startWin = getNodeAs("Start", Window.class);
+        if (startWin != null) startWin.hide();
     }
 
     @GodotMethod
     public void OnMappingCloseRequested() {
-        org.godot.node.Node mappingWin = getNode("Mapping");
-        if (mappingWin != null) mappingWin.call("hide");
+        Window mappingWin = getNodeAs("Mapping", Window.class);
+        if (mappingWin != null) mappingWin.hide();
     }
 
     @GodotMethod
     public void OnMapWindowCloseRequested() {
-        org.godot.node.Node mapWin = getNode("MapWindow");
-        if (mapWin != null) mapWin.call("hide");
+        Window mapWin = getNodeAs("MapWindow", Window.class);
+        if (mapWin != null) mapWin.hide();
     }
 
     @GodotMethod
@@ -224,12 +225,12 @@ public class RemapWizard extends Node {
     }
 
     private void stepNext() {
-        org.godot.node.Node mappingWin = getNode("Mapping");
+        Window mappingWin = getNodeAs("Mapping", Window.class);
         String[] steps = getBaseKeys();
         if (mappingWin != null) {
-            mappingWin.setProperty("title", "Step: " + (curStep + 1) + "/" + steps.length);
+            mappingWin.setTitle("Step: " + (curStep + 1) + "/" + steps.length);
         }
-        if (joyMappingText != null) joyMappingText.setProperty("text", "");
+        if (joyMappingText != null) joyMappingText.setText("");
 
         if (curStep >= steps.length) {
             remapAndClose(curMapping);
@@ -244,58 +245,56 @@ public class RemapWizard extends Node {
         String key = steps[curStep];
         long idx = baseMap.getOrDefault(key, 0L);
 
-        // Hide all buttons and axes
         if (joyButtons != null) {
-            for (Object child : (Object[]) joyButtons.getChildren() ) {
-                if (child instanceof org.godot.Godot) ((org.godot.Godot) child).call("hide");
+            for (Node child : joyButtons.getChildren()) {
+                if (child instanceof CanvasItem item) item.hide();
             }
         }
         if (joyAxes != null) {
-            for (Object child : (Object[]) joyAxes.getChildren() ) {
-                if (child instanceof org.godot.Godot) ((org.godot.Godot) child).call("hide");
+            for (Node child : joyAxes.getChildren()) {
+                if (child instanceof CanvasItem item) item.hide();
             }
         }
 
-        // Show relevant indicator
         if (key.equals("leftx") || key.equals("lefty") || key.equals("rightx") || key.equals("righty")) {
             if (joyAxes != null) {
-                org.godot.node.CanvasItem plus = (org.godot.node.CanvasItem) joyAxes.getNode(idx + "+");
-                org.godot.node.CanvasItem minus = (org.godot.node.CanvasItem) joyAxes.getNode(idx + "-");
+                CanvasItem plus = joyAxes.getNodeAs(idx + "+", CanvasItem.class);
+                CanvasItem minus = joyAxes.getNodeAs(idx + "-", CanvasItem.class);
                 if (plus != null) plus.show();
                 if (minus != null) minus.show();
             }
         } else if (key.equals("lefttrigger") || key.equals("righttrigger")) {
             if (joyAxes != null) {
-                org.godot.node.CanvasItem node = (org.godot.node.CanvasItem) joyAxes.getNode(String.valueOf(idx));
+                CanvasItem node = joyAxes.getNodeAs(String.valueOf(idx), CanvasItem.class);
                 if (node != null) node.show();
             }
         } else {
             if (joyButtons != null) {
-                org.godot.node.CanvasItem node = (org.godot.node.CanvasItem) joyButtons.getNode(String.valueOf(idx));
+                CanvasItem node = joyButtons.getNodeAs(String.valueOf(idx), CanvasItem.class);
                 if (node != null) node.show();
             }
         }
 
         if (joyMappingFullAxis != null) {
-            joyMappingFullAxis.setProperty("button_pressed",
+            joyMappingFullAxis.setButtonPressed(
                 key.equals("leftx") || key.equals("lefty") || key.equals("rightx") || key.equals("righty") ||
                 key.equals("righttrigger") || key.equals("lefttrigger"));
         }
         if (joyMappingAxisInvert != null) {
-            joyMappingAxisInvert.setProperty("button_pressed", false);
+            joyMappingAxisInvert.setButtonPressed(false);
         }
     }
 
     private String createMappingString(Map<String, Object> mapping) {
         String result = joyGuid + "," + joyName + ",";
-        for (Map.Entry<String, Object> entry : mapping.entrySet() ) {
+        for (Map.Entry<String, Object> entry : mapping.entrySet()) {
             String val = String.valueOf(entry.getValue());
-            if (!val.isEmpty() ) {
+            if (!val.isEmpty()) {
                 result += entry.getKey() + ":" + val + ",";
             }
         }
         String platform = "Unknown";
-        String osName = (String) org.godot.singleton.OS.singleton().call("get_name");
+        String osName = OS.singleton().getName();
         Map<String, String> platforms = new HashMap<>();
         platforms.put("Windows", "Windows");
         platforms.put("macOS", "Mac OS X");
@@ -309,16 +308,16 @@ public class RemapWizard extends Node {
 
     private void remapAndClose(Map<String, Object> mapping) {
         lastMapping = createMappingString(mapping);
-        org.godot.singleton.Input.singleton().addJoyMapping(lastMapping, true);
+        Input.singleton().addJoyMapping(lastMapping, true);
         reset();
         showMap();
     }
 
     private void reset() {
-        org.godot.node.Node startWin = getNode("Start");
-        org.godot.node.Node mappingWin = getNode("Mapping");
-        if (startWin != null) startWin.call("hide");
-        if (mappingWin != null) mappingWin.call("hide");
+        Window startWin = getNodeAs("Start", Window.class);
+        Window mappingWin = getNodeAs("Mapping", Window.class);
+        if (startWin != null) startWin.hide();
+        if (mappingWin != null) mappingWin.hide();
         joyGuid = "";
         joyName = "";
         curMapping.clear();
@@ -327,16 +326,14 @@ public class RemapWizard extends Node {
 
     @GodotMethod
     public void showMap() {
-        org.godot.singleton.OS os = org.godot.singleton.OS.singleton();
-        if ((boolean) os.call("has_feature", "web")) {
-            // Web: use JavaScriptBridge
-            call("JavaScriptBridge.eval", "window.prompt('This is the resulting remap string', '" + lastMapping + "')");
+        if (OS.singleton().hasFeature("web")) {
+            JavaScriptBridge.singleton().eval("window.prompt('This is the resulting remap string', '" + lastMapping + "')");
         } else {
-            org.godot.node.Node mapWin = getNode("MapWindow");
+            Window mapWin = getNodeAs("MapWindow", Window.class);
             if (mapWin != null) {
-                org.godot.Godot textEdit = (org.godot.Godot) mapWin.getNode("Margin/VBoxContainer/TextEdit");
-                if (textEdit != null) textEdit.setProperty("text", lastMapping);
-                mapWin.call("popup_centered");
+                TextEdit textEdit = mapWin.getNodeAs("Margin/VBoxContainer/TextEdit", TextEdit.class);
+                if (textEdit != null) textEdit.setText(lastMapping);
+                mapWin.popupCentered();
             }
         }
     }

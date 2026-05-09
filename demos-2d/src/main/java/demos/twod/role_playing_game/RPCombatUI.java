@@ -44,9 +44,9 @@ public class RPCombatUI extends Control {
     public void initialize() {
         if (combatantsNode == null) return;
 
-        Object children = combatantsNode.call("get_children");
-        if (children instanceof org.godot.Godot[]) {
-            for (org.godot.Godot combatant : (org.godot.Godot[]) children) {
+        Node[] children = combatantsNode.getChildren();
+        if (children != null) {
+            for (Node combatant : children) {
                 org.godot.Godot health = (org.godot.node.Node) ((org.godot.node.Node) combatant).getNode("Health");
 
                 org.godot.node.Node info = null;

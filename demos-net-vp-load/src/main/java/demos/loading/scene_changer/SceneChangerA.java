@@ -3,19 +3,16 @@ package demos.loading.scene_changer;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.node.Panel;
-import org.godot.Godot;
+import org.godot.node.SceneTree;
 
-/**
- * Scene A - changes scene to Scene B using SceneTree.call("change_scene_to_file").
- */
 @GodotClass(name = "SceneChangerA", parent = "Panel")
 public class SceneChangerA extends Panel {
 
     @GodotMethod
     public void _onGotoScenePressed() {
-        Godot tree = (Godot) getTree();
+        SceneTree tree = getTree();
         if (tree != null) {
-            tree.call("change_scene_to_file", "res://scene_b.tscn");
+            tree.changeSceneToFile("res://scene_b.tscn");
         }
     }
 }

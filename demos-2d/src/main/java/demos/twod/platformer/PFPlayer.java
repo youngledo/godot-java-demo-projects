@@ -3,6 +3,7 @@ package demos.twod.platformer;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.annotation.Signal;
 import org.godot.math.Vector2;
 import org.godot.node.CharacterBody2D;
 import org.godot.node.Node;
@@ -19,6 +20,9 @@ public class PFPlayer extends CharacterBody2D {
 	@Export
 	public String actionSuffix = "";
 
+	@Signal(name = "coin_collected")
+	public void coinCollected() {}
+
 	private boolean doubleJumpCharged = false;
 	private org.godot.node.Sprite2D sprite;
 	private org.godot.node.AnimationPlayer animationPlayer;
@@ -34,7 +38,6 @@ public class PFPlayer extends CharacterBody2D {
 		if (initialized) return;
 		initialized = true;
 
-		call("add_user_signal", "coin_collected");
 		sprite = (org.godot.node.Sprite2D) getNode("Sprite2D");
 		animationPlayer = (org.godot.node.AnimationPlayer) getNode("AnimationPlayer");
 		platformDetector = getNode("PlatformDetector");
