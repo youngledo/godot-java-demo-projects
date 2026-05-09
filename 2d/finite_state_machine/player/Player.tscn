@@ -32,6 +32,8 @@ _data = {
 
 [node name="Player" type="FSPlayerController" unique_id=36282354]
 
+[node name="Health" type="FSHealth" parent="."]
+
 [node name="StateMachine" type="FSPlayerStateMachine" parent="." unique_id=352966517]
 
 [node name="Idle" type="FSIdle" parent="StateMachine" unique_id=23509125]

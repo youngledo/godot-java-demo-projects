@@ -6,6 +6,7 @@ import org.godot.annotation.Signal;
 import org.godot.node.CharacterBody2D;
 import org.godot.math.Vector2;
 import org.godot.node.Node;
+import org.godot.node.Node2D;
 
 @GodotClass(name = "FSPlayerController", parent = "CharacterBody2D")
 public class FSPlayerController extends CharacterBody2D {
@@ -31,21 +32,16 @@ public class FSPlayerController extends CharacterBody2D {
 
     @GodotMethod
     public void takeDamage(Object attacker, double amount, Object effect) {
-        org.godot.Godot atk = (org.godot.Godot) attacker;
-        if (atk instanceof Node atkNode && isAncestorOf(atkNode)) return;
+        if (attacker instanceof Node attackerNode && isAncestorOf(attackerNode)) return;
 
-        org.godot.node.Node stagger = getNode("States/Stagger");
-        if (stagger != null) {
-            Object selfPos = getProperty("global_position");
-            Object atkPos = atk != null ? atk.getProperty("global_position") : null;
-            if (selfPos instanceof Vector2 && atkPos instanceof Vector2) {
-                Vector2 knockDir = ((Vector2) atkPos).sub((Vector2) selfPos).normalized();
-                stagger.setProperty("knockback_direction", knockDir);
-            }
+        FSStagger stagger = getNodeAs("States/Stagger", FSStagger.class);
+        if (stagger != null && attacker instanceof Node2D attackerNode) {
+            Vector2 knockDir = attackerNode.getGlobalPosition().sub(getGlobalPosition()).normalized();
+            stagger.setProperty("knockback_direction", knockDir);
         }
 
-        org.godot.node.Node health = getNode("Health");
-        if (health != null) health.call("take_damage", amount, effect);
+        FSHealth health = getNodeAs("Health", FSHealth.class);
+        if (health != null) health.takeDamage(amount, effect);
     }
 
     @GodotMethod
