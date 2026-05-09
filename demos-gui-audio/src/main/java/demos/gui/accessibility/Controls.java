@@ -1,17 +1,13 @@
 package demos.gui.accessibility;
 
-// BLOCKED: This demo uses _draw() which is not available in godot-java.
-// The custom_control.gd also uses _draw(), accessibility notifications, and
-// _notification() with NOTIFICATION_ACCESSIBILITY_* constants that have no
-// Java API equivalents. This demo cannot be fully ported.
-
 import org.godot.annotation.GodotClass;
+import org.godot.annotation.GodotMethod;
 import org.godot.node.Control;
-import org.godot.node.Node;
+import org.godot.node.Label;
+import org.godot.node.LineEdit;
 
 @GodotClass(name = "Controls", parent = "Control")
 public class Controls extends Control {
-
     private boolean initialized = false;
 
     @Override
@@ -19,21 +15,29 @@ public class Controls extends Control {
         if (initialized) return;
         initialized = true;
 
-        org.godot.node.Control lineEditName = (org.godot.node.Control) getNode("LineEditName");
-        if (lineEditName != null && (boolean) lineEditName.isInsideTree()) {
+        LineEdit lineEditName = getNodeAs("LineEditName", LineEdit.class);
+        if (lineEditName != null && lineEditName.isInsideTree()) {
             lineEditName.grabFocus();
         }
     }
 
-    @org.godot.annotation.GodotMethod
-    public void OnButtonSetPressed() {
-        if (!isInsideTree()) return;;
+    @GodotMethod
+    public void _on_button_set_pressed() {
+        updateLiveRegion();
+    }
 
-        org.godot.node.Node liveReg = getNode("LineEditLiveReg");
-        org.godot.node.Node labelRegion = getNode("Panel/LabelRegion");
+    @GodotMethod
+    public void OnButtonSetPressed() {
+        updateLiveRegion();
+    }
+
+    private void updateLiveRegion() {
+        if (!isInsideTree()) return;
+
+        LineEdit liveReg = getNodeAs("LineEditLiveReg", LineEdit.class);
+        Label labelRegion = getNodeAs("Panel/LabelRegion", Label.class);
         if (liveReg != null && labelRegion != null) {
-            String text = (String) liveReg.getProperty("text");
-            labelRegion.setProperty("text", text);
+            labelRegion.setText(liveReg.getText());
         }
     }
 }

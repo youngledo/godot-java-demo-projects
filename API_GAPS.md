@@ -1,118 +1,86 @@
 # godot-java API Gaps Found During Demo Porting
 
-## Blocked Demos
+## Current Status (2026-05-09)
 
-### 2d/custom_drawing (BLOCKED — not ported)
-- **`_draw()` virtual method not available** — CanvasItem's `_draw()` cannot be overridden in Java.
-  This blocks all custom drawing demos (9 scripts, 649 lines). No Java files exist.
+The typed API migration for the main demo modules is complete, and the previously stubbed drawing/accessibility demos now have Java implementations instead of stale blocked placeholders.
 
-### gui/gd_paint (BLOCKED — stub only)
-- `PaintControl.java` is a stub — depends on `_draw()` for rendering brush strokes.
-
-### gui/accessibility (BLOCKED — stub only)
-- `CustomControl.java` and `Controls.java` are stubs — depend on `_draw()` for visual rendering.
-
-## Resolved by Codegen Fixes (2026-05-06)
-
-The following API gaps were caused by code generator bugs and are now resolved:
-
-| Previously Missing | Now Available | Notes |
-|---|---|---|
-| `Node.getParent()`, `getTree()`, `getViewport()`, `getPath()` | Generated | Fix: only skip get_/set_ when property exists |
-| `Node.setProcess()`, `setPhysicsProcess()`, `setProcessInput()` | Generated | Same fix |
-| `Node.addChild(node)` (1-arg) | Overload generated | Default param overloads from JSON |
-| `Node.getChild(idx)` (1-arg) | Overload generated | Same |
-| `FileAccess.open()`, `fileExists()` (static) | Generated as `public static` | Static method generation via `callStatic` |
-| `DirAccess.open()`, `AudioStreamMP3.load_from_file()` | Generated as `public static` | Same |
-| `Vector3.floor()`, `ceil()`, `normalized()` | `Vector3Extensions` companion class | Builtin method generation via FFI |
-| 990+ methods with default parameters | Overloads generated | Read from extension_api.json |
-| `CharacterBody2D.moveAndSlide()`, `isOnFloor()`, `getVelocity()`, `setVelocity()` | Generated | Physics methods on CharacterBody2D |
-| `CanvasItem.show()`, `hide()` | Generated | Visibility methods |
-| `ColorRect.setColor()`, `Control.setSize()`, `Control.setPosition()` | Generated | Property setters on Control subclasses |
-| `Label.setText()`, `setHorizontalAlignment()` | Generated | Label property setters |
-| `Control.addThemeFontSizeOverride()` | Generated | Theme override method |
-| `Control.setVisible()` | Generated (on CanvasItem) | Visibility property setter |
-| `Godot.callDeferred()` | Added to Godot base class | Deferred method calls |
-
-## Remaining API Limitations & Workarounds
-
-### Virtual Methods
-| Virtual Method | Status | Notes |
-|---|---|---|
-| `_draw()` | Partially available | `BSBullets.java` works; `custom_drawing`, `gd_paint`, `accessibility` still blocked |
-| `_integrateForces()` | Available | Fixed in commit `51cf035` — `PPEnemy.java` now uses proper override |
-
-### Transform3D API
-| Missing API | Workaround | Occurrences |
-|---|---|---|
-| `Transform3D.lookingAt()` | Manual `makeLookAtBasis()` helper with cross products | 7 |
-| `Transform3D.xform()` | Use `apply()` | 11 |
-| `Transform3D.xformInv()` | Use `inverse().apply()` | 2 |
-
-### Basis API
-| Missing API | Workaround |
+| Area | Status |
 |---|---|
-| `Basis.getColumn(i)` | Access fields directly: `xx,xy,xz,yx,yy,yz,zx,zy,zz` |
-| `Basis.rotated()` | Use `Basis.fromAxisAngle(axis, angle).multiply(basis)` |
-| `Basis.toEuler()` returns | Returns `Vector3` (not `double[]`) — use `.x`, `.y`, `.z` |
+| Demo Java source `call()` usage | 0 remaining in `demos-2d`, `demos-3d`, `demos-gui-audio`, `demos-misc-xr-cmp`, `demos-net-vp-load` |
+| Generated wrapper `super.call(...)` | Fixed in `godot-java` codegen/runtime (`e0b81bb`) |
+| Demo Java files | 276 in demo modules |
+| Registered `@GodotClass` | 275 in demo modules |
+| Previously stubbed demos | `2d/custom_drawing`, `gui/gd_paint`, and `gui/accessibility` now have Java code |
+| Remaining tracked migration tasks | Completed |
 
-### Other API Gaps
-| Missing API | Workaround | Occurrences |
+Validation performed:
+
+```text
+rg -n "\bcall\(|\.call\(" demos-2d/src/main/java demos-3d/src/main/java demos-gui-audio/src/main/java demos-misc-xr-cmp/src/main/java demos-net-vp-load/src/main/java --glob '*.java'
+# no output
+
+mvn compile -pl demos-2d,demos-gui-audio -am
+# BUILD SUCCESS
+
+grep -R "super.call" godot-java-core/target/generated-sources/codegen godot-java-code-generator/src/main/java
+# no output after forced regeneration in godot-java
+```
+
+## Previously Blocked or Stubbed Demos
+
+These are no longer blocked by missing Java `_draw()` support.
+
+| Demo | Current Status | Notes |
 |---|---|---|
-| `Vector3.floor()` | Use `new Vector3(Math.floor(x), Math.floor(y), Math.floor(z))` | 23 |
-| `Vector2i.ZERO` | Use `new Vector2i(0, 0)` | 3 |
-| `SurfaceTool.set_uv()` | Use `surfaceTool.call("set_uv", ...)` | 7 |
-| `SurfaceTool.set_normal()` | Use `surfaceTool.call("set_normal", ...)` | 1 |
-| `_input()` returns `boolean` | Must return `boolean`, not `void` | — |
-| `Object` naming conflict | Use `java.lang.Object` to disambiguate from `org.godot.node.Object` | — |
-| Custom `@GodotClass.create()` | Returns parent type, not subclass — must refactor to use parent type or static methods | — |
+| `2d/custom_drawing` | Java port added | `CustomDrawingCanvas.java` uses typed CanvasItem draw APIs for lines, rectangles, polygons, text, animation, and placeholders for unsupported-heavy tabs. |
+| `gui/gd_paint` | Java port added | `PaintControl.java` handles mouse drawing with pencil, eraser, rectangle, circle, brush shape, brush size, color, background, undo, and clear; `ToolsPanel.java` uses typed UI nodes and scene signal handlers. |
+| `gui/accessibility` | Java port added | `Controls.java` uses typed `LineEdit`/`Label`; `CustomControl.java` implements a drawn, keyboard/mouse-interactive custom control. Framework-level accessibility notification mapping remains a non-blocking follow-up. |
 
-### Async/Await Pattern
-GDScript's `await` has no direct equivalent. All async patterns converted to:
-- Signal callback chains (connect signal -> handler calls next step)
-- Timer-based polling
-- Multi-step state machines
+## Resolved by Codegen / Runtime Fixes
 
-## call() Usage Statistics
+The following gaps were found during porting and are now resolved or no longer blocking the migrated demos.
 
-### Current State (2026-05-07)
+| Previously Missing or Blocking | Current Status | Notes |
+|---|---|---|
+| `Node.getParent()`, `getTree()`, `getViewport()`, `getPath()` | Generated | Typed methods available |
+| `Node.setProcess()`, `setPhysicsProcess()`, `setProcessInput()` | Generated | Typed methods available |
+| `Node.addChild(node)`, `getChild(idx)` default-param overloads | Generated | Default argument overload generation works |
+| `FileAccess.open()`, `fileExists()` and other static APIs | Generated | Static method generation uses `callStatic` / method-bind dispatch |
+| `CharacterBody2D/3D` movement APIs | Generated | `moveAndSlide()`, velocity/floor helpers available |
+| `CanvasItem._draw()` override | Available | `BSBullets.java`, `CustomDrawingCanvas.java`, `PaintControl.java`, and `CustomControl.java` use it successfully |
+| `CanvasItem.show()`, `hide()`, visibility setters | Generated | Typed methods available |
+| `Control`, `Label`, `ColorRect`, theme override setters | Generated | Typed property/method wrappers available |
+| `SurfaceTool.setUv()`, `setNormal()` | Generated | Voxel demo uses typed methods |
+| `Godot.callDeferred()` | Added | Base helper remains for deferred method names |
+| Generated wrapper instance dispatch | Fixed | `JavaClassGenerator` emits `callEngine(...)`, not `super.call(...)` |
 
-| Metric | Count |
+## Remaining API Limitations and Notes
+
+These items are still worth tracking, but they are not blocking the completed `call()` migration or the Java drawing demos.
+
+### Virtual / Notification Coverage
+
+| Area | Status | Notes |
+|---|---|---|
+| `_draw()` | Available | Multiple Java demos now override `_draw()` directly |
+| Accessibility notifications | Needs follow-up | `gui/accessibility` has a Java visual/interactive port, but framework-level `NOTIFICATION_ACCESSIBILITY_*` constants and screen-reader behavior still need proper Java mapping |
+| GDScript `await` pattern | No direct equivalent | Continue using signal callbacks, timers, polling, or explicit state machines |
+
+### Transform / Math Convenience APIs
+
+| API Area | Current Use |
 |---|---|
-| Total `call()` patterns in demos | 2,500 |
-| Self-call() (on `this`) | 145 |
-| Variable.call() (on Godot/other vars) | 2,003 |
-| Typed method calls (replaced) | 1,041 |
-| Node-typed variables | 507 |
-| Godot-typed variables | 402 |
+| `Transform3D.lookingAt()` | Some IK demos still use local `makeLookAtBasis()` helpers |
+| `Transform3D.apply()` / inverse apply | Used as typed replacement for old `xform` / `xformInv` style |
+| `Basis.toEuler()` | Returns `Vector3`; callers use vector components directly |
 
-### godot-java-examples (2026-05-07)
-All examples use typed API exclusively — zero `call()` patterns remaining.
+### Naming / Type Notes
 
-### Top Remaining call() Categories (demos)
+| Area | Note |
+|---|---|
+| `org.godot.node.Object` vs `java.lang.Object` | Use `java.lang.Object` when disambiguation is needed |
+| Custom `@GodotClass.create()` | Generated factory returns generated parent wrapper type; custom subclasses should use scene instantiation or project-specific factories |
 
-| Godot Method | Count | Why Still call() |
-|---|---|---|
-| `connect` | 123 | Signal connections on Godot-typed vars |
-| `is_action_pressed` | 111 | Input singleton uses call() |
-| `play` / `stop` / `start` | 113 | AnimationPlayer/AudioStreamPlayer methods |
-| `instantiate` | 47 | PackedScene instantiation |
-| `get_class` | 45 | Runtime type checking |
-| `show` / `hide` | 76 | On Godot-typed vars (not typed as CanvasItem) |
-| `get_node` | 41 | On Godot-typed vars |
-| `set_rotation` | 38 | Property setter on Godot-typed vars |
-| `get_global_transform/position` | 60 | On Godot-typed vars |
-| `add_child` | 35 | On Godot-typed vars |
+## Out of Scope for This File
 
-### Further call() Reduction Strategy
-Most remaining `call()` patterns are on `org.godot.Godot`-typed variables. To reduce further:
-1. Change variable types from `Godot` to more specific subclasses (e.g., `AnimationPlayer`, `AudioStreamPlayer`)
-2. Use `Node` type where possible (507 vars already converted)
-3. Add more typed methods to commonly-used classes via codegen
-
-## Demo Stats
-
-- **Total Java files:** 274
-- **Registered @GodotClass:** 273
-- **Demo directories:** 103
-- **Blocked:** 3 demos (2d/custom_drawing, gui/gd_paint, gui/accessibility)
+`/Users/huangxiao/Workspace/mine/godot-java-3d-demo` is a separate project and is not covered by the completed `godot-java-demo-projects` migration. It still has dynamic `call()` usages and needs a separate migration pass.

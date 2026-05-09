@@ -333,3 +333,16 @@ min_size = Vector2i(800, 300)
 access = 2
 filters = PackedStringArray("*.png ; PNG Image", "*.webp ; WebP Image", "*.jpeg, *.jpg ; JPEG Image")
 show_hidden_files = true
+
+[connection signal="pressed" from="ToolsPanel/ButtonToolPencil" to="ToolsPanel" method="_on_tool_pencil_pressed"]
+[connection signal="pressed" from="ToolsPanel/ButtonToolEraser" to="ToolsPanel" method="_on_tool_eraser_pressed"]
+[connection signal="pressed" from="ToolsPanel/ButtonToolRectangle" to="ToolsPanel" method="_on_tool_rectangle_pressed"]
+[connection signal="pressed" from="ToolsPanel/ButtonToolCircle" to="ToolsPanel" method="_on_tool_circle_pressed"]
+[connection signal="color_changed" from="ToolsPanel/ColorPickerBrush" to="ToolsPanel" method="_on_brush_color_changed"]
+[connection signal="value_changed" from="ToolsPanel/BrushSettings/HScrollBarBrushSize" to="ToolsPanel" method="_on_brush_size_changed"]
+[connection signal="pressed" from="ToolsPanel/BrushSettings/ButtonShapeBox" to="ToolsPanel" method="_on_shape_box_pressed"]
+[connection signal="pressed" from="ToolsPanel/BrushSettings/ButtonShapeCircle" to="ToolsPanel" method="_on_shape_circle_pressed"]
+[connection signal="color_changed" from="ToolsPanel/ColorPickerBackground" to="ToolsPanel" method="_on_background_color_changed"]
+[connection signal="pressed" from="ToolsPanel/ButtonUndo" to="ToolsPanel" method="_on_undo_pressed"]
+[connection signal="pressed" from="ToolsPanel/ButtonSave" to="ToolsPanel" method="_on_save_pressed"]
+[connection signal="pressed" from="ToolsPanel/ButtonClear" to="ToolsPanel" method="_on_clear_pressed"]
