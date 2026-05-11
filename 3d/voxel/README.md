@@ -3,7 +3,7 @@
 This demo is a minimal first-person voxel game,
 inspired by others such as Minecraft.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 
@@ -42,9 +42,9 @@ called "Settings". This class will automatically save
 settings, and load them when the game opens, by using the
 [`FileAccess`](https://docs.godotengine.org/en/latest/classes/class_fileaccess.html) class.
 
-Sticking to GDScript and the built-in Godot tools, as this demo does, is
-quite limiting. If you are making your own voxel game, you should probably
-use Zylann's voxel module instead: https://github.com/Zylann/godot_voxel
+Sticking to script code and the built-in Godot tools, as this demo does,
+is quite limiting. If you are making your own voxel game, you should
+probably use Zylann's voxel module instead: https://github.com/Zylann/godot_voxel
 
 ## Screenshots
 

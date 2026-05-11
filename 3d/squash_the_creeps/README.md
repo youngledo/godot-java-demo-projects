@@ -25,13 +25,9 @@ This demo covers:
 - Using the built-in animation editor to breathe life to your game.
 - Creating a complete game loop with lose conditions, score, and the ability to restart.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
-
-> [!NOTE]
->
-> There is a C# version available [here](https://github.com/godotengine/godot-demo-projects/tree/master/mono/squash_the_creeps).
 
 Check out this demo on the asset library: https://godotengine.org/asset-library/asset/2751
 

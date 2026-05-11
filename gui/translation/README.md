@@ -27,7 +27,7 @@ See [Internationalizing games](https://docs.godotengine.org/en/latest/tutorials/
 and [Localization using gettext](https://docs.godotengine.org/en/latest/tutorials/i18n/localization_using_gettext.html)
 for more information.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

@@ -8,7 +8,7 @@ to be automatically adjusted as the sun performs a day/night cycle. The radiance
 map (used to provide ambient and reflected light to the scene) is updated in
 real-time with the environment sky's process mode set accordingly.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

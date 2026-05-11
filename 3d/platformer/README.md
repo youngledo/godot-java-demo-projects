@@ -4,7 +4,7 @@
 [`CharacterBody3D`](https://docs.godotengine.org/en/latest/classes/class_characterbody3d.html).
 It uses similar code to the 2D platformer, but implemented in 3D.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

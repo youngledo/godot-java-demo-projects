@@ -1,10 +1,10 @@
 # Hierarchical Finite State Machine
 
 This example shows how to apply the State machine programming
-pattern in GDscript, including Hierarchical States, and a
+pattern in Java, including Hierarchical States, and a
 pushdown automaton.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

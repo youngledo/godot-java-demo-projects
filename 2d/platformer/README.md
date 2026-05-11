@@ -12,10 +12,10 @@ You will find most of the demo’s content in the `level.tscn` scene.
 You can open it from the default `game.tscn` scene, or double
 click on `level.tscn` in the `src/level/` directory.
 
-We invite you to open the demo's GDScript files in the editor as
+We invite you to open the demo's Java source files in the editor as
 they contain a lot of comments that explain how each class works.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

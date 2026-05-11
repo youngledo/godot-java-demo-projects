@@ -2,7 +2,7 @@
 
 This is a sample showing how the use WebSockets along with the Multiplayer API in Godot.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

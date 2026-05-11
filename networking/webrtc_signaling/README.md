@@ -2,15 +2,15 @@
 
 This demo is divided in 4 parts:
 
-- The `server` folder contains the signaling server implementation written in GDScript (so it can be run by a game server running Godot)
+- The `server` folder contains the signaling server implementation written in Java (so it can be run by a game server running Godot)
 - The `server_node` folder contains the signaling server implementation written in Node.js (if you don't plan to run a game server but only match-making).
-- The `client` part contains the client implementation in GDScript.
+- The `client` part contains the client implementation in Java.
   - Itself divided into raw protocol and `WebRTCMultiplayer` handling.
 - The `demo` contains a small app that uses it.
 
 **NOTE**: You must extract the [latest version](https://github.com/godotengine/webrtc-native/releases) of the WebRTC GDExtension plugin in the project folder to run from desktop.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

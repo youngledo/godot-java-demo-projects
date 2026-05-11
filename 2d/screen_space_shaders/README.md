@@ -3,7 +3,7 @@
 Several examples of full screen 2D shader processing.
 Many common full-res effects are implemented here for reference.
 
-Language: [Godot shader language](https://docs.godotengine.org/en/latest/tutorials/shaders/shader_reference/shading_language.html) and GDScript
+Language: [Godot shader language](https://docs.godotengine.org/en/latest/tutorials/shaders/shader_reference/shading_language.html) and Java
 
 Renderer: Compatibility
 

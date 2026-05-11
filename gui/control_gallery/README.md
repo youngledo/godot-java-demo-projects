@@ -9,7 +9,7 @@ are separated using HSplitContainer and VSplitContainer nodes.
 This makes their individual size adjustable. Drag the empty
 space between panels to resize them.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

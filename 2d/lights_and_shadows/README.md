@@ -4,7 +4,7 @@ Simple demo of 2D lights and shadows, using
 [`Light2D`](https://docs.godotengine.org/en/latest/classes/class_light2d.html)
 and [`LightOccluder2D`](https://docs.godotengine.org/en/latest/classes/class_lightoccluder2d.html).
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

@@ -8,7 +8,7 @@ It demonstrates:
 - Input event routing to different viewports based on joypad device id and dedicated keyboard keys
 - Dynamic keybinding adjustment for each Split Screen
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

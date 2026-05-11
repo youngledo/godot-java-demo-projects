@@ -6,7 +6,7 @@ Do not "run" this project. You are only meant to use it within the Godot editor.
 
 For more information, see the [Matrices and Transforms](https://docs.godotengine.org/en/latest/tutorials/math/matrices_and_transforms.html) article.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

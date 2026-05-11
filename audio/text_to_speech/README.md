@@ -2,7 +2,7 @@
 
 This is a demo showing text-to-speech support.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

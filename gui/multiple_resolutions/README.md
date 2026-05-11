@@ -41,7 +41,7 @@ Note that by default, Godot uses font oversampling for traditional rasterized
 DynamicFonts. This means MSDF fonts are *not* required to have crisp fonts at
 higher-than-default screen resolutions.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

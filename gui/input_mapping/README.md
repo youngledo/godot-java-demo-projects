@@ -6,7 +6,7 @@ A demo showing how to build an input key remapping screen.
 - Persists the keys to disk, so they are preserved
   after the project is restarted.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

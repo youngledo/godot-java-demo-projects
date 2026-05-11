@@ -4,7 +4,7 @@ A multiplayer implementation of the classic pong game.
 One of the players should press **Host**, while the other
 should type in the host's IP address and press **Join**.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

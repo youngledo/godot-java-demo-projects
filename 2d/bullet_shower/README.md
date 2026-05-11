@@ -7,7 +7,7 @@ See
 [Optimization using Servers](https://docs.godotengine.org/en/latest/tutorials/performance/using_servers.html)
 in the documentation for more information.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

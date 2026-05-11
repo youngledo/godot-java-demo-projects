@@ -4,7 +4,7 @@ This showcases how to use glow in a 2D game via the WorldEnvironment node.
 
 Slide the cave image left and right to observe the glow effect at work.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

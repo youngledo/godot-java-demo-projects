@@ -8,7 +8,7 @@ See [Logging](https://docs.godotengine.org/en/latest/tutorials/scripting/logging
 in the documentation for more information about configuring the engine's logging
 and writing custom loggers.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

@@ -2,7 +2,7 @@
 
 Very simple demo showing a hexagonal TileMap and TileSet.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

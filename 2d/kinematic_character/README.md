@@ -5,7 +5,7 @@ Example of how to make a kinematic character controller in 2D using
 The character moves around, is affected by moving platforms,
 can jump through one-way collision platforms, etc.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

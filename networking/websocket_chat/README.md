@@ -2,7 +2,7 @@
 
 This is a demo of a simple chat implemented using WebSockets, showing both how to host a websocket server from Godot and how to connect to it.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

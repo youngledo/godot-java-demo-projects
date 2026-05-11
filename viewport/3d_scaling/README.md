@@ -6,7 +6,7 @@ elements, to improve performance without making the UI blurry.
 See [Resolution scaling](https://docs.godotengine.org/en/stable/tutorials/3d/resolution_scaling.html)
 in the documentation for details.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

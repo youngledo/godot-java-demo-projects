@@ -29,7 +29,7 @@ Controls:
 - <kbd>Right Mouse Button</kbd>: Orbit camera
 - <kbd>Mouse Wheel</kbd>: Zoom
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

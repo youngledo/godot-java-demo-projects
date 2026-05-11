@@ -7,8 +7,7 @@ new platform or to check for regressions.
 In a nutshell, this demo shows how you can get information from the
 operating system, or interact with the operating system.
 
-Language: GDScript and some [C#](https://docs.godotengine.org/en/latest/tutorials/scripting/c_sharp/index.html)
-(a .NET build is **not** required to run this demo)
+Language: Java
 
 Renderer: Compatibility
 
@@ -22,18 +21,10 @@ OS wraps the most common functionality to communicate with the host
 operating system, such as the clipboard, video driver, date and time,
 timers, environment variables, execution of binaries, command line, etc.
 
-The buttons are connected to a node with the `actions.gd` script, which
-perform actions using the OS class.
-The text on the left is filled in using the `os_test.gd` script,
-which gathers information about the OS using the OS class.
-
-On a Mono-enabled version of Godot, Godot will load `MonoTest.cs` into
-the `MonoTest` node. Then, information determined by
-[`C# preprocessor defines`](https://docs.godotengine.org/en/latest/tutorials/scripting/c_sharp/c_sharp_features.html#preprocessor-defines)
-will be added to the left panel.
+The buttons are connected to Java nodes which perform actions using the
+OS class. The text on the left is filled in by Java code which gathers
+information about the OS using the OS class.
 
 ## Screenshots
 
 ![Top HiDPI](screenshots/top-hidpi.png)
-
-![Mono](screenshots/mono.png)

@@ -25,7 +25,7 @@ shaders can be applied to Sprite3D and AnimatedSprite3D for stylized results.
 The shaders demonstration also shows how to create paper-like effects, which can
 be useful for creating a unique visual style in most of the game.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

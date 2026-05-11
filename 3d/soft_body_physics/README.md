@@ -26,7 +26,7 @@ Controls:
 For performance reasons, only 10 user-placed objects can be present at a time in this demo.
 The oldest objects will be removed when attempting to place more than 10 objects.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

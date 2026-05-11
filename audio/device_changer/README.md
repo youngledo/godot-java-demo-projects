@@ -2,7 +2,7 @@
 
 This is a demo showing how the audio output device can be changed from Godot.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

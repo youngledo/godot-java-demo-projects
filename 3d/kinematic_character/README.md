@@ -3,7 +3,7 @@
 Kinematic character demo for 3D using a cube for the character.
 This is similar to the 3D platformer demo.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

@@ -3,7 +3,7 @@
 This sample project showcases an implementation of dynamic
 split screen, also called Voronoi split screen.
 
-Language: [Godot shader language](https://docs.godotengine.org/en/latest/tutorials/shaders/shader_reference/shading_language.html) and GDScript
+Language: [Godot shader language](https://docs.godotengine.org/en/latest/tutorials/shaders/shader_reference/shading_language.html) and Java
 
 Renderer: Compatibility
 
@@ -39,7 +39,7 @@ Open and launch the project inside the Godot engine, then
 use WASD to move the first player (in red) and IJKL (or arrow keys)
 to move the second player (in blue).
 
-The `camera_controller.gd` script sets parameters to tune the distance at
+The `DSCameraController.java` script sets parameters to tune the distance at
 which the screen splits and also the width and color of
 the splitting line.
 

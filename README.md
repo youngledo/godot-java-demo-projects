@@ -22,6 +22,37 @@ mvn package -DskipTests
 
 This produces a fat JAR in each module's `native/` directory.
 
+## Add a New Test
+
+Add new demo logic as Java source under the Maven module that matches the demo category. For example, a 2D test belongs under `demos-2d/src/main/java/demos/twod/`.
+
+```java
+package demos.twod.my_test;
+
+import org.godot.annotation.GodotClass;
+import org.godot.node.Label;
+import org.godot.node.Node2D;
+
+@GodotClass(name = "MyTest", parent = "Node2D")
+public class MyTest extends Node2D {
+
+    @Override
+    public void _ready() {
+        Label label = Label.create();
+        label.setText("Hello from Java");
+        addChild(label);
+    }
+}
+```
+
+Then create or update the Godot scene so the node type is the registered Java class name:
+
+```ini
+[node name="MyTest" type="MyTest"]
+```
+
+Rebuild the matching module or the whole project with `mvn package -DskipTests`, then open the demo directory in Godot.
+
 ## Architecture
 
 The project is organized as a Maven multi-module build. Each module contains Java source code for a category of demos, and a `native/` directory with the runtime artifacts. Each demo directory symlinks its `native/` folder to the corresponding module.

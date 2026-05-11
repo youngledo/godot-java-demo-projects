@@ -5,7 +5,7 @@ Cubes as RigidBodies spawn in the map from above to show interaction
 with the player (jump on them, gently push them), which would be
 impossible with a CharacterBody.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

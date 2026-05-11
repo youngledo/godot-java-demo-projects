@@ -2,7 +2,7 @@
 
 This is a demo showing OpenXR's hand tracking and controller tracking logic.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 
@@ -149,8 +149,8 @@ There are a number of actions needed for this example:
 
 The pickup logic itself is split into two components:
 
-* `pickup_handler.gd/.tscn` is an Area3D node with logic that is added as a child to an XRController3D node and handles the logic for that hand to pick up objects in range.
-* `pickup_able_body.gd` is a script that can be added to a RigidBody3D node to make it possible to pick up/drop that object.
+* `PickupHandler.java` is an Area3D node with logic that is added as a child to an XRController3D node and handles the logic for that hand to pick up objects in range.
+* `PickupAbleBody.java` is a script that can be added to a RigidBody3D node to make it possible to pick up/drop that object.
 
 > Note that the trackers used by the action map are `left_hand` and `right_hand`.
 
@@ -185,4 +185,3 @@ Note that Godot currently can't run using the WMR OpenXR runtime. Install SteamV
 
 You must install the Android build templates and OpenXR loader plugin and configure an export template for your device.
 Please follow [the instructions for deploying on Android in the manual](https://docs.godotengine.org/en/stable/tutorials/xr/deploying_to_android.html).
-

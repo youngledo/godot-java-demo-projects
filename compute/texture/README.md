@@ -5,7 +5,7 @@ This demo shows how to use compute shaders to populate a texture that is used as
 When the mouse cursor isn't hovering above the plane random "drops" of water are added that drive the ripple effect.
 When the mouse cursor is above the plane you can "draw" on the plane to drive the ripple effect.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

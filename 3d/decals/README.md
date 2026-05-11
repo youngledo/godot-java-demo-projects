@@ -14,7 +14,7 @@ The decal filter mode can be adjusted in the top-left corner:
   looking blurry when viewed at oblique angles. However, filter modes with
   Anisotropic have a greater performance cost than enabling Mipmaps alone.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

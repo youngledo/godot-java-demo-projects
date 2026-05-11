@@ -4,7 +4,7 @@ This is a really simple demo that shows how the mobile VR interface can be enabl
 This is a great little project to test stereo rendering on desktop without needing XR hardware.
 When used on mobile devices simple 3DOF headtracking can be tested.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility, Mobile, Forward+
 

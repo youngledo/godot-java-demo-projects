@@ -5,7 +5,7 @@ color correction textures (1D and 3D).
 
 A script generating neutral 3D LUT textures is also included.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

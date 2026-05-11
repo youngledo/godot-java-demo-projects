@@ -2,7 +2,7 @@
 
 A demo showcasing the Pseudolocalization feature in Godot
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

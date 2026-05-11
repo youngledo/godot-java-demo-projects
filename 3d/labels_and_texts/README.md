@@ -30,7 +30,7 @@ In most scenarios, Label3D is easier to use and can look better (thanks to
 outlines and MSDF rendering). TextMesh is more powerful and is intended for more
 specialized use cases.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

@@ -2,7 +2,7 @@
 
 A demo showing how a game made in Godot can be paused.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

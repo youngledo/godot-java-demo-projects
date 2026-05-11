@@ -13,7 +13,7 @@ Showcased features are:
 - Custom FogVolume shader with real-time 3D noise
   ([provided by alghost](https://godotshaders.com/shader/moving-gradient-noise-fog-mist-for-godot-4/)).
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

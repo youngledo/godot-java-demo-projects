@@ -2,7 +2,7 @@
 
 This is a demo for an OpenXR project where we show how to use the binding modifier feature in the action map.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

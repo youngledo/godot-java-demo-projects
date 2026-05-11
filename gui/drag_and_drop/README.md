@@ -5,7 +5,7 @@ A demo showcasing drag and drop functionality.
 - Drag and drop the color buttons to copy their colors over.
 - Click on the buttons to manually adjust their color.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

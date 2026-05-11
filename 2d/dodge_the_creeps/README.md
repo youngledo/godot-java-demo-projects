@@ -8,13 +8,9 @@ This is a finished version of the game featured in the
 tutorial in the documentation. For more details,
 consider following the tutorial in the documentation.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
-
-> [!NOTE]
->
-> There is a C# version available [here](https://github.com/godotengine/godot-demo-projects/tree/master/mono/dodge_the_creeps).
 
 Check out this demo on the asset library: https://godotengine.org/asset-library/asset/2712
 

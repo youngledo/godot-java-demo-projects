@@ -3,7 +3,7 @@
 A demo showing regex functionality and usage.
 Can also serve as a playground for regex testing.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

@@ -11,7 +11,7 @@ It includes:
 - Adding elements to a PopupMenu.
 - Adding an icon to the system tray.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatbility
 

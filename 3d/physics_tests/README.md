@@ -10,7 +10,7 @@ They can be used for different purposes:
 - Performance tests to evaluate and compare
   performance between physics engines
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

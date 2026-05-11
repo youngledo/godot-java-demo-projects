@@ -2,7 +2,7 @@
 
 This is a demo showing OpenXR's render models implementation.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

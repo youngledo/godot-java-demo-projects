@@ -16,6 +16,6 @@ var layersPolyfill = new WebXRLayersPolyfill();
 </script>
 ```
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility

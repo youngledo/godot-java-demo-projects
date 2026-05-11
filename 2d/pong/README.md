@@ -1,16 +1,12 @@
-# Pong with GDScript
+# Pong with Java
 
 A simple Pong game. This demo shows best practices
 for game development in Godot, including
 [signals](https://docs.godotengine.org/en/latest/getting_started/step_by_step/signals.html).
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
-
-> [!NOTE]
->
-> There is a C# version available [here](https://github.com/godotengine/godot-demo-projects/tree/master/mono/pong).
 
 Check out this demo on the asset library: https://godotengine.org/asset-library/asset/2728
 

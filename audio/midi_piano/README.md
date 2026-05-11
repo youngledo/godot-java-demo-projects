@@ -10,7 +10,7 @@ manually calling the activate and deactivate methods on each key.
 
 Note that MIDI output is not yet supported in Godot, only input works.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

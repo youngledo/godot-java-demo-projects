@@ -2,7 +2,7 @@
 
 A demo showing BiDi text and BiDi overrides, line breaking and justification, and OpenType font features.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

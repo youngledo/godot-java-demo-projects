@@ -2,7 +2,7 @@
 
 A demo showing how a 3D scene can be shown within a 2D one using viewports.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

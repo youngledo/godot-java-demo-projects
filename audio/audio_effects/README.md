@@ -7,7 +7,7 @@ See [Audio buses](https://docs.godotengine.org/en/stable/tutorials/audio/audio_b
 and [Audio effects](https://docs.godotengine.org/en/stable/tutorials/audio/audio_effects.html)
 in the manual for more information.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

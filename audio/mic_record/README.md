@@ -6,7 +6,7 @@ the microphone and later play it back or save it to a file.
 With an addition on how to change the format, mix rate and
 stereo settings of the recording.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

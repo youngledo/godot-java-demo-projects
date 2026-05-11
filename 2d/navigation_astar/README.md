@@ -3,7 +3,7 @@
 This is an example of using AStarGrid2D for navigation in 2D,
 complete with Steering Behaviors in order to smooth the movement out.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

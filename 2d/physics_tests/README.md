@@ -10,7 +10,7 @@ They can be used for different purpose:
 - Performance tests to evaluate performance
   of the 2D physics engine
 
-Language: GDScript
+Language: Java
 
 Renderer: Mobile
 

@@ -2,7 +2,7 @@
 
 A demo of how to sync the audio playback with the time for a consistent BPM.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

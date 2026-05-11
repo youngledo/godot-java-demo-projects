@@ -1,10 +1,10 @@
 # Role Playing Game
 
 This shows a method of creating grid-based movement with Godot
-and GDScript. It also includes a simple JRPG-style dialogue and
+and Java. It also includes a simple JRPG-style dialogue and
 battle system on top of it.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

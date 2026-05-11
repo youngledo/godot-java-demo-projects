@@ -14,7 +14,7 @@ renderers, not Compatibility.
 See [Custom drawing in 2D](https://docs.godotengine.org/en/latest/tutorials/2d/custom_drawing_in_2d.html)
 in the documentation for more information.
 
-Language: GDScript
+Language: Java
 
 Renderer: Mobile
 

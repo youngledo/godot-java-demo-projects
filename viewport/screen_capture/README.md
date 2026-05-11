@@ -2,7 +2,7 @@
 
 An example showing how to take screenshots of the screen.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

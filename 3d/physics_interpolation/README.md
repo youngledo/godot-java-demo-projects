@@ -16,7 +16,7 @@ Physics interpolation is enabled by default in this project. Press <kbd>T</kbd>
 to toggle it while the demo is running. This allows you to see the impact on
 smoothness of physics interpolation.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

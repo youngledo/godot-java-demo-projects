@@ -6,7 +6,7 @@ LightmapGI, VoxelGI, SDFGI, ReflectionProbe, and screen-space effects like SSAO 
 Use the mouse to look around, <kbd>W</kbd>/<kbd>A</kbd>/<kbd>S</kbd>/<kbd>D</kbd>
 or arrow keys to move.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

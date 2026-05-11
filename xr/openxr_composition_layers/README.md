@@ -3,7 +3,7 @@
 This is a demo for an OpenXR project where we showcase the new compositor layer functionality.
 This is a companion to the [OpenXR composition layers manual page](https://docs.godotengine.org/en/latest/tutorials/xr/openxr_composition_layers.html).
 
-Language: GDScript
+Language: Java
 Renderer: Compatibility
 Minimum Godot Version: 4.3
 

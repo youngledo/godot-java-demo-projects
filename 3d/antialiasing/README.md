@@ -47,7 +47,7 @@ compared to traditional bilinear filtering.
 > AMD FidelityFX Super Resolution 1.0 is **not** an antialiasing technique.
 > It works best when used at the same time as another antialiasing method.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

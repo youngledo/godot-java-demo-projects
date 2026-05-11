@@ -3,7 +3,7 @@
 A demo showing a GUI instanced within a 3D scene using viewports,
 as well as forwarding mouse and keyboard input to the GUI.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

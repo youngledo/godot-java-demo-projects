@@ -3,7 +3,7 @@
 This is a sample project which allows the user to tweak different parameters of
 a FastNoiseLite texture.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

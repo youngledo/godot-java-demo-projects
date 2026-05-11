@@ -2,7 +2,7 @@
 
 This demo showcases how 2D particle systems work in Godot.
 
-Language: GDScript
+Language: Java
 
 Renderer: Mobile
 

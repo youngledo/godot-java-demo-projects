@@ -3,7 +3,7 @@
 A demo showcasing the support for rich text and BBCode via
 [`RichTextLabel`](https://docs.godotengine.org/en/latest/classes/class_richtextlabel.html).
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

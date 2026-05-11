@@ -4,7 +4,7 @@ This is an example of different Inverse Kinematic algorithms
 implemented in Godot. It contains four scenes, showing
 different ways they can be used.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

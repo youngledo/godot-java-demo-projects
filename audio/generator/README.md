@@ -1,10 +1,10 @@
 # Audio Generator
 
 This is a demo showing how one can generate and
-play audio samples from GDScript.
+play audio samples from Java.
 It plays a simple 440 Hz sine wave at 22050 Hz.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

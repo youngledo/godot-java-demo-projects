@@ -4,7 +4,7 @@ This demo shows how to create a rigged and animated character in 2D using
 Godot's Skeleton2D node. There are several movement-related animations and
 there is a simple character controller that controls the animations.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

@@ -18,7 +18,7 @@ for more information.
 > Official Godot builds do **not** have double-precision support enabled for performance reasons.
 > You need to compile a custom engine build to use double precision support.
 
-Languages: GDScript
+Languages: Java
 
 Renderer: Mobile
 

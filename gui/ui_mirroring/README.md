@@ -2,7 +2,7 @@
 
 A demo showing how to use UI mirroring.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

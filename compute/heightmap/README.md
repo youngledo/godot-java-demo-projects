@@ -27,7 +27,7 @@ heightmap.
 > optimized than it could be. This is to reflect the GPU code as much as
 > possible. Besides the use of the GPU, no multithreading is used.
 
-Languages: GDScript, GLSL
+Languages: Java, GLSL
 
 Renderer: Mobile
 

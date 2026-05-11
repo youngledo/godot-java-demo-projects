@@ -2,7 +2,7 @@
 
 Demonstrates how to override GUI colors and styleboxes at runtime.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

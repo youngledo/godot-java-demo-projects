@@ -11,7 +11,7 @@ A demo showing the various window management features available through
 - Capturing, hiding, or confining the mouse.
 - Getting various information about the screens, including DPI and refresh rate.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

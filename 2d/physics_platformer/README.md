@@ -7,7 +7,7 @@ These character controllers are more powerful than
 but can be more difficult to handle, as they require
 manual modification of the RigidDynamicBody velocity.
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

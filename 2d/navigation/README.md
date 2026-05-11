@@ -5,7 +5,7 @@ Example of using 2D navigation using:
 - [`NavigationPolygon`](https://docs.godotengine.org/en/latest/classes/class_navigationpolygon.html)
 - [`NavigationAgent2D`](https://docs.godotengine.org/en/latest/classes/class_navigationagent2d.html)
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 

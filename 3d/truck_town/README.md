@@ -21,7 +21,7 @@ On mobile platforms, the vehicle automatically accelerates. Touch the left and
 right edges of the screen to steer. Touch the middle of the screen to
 brake/reverse (this also temporarily stops acceleration).
 
-Language: GDScript
+Language: Java
 
 Renderer: Forward+
 

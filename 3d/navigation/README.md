@@ -5,7 +5,7 @@ able to pathfind around a static 3D environment.
 The navigation path is drawn using a line.
 Code is provided for polyline following in 3D.
 
-Language: GDScript
+Language: Java
 
 Renderer: Compatibility
 
