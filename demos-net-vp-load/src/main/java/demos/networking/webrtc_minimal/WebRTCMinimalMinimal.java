@@ -48,14 +48,14 @@ public class WebRTCMinimalMinimal extends Node {
         p1.poll();
         p2.poll();
 
-        int ch1State = ch1.getReadyState();
-        if (ch1State == 1L && ch1.getAvailablePacketCount() > 0) { // STATE_OPEN
+        WebRTCDataChannel.ChannelState ch1State = ch1.getReadyState();
+        if (ch1State == WebRTCDataChannel.ChannelState.STATE_OPEN && ch1.getAvailablePacketCount() > 0) {
             byte[] pkt = ch1.getPacket();
             System.out.println("P1 received: " + new String(pkt));
         }
 
-        int ch2State = ch2.getReadyState();
-        if (ch2State == 1L && ch2.getAvailablePacketCount() > 0) { // STATE_OPEN
+        WebRTCDataChannel.ChannelState ch2State = ch2.getReadyState();
+        if (ch2State == WebRTCDataChannel.ChannelState.STATE_OPEN && ch2.getAvailablePacketCount() > 0) {
             byte[] pkt = ch2.getPacket();
             System.out.println("P2 received: " + new String(pkt));
         }

@@ -23,7 +23,7 @@ public class VXSettings extends Node {
         initialized = true;
 
         if (FileAccess.fileExists(savePath)) {
-            FileAccess file = FileAccess.open(savePath, 1);
+            FileAccess file = FileAccess.open(savePath, FileAccess.ModeFlags.READ);
             if (file == null) return;
 
             String text = file.getAsText();
@@ -43,7 +43,7 @@ public class VXSettings extends Node {
     }
 
     public void saveSettings() {
-        FileAccess file = FileAccess.open(savePath, 2);
+        FileAccess file = FileAccess.open(savePath, FileAccess.ModeFlags.WRITE);
         if (file == null) return;
 
         String jsonStr = "{\"render_distance\":" + renderDistance + ",\"fog_enabled\":" + fogEnabled + "}";

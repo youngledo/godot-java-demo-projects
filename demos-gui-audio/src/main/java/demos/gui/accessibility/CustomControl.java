@@ -60,17 +60,17 @@ public class CustomControl extends Control {
     public void _draw() {
         Font font = getThemeDefaultFont();
         drawRect(new Rect2(0, 0, getSize().x, getSize().y), new Color(0.12, 0.13, 0.16));
-        drawString(font, new Vector2(18, 24), "Custom Java Control", 0, -1.0, 18L, new Color(0.95, 0.95, 0.95));
+        drawString(font, new Vector2(18, 24), "Custom Java Control", 0, -1.0, 18, new Color(0.95, 0.95, 0.95));
 
         for (int i = 0; i < ITEM_COUNT; i++) {
             double y = 34.0 + i * 56.0;
             boolean isSelected = i == selected;
             Color rowColor = isSelected ? new Color(0.25, 0.45, 0.9, 0.8) : new Color(0.22, 0.23, 0.27);
             drawRect(new Rect2(12, y, getSize().x - 24.0, 44.0), rowColor);
-            drawString(font, new Vector2(24, y + 28.0), itemNames[i], 0, -1.0, 16L, new Color(1, 1, 1));
+            drawString(font, new Vector2(24, y + 28.0), itemNames[i], 0, -1.0, 16, new Color(1, 1, 1));
             drawRect(new Rect2(105, y + 13.0, 150.0, 18.0), new Color(0.05, 0.05, 0.06));
             drawRect(new Rect2(105, y + 13.0, itemValues[i] * 1.5, 18.0), new Color(0.45, 1.0, 0.45));
-            drawString(font, new Vector2(270, y + 28.0), itemValues[i] + "%", 0, -1.0, 16L, new Color(1, 1, 1));
+            drawString(font, new Vector2(270, y + 28.0), itemValues[i] + "%", 0, -1.0, 16, new Color(1, 1, 1));
         }
     }
 
@@ -80,11 +80,11 @@ public class CustomControl extends Control {
         if (id == 0L) return;
 
         DisplayServer displayServer = DisplayServer.singleton();
-        displayServer.accessibilityUpdateSetRole(id, DisplayServer.AccessibilityRole.ROLE_LIST_BOX.value);
+        displayServer.accessibilityUpdateSetRole(id, DisplayServer.AccessibilityRole.ROLE_LIST_BOX);
         displayServer.accessibilityUpdateSetName(id, "Custom Java Control");
         displayServer.accessibilityUpdateSetDescription(id, "Use up and down to choose an item, then press Enter or click to change its value.");
         displayServer.accessibilityUpdateSetValue(id, itemNames[selected] + ", " + itemValues[selected] + "%");
-        displayServer.accessibilityUpdateSetLive(id, DisplayServer.AccessibilityLiveMode.LIVE_POLITE.value);
+        displayServer.accessibilityUpdateSetLive(id, DisplayServer.AccessibilityLiveMode.LIVE_POLITE);
         displayServer.accessibilityUpdateSetNumValue(id, itemValues[selected]);
         displayServer.accessibilityUpdateSetNumRange(id, 0.0, 100.0);
         displayServer.accessibilityUpdateSetNumStep(id, 10.0);

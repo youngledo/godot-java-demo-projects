@@ -51,7 +51,7 @@ public class CustomDrawingCanvas extends Control {
         drawLine(new Vector2(260, 70), new Vector2(520, 70), green, 8.0, true);
         drawDashedLine(new Vector2(260, 115), new Vector2(520, 115), blue, 6.0, 14.0, true, true);
         drawCircle(new Vector2(390, 190), 42.0, orange, false, 6.0, true);
-        drawArc(new Vector2(390, 320), 56.0, 0.0, Math.PI * 1.5, 48L, green, 6.0, true);
+        drawArc(new Vector2(390, 320), 56.0, 0.0, Math.PI * 1.5, 48, green, 6.0, true);
     }
 
     private void drawRectangles() {
@@ -76,9 +76,9 @@ public class CustomDrawingCanvas extends Control {
 
     private void drawTextSamples() {
         Font font = getThemeDefaultFont();
-        drawString(font, new Vector2(260, 100), "draw_string() from Java", 0, -1.0, 32L, new Color(0.95, 0.95, 0.95));
-        drawString(font, new Vector2(260, 160), "typed CanvasItem API", 0, -1.0, 24L, new Color(0.35, 1.0, 0.35));
-        drawString(font, new Vector2(260, 230), "你好，Godot Java", 0, -1.0, 28L, new Color(1.0, 0.75, 0.25));
+        drawString(font, new Vector2(260, 100), "draw_string() from Java", 0, -1.0, 32, new Color(0.95, 0.95, 0.95));
+        drawString(font, new Vector2(260, 160), "typed CanvasItem API", 0, -1.0, 24, new Color(0.35, 1.0, 0.35));
+        drawString(font, new Vector2(260, 230), "你好，Godot Java", 0, -1.0, 28, new Color(1.0, 0.75, 0.25));
     }
 
     private void drawAnimationSamples() {
@@ -86,7 +86,7 @@ public class CustomDrawingCanvas extends Control {
         double endAngle = angle + Math.PI * 1.4;
         Color color = Color.fromHsv((elapsed * 0.1) % 1.0, 0.8, 1.0);
 
-        drawArc(new Vector2(360, 165), 72.0, angle, endAngle, 64L, color, 10.0, true);
+        drawArc(new Vector2(360, 165), 72.0, angle, endAngle, 64, color, 10.0, true);
         drawCircle(new Vector2(360 + Math.cos(angle) * 100.0, 165 + Math.sin(angle) * 60.0), 18.0, color);
         drawAnimationSlice(elapsed % 2.0, 2.0, 0.35, 1.35);
         drawRect(new Rect2(260, 310, 220, 56), new Color(0.2, 0.55, 1.0), false, 4.0, true);
@@ -95,6 +95,6 @@ public class CustomDrawingCanvas extends Control {
     private void drawPlaceholder(String section) {
         Font font = getThemeDefaultFont();
         drawRect(new Rect2(260, 90, 320, 180), new Color(0.2, 0.2, 0.25, 0.7));
-        drawString(font, new Vector2(290, 175), section + " drawing API", 0, -1.0, 28L, new Color(0.8, 0.8, 0.85));
+        drawString(font, new Vector2(290, 175), section + " drawing API", 0, -1.0, 28, new Color(0.8, 0.8, 0.85));
     }
 }

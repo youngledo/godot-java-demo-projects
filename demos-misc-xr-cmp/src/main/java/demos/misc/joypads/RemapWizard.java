@@ -115,8 +115,8 @@ public class RemapWizard extends Node {
     @GodotMethod
     public void start(long idx) {
         joyIndex = (int) idx;
-        joyGuid = Input.singleton().getJoyGuid(idx);
-        joyName = Input.singleton().getJoyName(idx);
+        joyGuid = Input.singleton().getJoyGuid((int) idx);
+        joyName = Input.singleton().getJoyName((int) idx);
         if (joyGuid == null || joyGuid.isEmpty()) {
             System.err.println("Unable to find controller");
             return;
@@ -246,12 +246,16 @@ public class RemapWizard extends Node {
         long idx = baseMap.getOrDefault(key, 0L);
 
         if (joyButtons != null) {
-            for (Node child : joyButtons.getChildren()) {
+            org.godot.collection.GodotArray<Node> btnChildren = joyButtons.getChildren();
+            for (int i = 0; i < btnChildren.size(); i++) {
+                Node child = btnChildren.get(i);
                 if (child instanceof CanvasItem item) item.hide();
             }
         }
         if (joyAxes != null) {
-            for (Node child : joyAxes.getChildren()) {
+            org.godot.collection.GodotArray<Node> axesChildren = joyAxes.getChildren();
+            for (int i = 0; i < axesChildren.size(); i++) {
+                Node child = axesChildren.get(i);
                 if (child instanceof CanvasItem item) item.hide();
             }
         }

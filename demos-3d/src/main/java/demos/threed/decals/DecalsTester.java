@@ -131,7 +131,7 @@ public class DecalsTester extends WorldEnvironment {
 
     @GodotMethod
     public void OnDecalFilterModeItemSelected(long index) {
-        RenderingServer.singleton().decalsSetFilter((int) index);
+        RenderingServer.singleton().decalsSetFilter(RenderingServer.DecalFilter.fromValue((int) index));
     }
 
     private void placeDecal() {

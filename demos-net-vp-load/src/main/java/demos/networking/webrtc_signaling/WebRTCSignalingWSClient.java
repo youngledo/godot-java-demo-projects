@@ -61,7 +61,7 @@ public class WebRTCSignalingWSClient extends Node {
     private WebSocketPeer ws;
     long code = 1000;
     String reason = "Unknown";
-    private long oldState = 3L; // STATE_CLOSED
+    private WebSocketPeer.State oldState = WebSocketPeer.State.STATE_CLOSED;
 
     @Override
     public void _ready() {
@@ -82,19 +82,19 @@ public class WebRTCSignalingWSClient extends Node {
     @Override
     public void _process(double delta) {
         ws.poll();
-        int state = ws.getReadyState();
+        WebSocketPeer.State state = ws.getReadyState();
 
-        if (state != oldState && state == 1L && autojoin) { // STATE_OPEN
+        if (state != oldState && state == WebSocketPeer.State.STATE_OPEN && autojoin) {
             joinLobby(lobby);
         }
 
-        while (state == 1L && ws.getAvailablePacketCount() > 0) {
+        while (state == WebSocketPeer.State.STATE_OPEN && ws.getAvailablePacketCount() > 0) {
             if (!parseMsg() ) {
                 System.out.println("Error parsing message from server.");
             }
         }
 
-        if (state != oldState && state == 3L) { // STATE_CLOSED
+        if (state != oldState && state == WebSocketPeer.State.STATE_CLOSED) {
             code = ws.getCloseCode();
             reason = ws.getCloseReason();
             emitSignal("disconnected");

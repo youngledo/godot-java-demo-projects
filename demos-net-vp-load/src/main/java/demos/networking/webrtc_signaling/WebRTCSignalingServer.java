@@ -47,7 +47,7 @@ public class WebRTCSignalingServer extends Node {
         }
 
         boolean isWsOpen() {
-            return ws.getReadyState() == 1L;
+            return ws.getReadyState() == WebSocketPeer.State.STATE_OPEN;
         }
 
         void send(int type, int idVal, String data) {
@@ -158,8 +158,8 @@ public class WebRTCSignalingServer extends Node {
                     break;
                 }
             }
-            int state = p.ws.getReadyState();
-            if (state == 3L) {
+            WebSocketPeer.State state = p.ws.getReadyState();
+            if (state == WebSocketPeer.State.STATE_CLOSED) {
                 System.out.println("Peer " + p.id + " disconnected from lobby: '" + p.lobby + "'");
                 if (lobbies.containsKey(p.lobby) && lobbies.get(p.lobby).leave(p)) {
                     System.out.println("Deleted lobby " + p.lobby);

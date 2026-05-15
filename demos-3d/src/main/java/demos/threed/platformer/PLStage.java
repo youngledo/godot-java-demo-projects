@@ -20,7 +20,7 @@ public class PLStage extends Node3D {
         if (rs == null) return;
 
         if ("gl_compatibility".equals(rs.getCurrentRenderingMethod())) {
-            rs.directionalSoftShadowFilterSetQuality(3);
+            rs.directionalSoftShadowFilterSetQuality(RenderingServer.ShadowQuality.SHADOW_QUALITY_SOFT_MEDIUM);
 
             DirectionalLight3D light = getNodeAs("DirectionalLight3D", DirectionalLight3D.class);
             if (light != null && light.duplicate() instanceof DirectionalLight3D duplicated) {

@@ -59,7 +59,7 @@ public class PPPlayer extends RigidBody2D {
 
 		boolean foundFloor = false;
 		int contactCount = state.getContactCount();
-		for (long ci = 0; ci < contactCount; ci++) {
+		for (int ci = 0; ci < contactCount; ci++) {
 			Vector2 normal = state.getContactLocalNormal(ci);
 			if (normal != null && normal.dot(new Vector2(0, -1)) > 0.6) {
 				foundFloor = true;

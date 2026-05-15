@@ -77,18 +77,18 @@ public class WindowControl extends Control {
         DisplayServer displayServer = DisplayServer.singleton();
         Input input = Input.singleton();
 
-        int windowMode = displayServer.windowGetMode();
+        DisplayServer.WindowMode windowMode = displayServer.windowGetMode();
         String modeText = "Mode: ";
-        if (windowMode == 3) {
+        if (windowMode == DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN) {
             modeText += "Fullscreen\n";
         } else {
             modeText += "Windowed\n";
         }
 
-        boolean resizeDisabled = displayServer.windowGetFlag(0);
+        boolean resizeDisabled = displayServer.windowGetFlag(DisplayServer.WindowFlags.WINDOW_FLAG_RESIZE_DISABLED);
         if (resizeDisabled) modeText += "Fixed Size\n";
-        if (windowMode == 2) modeText += "Minimized\n";
-        if (windowMode == 3) modeText += "Maximized\n";
+        if (windowMode == DisplayServer.WindowMode.WINDOW_MODE_MINIMIZED) modeText += "Minimized\n";
+        if (windowMode == DisplayServer.WindowMode.WINDOW_MODE_MAXIMIZED) modeText += "Maximized\n";
 
         long mouseMode = input.getMouseMode();
         CanvasItem keyInfoLabel = getNodeAs("Buttons/Label_MouseModeCaptured_KeyInfo", CanvasItem.class);
@@ -131,10 +131,10 @@ public class WindowControl extends Control {
             setNodeVisible("Labels/Label_Screen1_RefreshRate", false);
         }
 
-        setButtonPressed("Buttons/Button_Fullscreen", windowMode == 3);
+        setButtonPressed("Buttons/Button_Fullscreen", windowMode == DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN);
         setButtonPressed("Buttons/Button_FixedSize", resizeDisabled);
-        setButtonPressed("Buttons/Button_Minimized", windowMode == 2);
-        setButtonPressed("Buttons/Button_Maximized", windowMode == 3);
+        setButtonPressed("Buttons/Button_Minimized", windowMode == DisplayServer.WindowMode.WINDOW_MODE_MINIMIZED);
+        setButtonPressed("Buttons/Button_Maximized", windowMode == DisplayServer.WindowMode.WINDOW_MODE_MAXIMIZED);
         setButtonPressed("Buttons/Button_MouseModeVisible", mouseMode == 0);
         setButtonPressed("Buttons/Button_MouseModeHidden", mouseMode == 1);
         setButtonPressed("Buttons/Button_MouseModeCaptured", mouseMode == 2);
@@ -242,36 +242,36 @@ public class WindowControl extends Control {
     @GodotMethod
     public void OnButtonFullscreenPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (displayServer.windowGetMode() == 3) {
-            displayServer.windowSetMode(0);
+        if (displayServer.windowGetMode() == DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN) {
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_WINDOWED);
         } else {
-            displayServer.windowSetMode(3);
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN);
         }
     }
 
     @GodotMethod
     public void OnButtonFixedSizePressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        displayServer.windowSetFlag(0, !displayServer.windowGetFlag(0));
+        displayServer.windowSetFlag(DisplayServer.WindowFlags.WINDOW_FLAG_RESIZE_DISABLED, !displayServer.windowGetFlag(DisplayServer.WindowFlags.WINDOW_FLAG_RESIZE_DISABLED));
     }
 
     @GodotMethod
     public void OnButtonMinimizedPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (displayServer.windowGetMode() == 2) {
-            displayServer.windowSetMode(0);
+        if (displayServer.windowGetMode() == DisplayServer.WindowMode.WINDOW_MODE_MINIMIZED) {
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_WINDOWED);
         } else {
-            displayServer.windowSetMode(2);
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_MINIMIZED);
         }
     }
 
     @GodotMethod
     public void OnButtonMaximizedPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (displayServer.windowGetMode() == 3) {
-            displayServer.windowSetMode(2);
+        if (displayServer.windowGetMode() == DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN) {
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_MINIMIZED);
         } else {
-            displayServer.windowSetMode(3);
+            displayServer.windowSetMode(DisplayServer.WindowMode.WINDOW_MODE_FULLSCREEN);
         }
     }
 

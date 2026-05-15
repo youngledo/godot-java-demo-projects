@@ -1,6 +1,7 @@
 package demos.xr.openxr_hand_tracking_demo.pickup;
 
 import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
 import org.godot.node.Area3D;
 import org.godot.node.CollisionShape3D;
 import org.godot.node.Node;
@@ -50,10 +51,11 @@ public class PickupHandler extends Area3D {
         PickupAbleBody newClosestBody = null;
         double closestDistance = 1000000.0;
 
-        Object[] bodies = getOverlappingBodies();
+        GodotArray<org.godot.node.Node3D> bodies = getOverlappingBodies();
         if (bodies != null) {
             org.godot.math.Vector3 globalPos = getGlobalPosition();
-            for (Object bodyObj : bodies) {
+            for (int i = 0; i < bodies.size(); i++) {
+                Object bodyObj = bodies.get(i);
                 if (bodyObj instanceof PickupAbleBody body && !body.isPickedUp()) {
                     org.godot.math.Vector3 bodyPos = body.getGlobalPosition();
                     double distSq = bodyPos.distanceSquaredTo(globalPos);

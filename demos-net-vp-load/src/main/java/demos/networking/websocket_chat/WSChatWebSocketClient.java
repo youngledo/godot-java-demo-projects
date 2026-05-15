@@ -1,6 +1,5 @@
 package demos.networking.websocket_chat;
 
-import org.godot.Godot;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Signal;
@@ -17,7 +16,7 @@ public class WSChatWebSocketClient extends Node {
     public String[] supportedProtocols = new String[0];
 
     private WebSocketPeer socket;
-    private long lastState = 3L; // STATE_CLOSED
+    private WebSocketPeer.State lastState = WebSocketPeer.State.STATE_CLOSED;
 
     @Signal
     public void connectedToServer() {}
@@ -78,23 +77,23 @@ public class WSChatWebSocketClient extends Node {
 
     @Override
     public void _process(double delta) {
-        int currentState = socket.getReadyState();
-        if (currentState != 3L) { // Not STATE_CLOSED
+        WebSocketPeer.State currentState = socket.getReadyState();
+        if (currentState != WebSocketPeer.State.STATE_CLOSED) {
             socket.poll();
         }
 
-        int state = socket.getReadyState();
+        WebSocketPeer.State state = socket.getReadyState();
 
         if (lastState != state) {
             lastState = state;
-            if (state == 1L) { // STATE_OPEN
+            if (state == WebSocketPeer.State.STATE_OPEN) {
                 emitSignal("connected_to_server");
-            } else if (state == 3L) { // STATE_CLOSED
+            } else if (state == WebSocketPeer.State.STATE_CLOSED) {
                 emitSignal("connection_closed");
             }
         }
 
-        while (socket.getReadyState() == 1L && socket.getAvailablePacketCount() > 0) {
+        while (socket.getReadyState() == WebSocketPeer.State.STATE_OPEN && socket.getAvailablePacketCount() > 0) {
             Object msg = getMessage();
             emitSignal("message_received", msg);
         }

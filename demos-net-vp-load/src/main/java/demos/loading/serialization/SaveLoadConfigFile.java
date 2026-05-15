@@ -38,10 +38,11 @@ public class SaveLoadConfigFile extends Button {
         }
 
         SceneTree tree = getTree();
-        Node[] enemies = tree.getNodesInGroup("enemy");
+        GodotArray<Node> enemies = tree.getNodesInGroup("enemy");
 
         GodotArray enemyArray = new GodotArray();
-        for (Node enemyNode : enemies) {
+        for (int i = 0; i < enemies.size(); i++) {
+            Node enemyNode = enemies.get(i);
             if (enemyNode instanceof Node2D enemy) {
                 GodotDictionary dict = new GodotDictionary();
                 dict.put("position", enemy.getPosition());

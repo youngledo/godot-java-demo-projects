@@ -159,7 +159,7 @@ public class RuntimeSaveLoad extends Control {
     @GodotMethod
     public void _onExportFileDialogFileSelected(String path) {
         if (plainTextViewer.isVisible()) {
-            FileAccess fa = FileAccess.open(path, 2);
+            FileAccess fa = FileAccess.open(path, FileAccess.ModeFlags.WRITE);
             if (fa != null) {
                 fa.storeString(plainTextViewerLabel.getText());
                 fa.close();

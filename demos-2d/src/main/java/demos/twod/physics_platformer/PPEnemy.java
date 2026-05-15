@@ -41,7 +41,7 @@ public class PPEnemy extends RigidBody2D {
 			double wallSide = 0;
 			int contactCount = bodyState.getContactCount();
 
-			for (long i = 0; i < contactCount; i++) {
+			for (int i = 0; i < contactCount; i++) {
 				Object collider = bodyState.getContactColliderObject(i);
 				Vector2 collisionNormal = bodyState.getContactLocalNormal(i);
 

@@ -46,8 +46,8 @@ public class WebRTCMinimalChat extends Node {
     @Override
     public void _process(double delta) {
         peer.poll();
-        int state = channel.getReadyState();
-        if (state == 1L) { // STATE_OPEN
+        WebRTCDataChannel.ChannelState state = channel.getReadyState();
+        if (state == WebRTCDataChannel.ChannelState.STATE_OPEN) {
             while (channel.getAvailablePacketCount() > 0) {
                 byte[] pkt = channel.getPacket();
                 System.out.println(getPath().toString() + " received: " + new String(pkt));

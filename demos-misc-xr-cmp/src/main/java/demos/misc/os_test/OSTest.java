@@ -7,9 +7,8 @@ import org.godot.node.Panel;
 import org.godot.node.RichTextLabel;
 import org.godot.singleton.AudioServer;
 import org.godot.singleton.DisplayServer;
-import org.godot.singleton.Engine;
 import org.godot.singleton.OS;
-import org.godot.singleton.RenderingServer;
+import org.godot.singleton.Engine;
 import org.godot.singleton.Time;
 
 @GodotClass(name = "OSTest", parent = "Panel")
@@ -32,7 +31,7 @@ public class OSTest extends Panel {
         DisplayServer displayServer = DisplayServer.singleton();
         Engine engine = Engine.singleton();
         OS os = OS.singleton();
-        RenderingServer renderingServer = RenderingServer.singleton();
+        org.godot.singleton.RenderingServer renderingServer = org.godot.singleton.RenderingServer.singleton();
 
         addHeader("Audio");
         addLine("Mix rate", audioServer.getMixRate() + " Hz");
@@ -61,10 +60,11 @@ public class OSTest extends Panel {
         double refreshRate = displayServer.screenGetRefreshRate();
         addLine("Startup screen refresh rate", refreshRate > 0.0 ? String.format("%f Hz", refreshRate) : "");
         addLine("Usable (safe) area rectangle", displayServer.getDisplaySafeArea());
-        int orientation = displayServer.screenGetOrientation();
+        DisplayServer.ScreenOrientation orientation = displayServer.screenGetOrientation();
+        int orientationIdx = orientation != null ? orientation.value : 0;
         String[] orientations = { "Landscape", "Portrait", "Landscape (reverse)", "Portrait (reverse)",
                 "Landscape (defined by sensor)", "Portrait (defined by sensor)", "Defined by sensor" };
-        addLine("Screen orientation", orientations[Math.min(orientation, orientations.length - 1)]);
+        addLine("Screen orientation", orientations[Math.min(orientationIdx, orientations.length - 1)]);
 
         addHeader("Engine");
         Object versionInfo = engine.getVersionInfo();
@@ -94,7 +94,7 @@ public class OSTest extends Panel {
 
         addHeader("Input");
         addLine("Device has touch screen", displayServer.isTouchscreenAvailable());
-        boolean hasVirtualKeyboard = displayServer.hasFeature(11);
+        boolean hasVirtualKeyboard = displayServer.hasFeature(DisplayServer.Feature.FEATURE_VIRTUAL_KEYBOARD);
         addLine("Device has virtual keyboard", hasVirtualKeyboard);
         if (hasVirtualKeyboard) {
             addLine("Virtual keyboard height", displayServer.virtualKeyboardGetHeight());
@@ -133,23 +133,24 @@ public class OSTest extends Panel {
         addLine("Cache", os.getCacheDir());
 
         addHeader("System directories");
-        addLine("Desktop", os.getSystemDir(0));
-        addLine("DCIM", os.getSystemDir(1));
-        addLine("Documents", os.getSystemDir(2));
-        addLine("Downloads", os.getSystemDir(3));
-        addLine("Movies", os.getSystemDir(4));
-        addLine("Music", os.getSystemDir(5));
-        addLine("Pictures", os.getSystemDir(6));
-        addLine("Ringtones", os.getSystemDir(7));
+        addLine("Desktop", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_DESKTOP));
+        addLine("DCIM", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_DCIM));
+        addLine("Documents", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_DOCUMENTS));
+        addLine("Downloads", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_DOWNLOADS));
+        addLine("Movies", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_MOVIES));
+        addLine("Music", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_MUSIC));
+        addLine("Pictures", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_PICTURES));
+        addLine("Ringtones", os.getSystemDir(OS.SystemDir.SYSTEM_DIR_RINGTONES));
 
         addHeader("Video");
         addLine("Adapter name", renderingServer.getVideoAdapterName());
         addLine("Adapter vendor", renderingServer.getVideoAdapterVendor());
         String renderMethod = renderingServer.getCurrentRenderingMethod();
         if (!"gl_compatibility".equals(renderMethod)) {
-            int adapterType = renderingServer.getVideoAdapterType();
+            org.godot.node.RenderingDevice.DeviceType adapterType = renderingServer.getVideoAdapterType();
+            int adapterTypeIdx = adapterType != null ? adapterType.value : 0;
             String[] adapterTypes = { "Other (Unknown)", "Integrated", "Discrete", "Virtual", "CPU" };
-            addLine("Adapter type", adapterTypes[Math.min(adapterType, adapterTypes.length - 1)]);
+            addLine("Adapter type", adapterTypes[Math.min(adapterTypeIdx, adapterTypes.length - 1)]);
         }
         addLine("Adapter graphics API version", renderingServer.getVideoAdapterApiVersion());
 

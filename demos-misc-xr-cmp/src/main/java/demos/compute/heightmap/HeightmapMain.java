@@ -17,6 +17,7 @@ import org.godot.node.RDShaderSPIRV;
 import org.godot.node.RDTextureFormat;
 import org.godot.node.RDTextureView;
 import org.godot.node.RDUniform;
+import org.godot.collection.GodotArray;
 import org.godot.node.RandomNumberGenerator;
 import org.godot.node.RenderingDevice;
 import org.godot.node.Resource;
@@ -128,7 +129,7 @@ public class HeightmapMain extends Control {
 
         Image clone = Image.create();
         clone.copyFrom(heightmap);
-        clone.resize(512, 512, 0);
+        clone.resize(512, 512, Image.Interpolation.INTERPOLATE_NEAREST);
         ImageTexture cloneTex = ImageTexture.createFromImage(clone);
         if (heightmapRect != null) {
             heightmapRect.setTexture(cloneTex);
@@ -173,14 +174,19 @@ public class HeightmapMain extends Control {
         byte[] gradientData = gradientImage.getImageData();
 
         RDTextureView gradientView = RDTextureView.create();
-        gradientRid = rd.textureCreate(gradientFormat, gradientView, new Object[] { gradientData });
+        GodotArray<Object> gradientDataArray = new GodotArray<>();
+        gradientDataArray.add(gradientData);
+        gradientRid = rd.textureCreate(gradientFormat, gradientView, gradientDataArray);
 
         RDUniform gradientUniform = RDUniform.create();
         gradientUniform.setUniformType(9);
         gradientUniform.setBinding(1);
         gradientUniform.addId(gradientRid);
 
-        uniformSet = rd.uniformSetCreate(new RDUniform[] { heightmapUniform, gradientUniform }, shaderRid, 0);
+        GodotArray<RDUniform> uniformArray = new GodotArray<>();
+        uniformArray.add(heightmapUniform);
+        uniformArray.add(gradientUniform);
+        uniformSet = rd.uniformSetCreate(uniformArray, shaderRid, 0);
         pipeline = rd.computePipelineCreate(shaderRid);
     }
 
@@ -209,7 +215,7 @@ public class HeightmapMain extends Control {
         rd.sync();
 
         byte[] outputBytes = rd.textureGetData(heightmapRid, 0);
-        Image islandImg = Image.createFromData(po2Dimensions, po2Dimensions, false, 4, outputBytes);
+        Image islandImg = Image.createFromData(po2Dimensions, po2Dimensions, false, Image.Format.FORMAT_RGBA8, outputBytes);
 
         displayIsland(islandImg);
     }
@@ -243,7 +249,7 @@ public class HeightmapMain extends Control {
     }
 
     private long loadShader(RenderingDevice renderingDevice, String path) {
-        Resource shaderFileData = ResourceLoader.singleton().load(path, "", 1);
+        Resource shaderFileData = ResourceLoader.singleton().load(path, "", ResourceLoader.CacheMode.CACHE_MODE_REUSE);
         if (!(shaderFileData instanceof RDShaderFile shaderFileResource)) return 0;
         RDShaderSPIRV shaderSpirv = shaderFileResource.getSpirv();
         return renderingDevice.shaderCreateFromSpirv(shaderSpirv);

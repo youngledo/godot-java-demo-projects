@@ -2,6 +2,7 @@ package demos.compute.texture;
 
 import java.util.concurrent.ThreadLocalRandom;
 import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
 import org.godot.annotation.GodotMethod;
 import org.godot.collection.GodotDictionary;
 import org.godot.core.Callable;
@@ -227,7 +228,7 @@ public class WaterPlane extends Area3D {
 
         RDTextureView textureView = RDTextureView.create();
         for (int i = 0; i < 3; i++) {
-            textureRds[i] = rd.textureCreate(tf, textureView, new Object[0]);
+            textureRds[i] = rd.textureCreate(tf, textureView, new GodotArray<>());
             rd.textureClear(textureRds[i], new Color(0, 0, 0, 0), 0, 1, 0, 1);
         }
 
@@ -247,7 +248,9 @@ public class WaterPlane extends Area3D {
         uniform.setUniformType(9);
         uniform.setBinding(0);
         uniform.addId(textureRd);
-        return rd.uniformSetCreate(new RDUniform[] { uniform }, shader, uniformSet);
+        GodotArray<RDUniform> uniformArray = new GodotArray<>();
+        uniformArray.add(uniform);
+        return rd.uniformSetCreate(uniformArray, shader, uniformSet);
     }
 
     @GodotMethod

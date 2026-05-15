@@ -58,7 +58,7 @@ public class PianoKey extends Control {
 
         AudioStreamPlayer audio = AudioStreamPlayer.create();
         addChild(audio);
-        if (ResourceLoader.singleton().load("res://piano_keys/A440.wav", "", 1) instanceof AudioStream sample) {
+        if (ResourceLoader.singleton().load("res://piano_keys/A440.wav", "", ResourceLoader.CacheMode.CACHE_MODE_REUSE) instanceof AudioStream sample) {
             audio.setStream(sample);
         }
         audio.setPitchScale(pitchScale);

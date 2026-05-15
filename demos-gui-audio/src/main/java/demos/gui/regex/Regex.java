@@ -41,18 +41,20 @@ public class Regex extends VBoxContainer {
         Node list = getNode("ScrollContainer/List");
         if (list == null) return;
 
-        for (Node child : list.getChildren()) {
-            child.queueFree();
+        GodotArray<Node> children = list.getChildren();
+        for (int ci = 0; ci < children.size(); ci++) {
+            children.get(ci).queueFree();
         }
 
         Control hbox = getNodeAs("HBoxContainer", Control.class);
         if (regex != null && regex.isValid()) {
             if (hbox != null) hbox.setModulate(new Color(1, 1, 1));
 
-            RegExMatch[] matches = regex.searchAll(getText("HBoxContainer2/Text"));
-            if (matches.length >= 1) {
+            GodotArray<RegExMatch> matches = regex.searchAll(getText("HBoxContainer2/Text"));
+            if (matches.size() >= 1) {
                 int matchNumber = 0;
-                for (RegExMatch match : matches) {
+                for (int mi = 0; mi < matches.size(); mi++) {
+                    RegExMatch match = matches.get(mi);
                     matchNumber++;
                     Label matchLabel = Label.create();
                     matchLabel.setText("RegEx match #" + matchNumber + ":");

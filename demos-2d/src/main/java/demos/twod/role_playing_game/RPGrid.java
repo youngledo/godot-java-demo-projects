@@ -1,6 +1,7 @@
 package demos.twod.role_playing_game;
 
 import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
 import org.godot.math.Vector2;
 import org.godot.math.Vector2i;
 import org.godot.node.Node;
@@ -19,9 +20,10 @@ public class RPGrid extends TileMapLayer {
 
         dialogueUI = (RPDialogueUI) getProperty("dialogue_ui");
 
-        Node[] children = getChildren();
+        GodotArray<Node> children = getChildren();
         if (children != null) {
-            for (Node child : children) {
+            for (int ci = 0; ci < children.size(); ci++) {
+                Node child = children.get(ci);
                 if (child instanceof RPPawn pawn) {
                     setCell(localToMap(pawn.getPosition()), pawn.getType(), new Vector2i(0, 0));
                 }
@@ -56,10 +58,11 @@ public class RPGrid extends TileMapLayer {
     }
 
     private RPPawn getCellPawn(Vector2i cell, int type) {
-        Node[] children = getChildren();
+        GodotArray<Node> children = getChildren();
         if (children == null) return null;
 
-        for (Node node : children) {
+        for (int ci = 0; ci < children.size(); ci++) {
+            Node node = children.get(ci);
             if (!(node instanceof RPPawn pawn)) continue;
             if (pawn.getType() != type) continue;
 

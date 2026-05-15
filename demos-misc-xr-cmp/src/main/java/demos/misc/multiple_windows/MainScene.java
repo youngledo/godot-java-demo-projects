@@ -62,7 +62,9 @@ public class MainScene extends Control {
     @GodotMethod
     public void OnEmbedSubwindowsToggled(boolean toggledOn) {
         List<Window> hiddenWindows = new ArrayList<>();
-        for (Node child : getChildren()) {
+        var children = getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            Node child = children.get(i);
             if (child instanceof Window childWindow && childWindow.isVisible()) {
                 childWindow.hide();
                 hiddenWindows.add(childWindow);

@@ -7,10 +7,10 @@ import org.godot.node.Node;
 @GodotClass(name = "PFLevel", parent = "Node2D")
 public class PFLevel extends Node2D {
 
-	private static final long LIMIT_LEFT = -315;
-	private static final long LIMIT_TOP = -250;
-	private static final long LIMIT_RIGHT = 955;
-	private static final long LIMIT_BOTTOM = 690;
+	private static final int LIMIT_LEFT = -315;
+	private static final int LIMIT_TOP = -250;
+	private static final int LIMIT_RIGHT = 955;
+	private static final int LIMIT_BOTTOM = 690;
 
 	private boolean initialized = false;
 

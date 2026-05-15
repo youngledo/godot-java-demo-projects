@@ -99,7 +99,7 @@ public class Piano extends Control {
         Node container = isNoteIndexSharp(noteIndex) ? blackKeys : whiteKeys;
 
         PianoKey pianoKey = null;
-        if (ResourceLoader.singleton().load(scenePath, "", 1) instanceof PackedScene packedScene
+        if (ResourceLoader.singleton().load(scenePath, "", ResourceLoader.CacheMode.CACHE_MODE_REUSE) instanceof PackedScene packedScene
                 && packedScene.instantiate() instanceof PianoKey key) {
             pianoKey = key;
             if (container != null) container.addChild(pianoKey);

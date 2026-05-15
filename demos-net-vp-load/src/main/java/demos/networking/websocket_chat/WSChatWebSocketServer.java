@@ -122,8 +122,8 @@ public class WSChatWebSocketServer extends Node {
             WebSocketPeer p = entry.getValue();
             p.poll();
 
-            int state = p.getReadyState();
-            if (state != 1L) { // Not STATE_OPEN
+            WebSocketPeer.State state = p.getReadyState();
+            if (state != WebSocketPeer.State.STATE_OPEN) {
                 emitSignal("client_disconnected", entry.getKey());
                 peersToRemove.add(entry.getKey());
                 continue;
@@ -148,19 +148,19 @@ public class WSChatWebSocketServer extends Node {
     private boolean connectPending(PendingPeer p) {
         if (p.ws != null) {
             p.ws.poll();
-            int state = p.ws.getReadyState();
-            if (state == 1L) { // STATE_OPEN
+            WebSocketPeer.State state = p.ws.getReadyState();
+            if (state == WebSocketPeer.State.STATE_OPEN) {
                 int id = (int) (Math.random() * (Integer.MAX_VALUE - 2)) + 2;
                 peers.put(id, p.ws);
                 emitSignal("client_connected", id);
                 return true;
-            } else if (state != 0L) { // Not STATE_CONNECTING
+            } else if (state != WebSocketPeer.State.STATE_CONNECTING) {
                 return true;
             }
             return false;
         } else {
-            int status = p.tcp.getStatus();
-            if (status != 2L) { // Not STATUS_CONNECTED
+            StreamPeerSocket.Status status = p.tcp.getStatus();
+            if (status != StreamPeerSocket.Status.STATUS_CONNECTED) {
                 return true;
             }
             p.ws = createPeer();

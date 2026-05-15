@@ -48,31 +48,31 @@ public class PongGame extends Node2D {
 		ColorRect bg = ColorRect.create();
 		bg.setColor(new Color(0.141176, 0.152941, 0.164706));
 		bg.setSize(new Vector2(WIDTH, HEIGHT));
-		addChild(bg, false, 0);
+		addChild(bg);
 
 		// Separator
 		ColorRect sep = ColorRect.create();
 		sep.setColor(new Color(0.3, 0.3, 0.3));
 		sep.setSize(new Vector2(2, HEIGHT));
 		sep.setPosition(new Vector2(WIDTH / 2 - 1, 0));
-		addChild(sep, false, 0);
+		addChild(sep);
 
 		// Ball
 		ball = ColorRect.create();
 		ball.setColor(new Color(1, 1, 1));
 		ball.setSize(new Vector2(BALL_SIZE, BALL_SIZE));
-		addChild(ball, false, 0);
+		addChild(ball);
 
 		// Paddles
 		leftPaddle = ColorRect.create();
 		leftPaddle.setColor(new Color(0, 1, 1));
 		leftPaddle.setSize(new Vector2(PADDLE_W, PADDLE_H));
-		addChild(leftPaddle, false, 0);
+		addChild(leftPaddle);
 
 		rightPaddle = ColorRect.create();
 		rightPaddle.setColor(new Color(1, 0, 1));
 		rightPaddle.setSize(new Vector2(PADDLE_W, PADDLE_H));
-		addChild(rightPaddle, false, 0);
+		addChild(rightPaddle);
 
 		resetBall(-1);
 		leftY = HEIGHT / 2;

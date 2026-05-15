@@ -72,12 +72,12 @@ public class Actions extends Node {
     @GodotMethod
     public void OnChangeWindowIconPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(3)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_ICON)) {
             OS.singleton().alert("Changing the window icon is not supported by the current display server ("
                     + displayServer.getName() + ").");
             return;
         }
-        Image image = Image.create(128, 128, false, 3);
+        Image image = Image.create(128, 128, false, Image.Format.FORMAT_RGBA8);
         image.fill(new Color(1, 0.6, 0.3));
         displayServer.setIcon(image);
     }
@@ -133,7 +133,7 @@ public class Actions extends Node {
     @GodotMethod
     public void OnAddGlobalMenuItemsPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(7)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_GLOBAL_MENU)) {
             OS.singleton().alert("Global menus are not supported by the current display server ("
                     + displayServer.getName() + ").");
             return;
@@ -159,7 +159,7 @@ public class Actions extends Node {
     @GodotMethod
     public void OnRemoveGlobalMenuItemPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(7)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_GLOBAL_MENU)) {
             OS.singleton().alert("Global menus are not supported by the current display server ("
                     + displayServer.getName() + ").");
             return;
@@ -177,7 +177,7 @@ public class Actions extends Node {
     @GodotMethod
     public void OnGetClipboardPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(1)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_CLIPBOARD)) {
             OS.singleton().alert("Clipboard I/O is not supported by the current display server ("
                     + displayServer.getName() + ").");
             return;
@@ -188,7 +188,7 @@ public class Actions extends Node {
     @GodotMethod
     public void OnSetClipboardPressed() {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(1)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_CLIPBOARD)) {
             OS.singleton().alert("Clipboard I/O is not supported by the current display server ("
                     + displayServer.getName() + ").");
             return;

@@ -5,6 +5,7 @@ import java.util.List;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.math.Rect2i;
 import org.godot.math.Vector2;
 import org.godot.math.Vector2i;
@@ -53,7 +54,7 @@ public class SpritePolygonPassthrough extends Node {
             (int) Math.round(cellSizeY));
 
         bitmap.growMask(1, cellRect);
-        Object[] polygonsArray = bitmap.opaqueToPolygons(cellRect, 1.0);
+        GodotArray polygonsArray = bitmap.opaqueToPolygons(cellRect, 1.0);
 
         Vector2 spritePos = sprite.getPosition();
         Vector2 spriteOffset = sprite.getOffset();
@@ -70,7 +71,8 @@ public class SpritePolygonPassthrough extends Node {
         double[] firstPoint = null;
 
         if (polygonsArray != null) {
-            for (Object polyObj : polygonsArray) {
+            for (int pi = 0; pi < polygonsArray.size(); pi++) {
+                Object polyObj = polygonsArray.get(pi);
                 if (polyObj instanceof Vector2[] polyArr) {
                     for (Vector2 point : polyArr) {
                         double[] polygonPoint = new double[] {point.x + offset.x, point.y + offset.y};

@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.godot.annotation.GodotClass;
 import org.godot.math.Vector3;
+import org.godot.collection.GodotArray;
 import org.godot.node.Node;
 import org.godot.node.StaticBody3D;
 
@@ -173,9 +174,9 @@ public class VXVoxelWorld extends Node {
         chunks.clear();
         setProcess(false);
 
-        Node[] children = getChildren(false);
-        for (Node child : children) {
-            child.queueFree();
+        GodotArray<Node> children = getChildren(false);
+        for (int i = 0; i < children.size(); i++) {
+            children.get(i).queueFree();
         }
     }
 

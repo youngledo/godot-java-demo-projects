@@ -32,15 +32,15 @@ public class MWPopupMenu extends PopupMenu {
 
     @GodotMethod
     public void OnIndexPressed(long index) {
-        boolean checkable = isItemCheckable(index);
+        boolean checkable = isItemCheckable((int) index);
         if (checkable) {
-            boolean checked = isItemChecked(index);
-            setItemChecked(index, !checked);
+            boolean checked = isItemChecked((int) index);
+            setItemChecked((int) index, !checked);
         }
 
         if (index == 2) setItemChecked(3, false);
         if (index == 3) setItemChecked(2, false);
 
-        emitSignal("option_pressed", getItemText(index));
+        emitSignal("option_pressed", getItemText((int) index));
     }
 }

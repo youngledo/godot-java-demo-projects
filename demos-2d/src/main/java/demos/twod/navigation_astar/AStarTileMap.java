@@ -2,6 +2,7 @@ package demos.twod.navigation_astar;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.math.Vector2;
 import org.godot.math.Vector2i;
 import org.godot.node.TileMapLayer;
@@ -26,9 +27,10 @@ public class AStarTileMap extends TileMapLayer {
 			astar.setDiagonalMode(1);
 			astar.update();
 
-			Vector2i[] usedCells = getUsedCells();
+			GodotArray<Vector2i> usedCells = getUsedCells();
 			if (usedCells != null) {
-				for (Vector2i cell : usedCells) {
+				for (int ci = 0; ci < usedCells.size(); ci++) {
+					Vector2i cell = usedCells.get(ci);
 					astar.setPointSolid(cell);
 				}
 			}

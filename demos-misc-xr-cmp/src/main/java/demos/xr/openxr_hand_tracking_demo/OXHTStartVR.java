@@ -33,7 +33,7 @@ public class OXHTStartVR extends Node3D {
             Viewport vp = getViewport();
 
             vp.setUseXr(true);
-            DisplayServer.singleton().windowSetVsyncMode(1);
+            DisplayServer.singleton().windowSetVsyncMode(DisplayServer.VSyncMode.VSYNC_ENABLED);
 
             if (RenderingServer.singleton().getRenderingDevice() != null) {
                 vp.setVrsMode(2);

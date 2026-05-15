@@ -112,7 +112,7 @@ public class Bidi extends Control {
         Label valueLabel = getNodeAs("TabContainer/Variable fonts/Variables/Size/Value", Label.class);
         Control fontPreview = getNodeAs("TabContainer/Variable fonts/VariableFontPreview", Control.class);
         if (valueLabel != null) valueLabel.setText(String.valueOf((int) value));
-        if (fontPreview != null) fontPreview.addThemeFontSizeOverride("font_size", (long) value);
+        if (fontPreview != null) fontPreview.addThemeFontSizeOverride("font_size", (int) value);
     }
 
     @GodotMethod

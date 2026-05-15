@@ -127,10 +127,11 @@ public class LightsTester extends WorldEnvironment {
 	public void onAnimateLightsToggled(boolean buttonPressed) {
 		org.godot.node.SceneTree tree = getTree();
 		if (tree == null) return;
-		Object[] nodes = (Object[]) tree.getNodesInGroup("animatable");
+		org.godot.collection.GodotArray<org.godot.node.Node> nodes = tree.getNodesInGroup("animatable");
 		if (nodes != null) {
-			for (Object node : nodes) {
-				if (node instanceof org.godot.node.Node animatable) animatable.setProcess(buttonPressed);
+			for (int i = 0; i < nodes.size(); i++) {
+				org.godot.node.Node animatable = nodes.get(i);
+				if (animatable != null) animatable.setProcess(buttonPressed);
 			}
 		}
 	}

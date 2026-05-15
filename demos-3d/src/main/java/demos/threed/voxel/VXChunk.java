@@ -90,7 +90,7 @@ public class VXChunk {
         if (cd.data.isEmpty()) return;
 
         SurfaceTool surfaceTool = SurfaceTool.create();
-        surfaceTool.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES.value);
+        surfaceTool.begin(Mesh.PrimitiveType.PRIMITIVE_TRIANGLES);
 
         for (Map.Entry<String, Integer> entry : cd.data.entrySet()) {
             int[] blockPos = parseBlockKey(entry.getKey());
@@ -101,7 +101,7 @@ public class VXChunk {
 
         surfaceTool.generateTangents();
         surfaceTool.index();
-        ArrayMesh arrayMesh = surfaceTool.commit(null, 0);
+        ArrayMesh arrayMesh = surfaceTool.commit(null, java.math.BigInteger.ZERO);
 
         MeshInstance3D mi = MeshInstance3D.create();
         mi.setProperty("mesh", arrayMesh);
@@ -223,8 +223,9 @@ public class VXChunk {
     public static void regenerate(VXVoxelWorld voxelWorld, ChunkData cd) {
         voxelWorld.removeChild(cd.node);
 
-        Node[] children = cd.node.getChildren(false);
-        for (Node child : children) {
+        org.godot.collection.GodotArray<Node> children = cd.node.getChildren(false);
+        for (int i = 0; i < children.size(); i++) {
+            Node child = children.get(i);
             cd.node.removeChild(child);
             child.queueFree();
         }

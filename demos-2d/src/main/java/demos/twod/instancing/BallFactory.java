@@ -24,7 +24,7 @@ public class BallFactory extends Node2D {
 		}
 		if (ballScene.instantiate() instanceof Node2D instance) {
 			instance.setGlobalPosition(spawnPos);
-			addChild(instance, false, 0);
+			addChild(instance);
 		}
 	}
 }

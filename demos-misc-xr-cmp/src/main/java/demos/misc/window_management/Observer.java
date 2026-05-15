@@ -102,7 +102,7 @@ public class Observer extends CharacterBody3D {
     @GodotMethod
     public void OnTransparentCheckButtonToggled(boolean buttonPressed) {
         DisplayServer displayServer = DisplayServer.singleton();
-        if (!displayServer.hasFeature(5)) {
+        if (!displayServer.hasFeature(DisplayServer.Feature.FEATURE_WINDOW_TRANSPARENCY)) {
             OS.singleton().alert("Window transparency is not supported by the current display server ("
                 + displayServer.getName() + ").");
             return;
@@ -112,6 +112,6 @@ public class Observer extends CharacterBody3D {
         if (viewport != null) {
             viewport.setTransparentBg(buttonPressed);
         }
-        displayServer.windowSetFlag(3, buttonPressed);
+        displayServer.windowSetFlag(DisplayServer.WindowFlags.WINDOW_FLAG_TRANSPARENT, buttonPressed);
     }
 }

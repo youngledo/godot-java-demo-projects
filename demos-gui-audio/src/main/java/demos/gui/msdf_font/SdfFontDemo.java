@@ -42,7 +42,7 @@ public class SdfFontDemo extends Control {
         Label fontLabel = getNodeAs("CenterContainer/Base/FontLabel", Label.class);
         Label valueLabel = getNodeAs("OutlineSize/Value", Label.class);
         if (fontLabel != null) {
-            fontLabel.addThemeConstantOverride("outline_size", (long) value);
+            fontLabel.addThemeConstantOverride("outline_size", (int) value);
         }
         if (valueLabel != null) {
             valueLabel.setText(String.valueOf((int) value));

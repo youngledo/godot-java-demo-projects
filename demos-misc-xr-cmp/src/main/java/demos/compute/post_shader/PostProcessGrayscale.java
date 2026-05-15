@@ -4,6 +4,7 @@ import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.core.Callable;
 import org.godot.math.Vector2i;
+import org.godot.collection.GodotArray;
 import org.godot.node.CompositorEffect;
 import org.godot.node.RDShaderFile;
 import org.godot.node.RDShaderSPIRV;
@@ -93,7 +94,9 @@ public class PostProcessGrayscale extends CompositorEffect {
             uniform.setBinding(0);
             uniform.addId(inputImage);
 
-            long uniformSet = UniformSetCacheRD.getCache(shader, 0, new RDUniform[] { uniform });
+            GodotArray<RDUniform> uniformArray = new GodotArray<>();
+            uniformArray.add(uniform);
+            long uniformSet = UniformSetCacheRD.getCache(shader, 0, uniformArray);
             byte[] pushConstantBytes = floatArrayToBytes(pushConstant);
 
             long computeList = rd.computeListBegin();

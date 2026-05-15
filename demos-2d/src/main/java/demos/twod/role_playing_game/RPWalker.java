@@ -91,7 +91,7 @@ public class RPWalker extends RPPawn {
         // Create tween for movement
         org.godot.node.Tween tween = createTween();
         if (tween != null) {
-            tween.setEase(1); // EASE_IN
+            tween.setEase(org.godot.node.Tween.EaseType.EASE_IN);
             tween.tweenProperty(pivot, "position", end, walkAnimationTime);
             tween.connect("finished", new org.godot.core.Callable(this, "on_move_complete"), 0);
             // Store target position for later

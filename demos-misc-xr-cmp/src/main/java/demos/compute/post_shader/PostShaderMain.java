@@ -1,6 +1,7 @@
 package demos.compute.post_shader;
 
 import org.godot.annotation.GodotClass;
+import org.godot.collection.GodotArray;
 import org.godot.node.Compositor;
 import org.godot.node.CompositorEffect;
 import org.godot.node.Label3D;
@@ -64,8 +65,8 @@ public class PostShaderMain extends Node3D {
 
     private CompositorEffect effectAt(int index) {
         if (compositor == null) return null;
-        CompositorEffect[] effects = compositor.getCompositorEffects();
-        if (effects == null || index < 0 || index >= effects.length) return null;
-        return effects[index];
+        GodotArray<CompositorEffect> effects = compositor.getCompositorEffects();
+        if (effects == null || index < 0 || index >= effects.size()) return null;
+        return effects.get(index);
     }
 }

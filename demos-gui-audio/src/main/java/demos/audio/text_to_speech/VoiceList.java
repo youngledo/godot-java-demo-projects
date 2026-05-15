@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.collection.GodotDictionary;
 import org.godot.core.Callable;
 import org.godot.math.Color;
@@ -27,7 +28,7 @@ public class VoiceList extends Control {
 
     private int id = 0;
     private final Map<Integer, String> utMap = new HashMap<>();
-    private GodotDictionary[] voices = new GodotDictionary[0];
+    private GodotArray<GodotDictionary> voices = new GodotArray<>();
 
     @Override
     public void _ready() {
@@ -42,7 +43,8 @@ public class VoiceList extends Control {
             tree.setColumnTitle(1, "Language");
             tree.setColumnTitlesVisible(true);
 
-            for (GodotDictionary voice : voices) {
+            for (int i = 0; i < voices.size(); i++) {
+                GodotDictionary voice = voices.get(i);
                 TreeItem child = tree.createItem(root);
                 child.setText(0, voiceName(voice));
                 child.setMetadata(0, voiceId(voice));
@@ -50,7 +52,7 @@ public class VoiceList extends Control {
             }
         }
 
-        appendLog(voices.length + " voices available.\n=======\n");
+        appendLog(voices.size() + " voices available.\n=======\n");
 
         if (tree != null) {
             TreeItem rootItem = tree.getRoot();
@@ -60,10 +62,10 @@ public class VoiceList extends Control {
             }
         }
 
-        displayServer.ttsSetUtteranceCallback(0, new Callable(this, "_onUtteranceStart"));
-        displayServer.ttsSetUtteranceCallback(1, new Callable(this, "_onUtteranceEnd"));
-        displayServer.ttsSetUtteranceCallback(3, new Callable(this, "_onUtteranceError"));
-        displayServer.ttsSetUtteranceCallback(4, new Callable(this, "_onUtteranceBoundary"));
+        displayServer.ttsSetUtteranceCallback(DisplayServer.TTSUtteranceEvent.TTS_UTTERANCE_STARTED, new Callable(this, "_onUtteranceStart"));
+        displayServer.ttsSetUtteranceCallback(DisplayServer.TTSUtteranceEvent.TTS_UTTERANCE_ENDED, new Callable(this, "_onUtteranceEnd"));
+        displayServer.ttsSetUtteranceCallback(DisplayServer.TTSUtteranceEvent.TTS_UTTERANCE_CANCELED, new Callable(this, "_onUtteranceError"));
+        displayServer.ttsSetUtteranceCallback(DisplayServer.TTSUtteranceEvent.TTS_UTTERANCE_BOUNDARY, new Callable(this, "_onUtteranceBoundary"));
     }
 
     @Override
@@ -179,7 +181,8 @@ public class VoiceList extends Control {
         String nameFilter = getNodeText("LineEditFilterName");
         String langFilter = getNodeText("LineEditFilterLang");
 
-        for (GodotDictionary voice : voices) {
+        for (int vi = 0; vi < voices.size(); vi++) {
+            GodotDictionary voice = voices.get(vi);
             String vName = voiceName(voice);
             String vLang = voiceLanguage(voice);
 
@@ -208,7 +211,7 @@ public class VoiceList extends Control {
         appendLog("Utterance " + id + " " + action + ".\n");
         String text = getNodeText("Utterance");
         utMap.put(id, text);
-        DisplayServer.singleton().ttsSpeak(text, String.valueOf(selected.getMetadata(0)), Math.round(getVolume()), getPitch(), getRate(), id, interrupt);
+        DisplayServer.singleton().ttsSpeak(text, String.valueOf(selected.getMetadata(0)), (int) Math.round(getVolume()), getPitch(), getRate(), id, interrupt);
         id++;
     }
 
@@ -219,8 +222,8 @@ public class VoiceList extends Control {
         String voiceId = voiceIds[0];
         utMap.put(id, first);
         utMap.put(id + 1, second);
-        displayServer.ttsSpeak(first, voiceId, Math.round(getVolume()), getPitch(), getRate(), id);
-        displayServer.ttsSpeak(second, voiceId, Math.round(getVolume()), getPitch(), getRate(), id + 1);
+        displayServer.ttsSpeak(first, voiceId, (int) Math.round(getVolume()), getPitch(), getRate(), id);
+        displayServer.ttsSpeak(second, voiceId, (int) Math.round(getVolume()), getPitch(), getRate(), id + 1);
         id += 2;
     }
 

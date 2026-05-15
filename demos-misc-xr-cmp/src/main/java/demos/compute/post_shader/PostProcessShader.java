@@ -3,6 +3,7 @@ package demos.compute.post_shader;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
 import org.godot.math.Vector2i;
+import org.godot.collection.GodotArray;
 import org.godot.node.CompositorEffect;
 import org.godot.node.RDSamplerState;
 import org.godot.node.RDShaderSPIRV;
@@ -204,8 +205,11 @@ public class PostProcessShader extends CompositorEffect {
             depthUniform.addId(nearestSampler);
             depthUniform.addId(depthImage);
 
-            long uniformSetRid = UniformSetCacheRD.getCache(shader, 0,
-                    new RDUniform[] { sceneDataUniform, colorUniform, depthUniform });
+            GodotArray<RDUniform> uniformArray = new GodotArray<>();
+            uniformArray.add(sceneDataUniform);
+            uniformArray.add(colorUniform);
+            uniformArray.add(depthUniform);
+            long uniformSetRid = UniformSetCacheRD.getCache(shader, 0, uniformArray);
 
             pushConstant[2] = (float) view;
             byte[] pushConstantBytes = floatArrayToBytes(pushConstant);

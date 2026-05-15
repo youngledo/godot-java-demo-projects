@@ -26,7 +26,7 @@ public class DeviceChanger extends Control {
 
             String currentDevice = audioServer.getOutputDevice();
             long itemCount = itemList.getItemCount();
-            for (long i = 0; i < itemCount; i++) {
+            for (int i = 0; i < itemCount; i++) {
                 if (currentDevice.equals(itemList.getItemText(i))) {
                     itemList.select(i);
                     break;
@@ -40,13 +40,13 @@ public class DeviceChanger extends Control {
         AudioServer audioServer = AudioServer.singleton();
 
         String speakerModeText = "Stereo";
-        int speakerMode = audioServer.getSpeakerMode();
+        AudioServer.SpeakerMode speakerMode = audioServer.getSpeakerMode();
 
-        if (speakerMode == 1) {
+        if (speakerMode == AudioServer.SpeakerMode.SPEAKER_SURROUND_31) {
             speakerModeText = "Surround 3.1";
-        } else if (speakerMode == 2) {
+        } else if (speakerMode == AudioServer.SpeakerMode.SPEAKER_SURROUND_51) {
             speakerModeText = "Surround 5.1";
-        } else if (speakerMode == 3) {
+        } else if (speakerMode == AudioServer.SpeakerMode.SPEAKER_SURROUND_71) {
             speakerModeText = "Surround 7.1";
         }
 

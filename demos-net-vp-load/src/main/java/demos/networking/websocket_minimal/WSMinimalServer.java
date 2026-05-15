@@ -38,8 +38,8 @@ public class WSMinimalServer extends Node {
 
         socket.poll();
 
-        int state = socket.getReadyState();
-        if (state == 1L) { // WebSocketPeer.STATE_OPEN
+        WebSocketPeer.State state = socket.getReadyState();
+        if (state == WebSocketPeer.State.STATE_OPEN) {
             while (socket.getAvailablePacketCount() > 0) {
                 byte[] pkt = socket.getPacket();
                 String msg = new String(pkt);

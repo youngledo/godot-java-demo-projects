@@ -121,7 +121,7 @@ public class MPPongLobby extends Control {
             return;
         }
         ENetConnection host = peer.getHost();
-        host.compress(0);
+        host.compress(ENetConnection.CompressionMode.COMPRESS_NONE);
 
         getMultiplayer().setProperty("multiplayer_peer", peer);
         hostButton.setDisabled(true);
@@ -147,7 +147,7 @@ public class MPPongLobby extends Control {
         peer = ENetMultiplayerPeer.create();
         peer.createClient(ip, DEFAULT_PORT);
         ENetConnection host = peer.getHost();
-        host.compress(0);
+        host.compress(ENetConnection.CompressionMode.COMPRESS_NONE);
         getMultiplayer().setProperty("multiplayer_peer", peer);
 
         setStatus("Connecting...", true);

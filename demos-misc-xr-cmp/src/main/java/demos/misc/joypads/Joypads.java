@@ -49,8 +49,9 @@ public class Joypads extends Control {
         Input input = Input.singleton();
         input.connect("joy_connection_changed", new Callable(this, "OnJoyConnectionChanged"), 0);
 
-        for (long joypad : input.getConnectedJoypads()) {
-            int id = (int) joypad;
+        org.godot.collection.GodotArray<Long> joypads = input.getConnectedJoypads();
+        for (int i = 0; i < joypads.size(); i++) {
+            int id = joypads.get(i).intValue();
             String name = input.getJoyName(id);
             String guid = input.getJoyGuid(id);
             System.out.println("Found joypad #" + id + ": " + name + " - " + guid);
@@ -135,16 +136,17 @@ public class Joypads extends Control {
     @GodotMethod
     public void OnJoyConnectionChanged(long deviceId, boolean connected) {
         Input input = Input.singleton();
+        int devId = (int) deviceId;
         if (connected) {
             System.out.println("+ Found newly connected joypad #" + deviceId + ": " +
-                input.getJoyName(deviceId) + " - " + input.getJoyGuid(deviceId));
+                input.getJoyName(devId) + " - " + input.getJoyGuid(devId));
         } else {
             System.out.println("- Disconnected joypad #" + deviceId + ".");
         }
 
-        if (deviceId == curJoy) {
+        if (devId == curJoy) {
             if (connected) {
-                setJoypadName(input.getJoyName(deviceId), input.getJoyGuid(deviceId));
+                setJoypadName(input.getJoyName(devId), input.getJoyGuid(devId));
             } else {
                 clearJoypadName();
             }

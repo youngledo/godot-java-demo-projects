@@ -2,6 +2,7 @@ package demos.twod.role_playing_game;
 
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.Signal;
+import org.godot.collection.GodotArray;
 import org.godot.node.Control;
 import org.godot.node.PackedScene;
 import org.godot.node.Node;
@@ -44,9 +45,10 @@ public class RPCombatUI extends Control {
     public void initialize() {
         if (combatantsNode == null) return;
 
-        Node[] children = combatantsNode.getChildren();
+        GodotArray<Node> children = combatantsNode.getChildren();
         if (children != null) {
-            for (Node combatant : children) {
+            for (int ci = 0; ci < children.size(); ci++) {
+                Node combatant = children.get(ci);
                 org.godot.Godot health = (org.godot.node.Node) ((org.godot.node.Node) combatant).getNode("Health");
 
                 org.godot.node.Node info = null;

@@ -59,14 +59,14 @@ public class OXCCPlayer extends CharacterBody3D {
         XRInterface xrInterface = xrServer.findInterface("OpenXR");
         if (xrInterface == null) return;
 
-        int playAreaMode = xrInterface.getPlayAreaMode();
-        if (playAreaMode == 1) { // XR_PLAY_AREA_SITTING
+        XRInterface.PlayAreaMode playAreaMode = xrInterface.getPlayAreaMode();
+        if (playAreaMode == XRInterface.PlayAreaMode.XR_PLAY_AREA_SITTING) {
             // Sitting play space is not suitable for this setup.
-        } else if (playAreaMode == 2) { // XR_PLAY_AREA_ROOMSCALE
+        } else if (playAreaMode == XRInterface.PlayAreaMode.XR_PLAY_AREA_ROOMSCALE) {
             // This is already handled by the headset.
         } else {
             // Use Godot's own logic.
-            xrServer.centerOnHmd(1, true); // RESET_BUT_KEEP_TILT
+            xrServer.centerOnHmd(XRServer.RotationMode.RESET_BUT_KEEP_TILT, true);
         }
 
         // Get head tracker.

@@ -24,7 +24,7 @@ public class SaveLoadJSON extends Button {
     private static final String SAVE_PATH = "user://save_json.json";
 
     public void saveGame() {
-        FileAccess file = FileAccess.open(SAVE_PATH, 2);
+        FileAccess file = FileAccess.open(SAVE_PATH, FileAccess.ModeFlags.WRITE);
         if (file == null) return;
 
         String playerPath = (String) getProperty("player_node");
@@ -45,8 +45,9 @@ public class SaveLoadJSON extends Button {
         saveDict.put("enemies", enemiesArray);
 
         SceneTree tree = getTree();
-        Node[] enemies = tree.getNodesInGroup("enemy");
-        for (Node enemyNode : enemies) {
+        GodotArray<Node> enemies = tree.getNodesInGroup("enemy");
+        for (int i = 0; i < enemies.size(); i++) {
+            Node enemyNode = enemies.get(i);
             if (enemyNode instanceof Node2D enemy) {
                 GodotDictionary dict = new GodotDictionary();
                 dict.put("position", varToStr(enemy.getPosition()));
@@ -62,7 +63,7 @@ public class SaveLoadJSON extends Button {
     }
 
     public void loadGame() {
-        FileAccess file = FileAccess.open(SAVE_PATH, 1);
+        FileAccess file = FileAccess.open(SAVE_PATH, FileAccess.ModeFlags.READ);
         if (file == null) return;
 
         JSON json = JSON.create();

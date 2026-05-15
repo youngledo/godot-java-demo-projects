@@ -3,6 +3,7 @@ package demos.networking.webrtc_signaling;
 import org.godot.Godot;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.node.Control;
 import org.godot.node.Node;
 import org.godot.node.SceneTree;
@@ -15,8 +16,9 @@ public class WebRTCSignalingMain extends Control {
     @Override
     public void _enterTree() {
         Node clients = getNodeAs("VBoxContainer/Clients", Node.class);
-        Godot[] children = (Godot[]) clients.getChildren();
-        for (Godot c : children) {
+        GodotArray<Node> children = clients.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            Godot c = children.get(i);
             String path = getPath().toString();
             String cName = (String) c.getProperty("name");
             String nodePath = path + "/VBoxContainer/Clients/" + cName;

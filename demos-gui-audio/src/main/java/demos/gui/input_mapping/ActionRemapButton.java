@@ -3,6 +3,7 @@ package demos.gui.input_mapping;
 import org.godot.annotation.Export;
 import org.godot.annotation.GodotClass;
 import org.godot.annotation.GodotMethod;
+import org.godot.collection.GodotArray;
 import org.godot.math.Color;
 import org.godot.node.Button;
 import org.godot.node.InputEvent;
@@ -68,9 +69,9 @@ public class ActionRemapButton extends Button {
     }
 
     private void displayCurrentKey() {
-        InputEvent[] events = InputMap.singleton().actionGetEvents(action);
-        if (events.length > 0) {
-            setText(events[0].asText());
+        GodotArray<InputEvent> events = InputMap.singleton().actionGetEvents(action);
+        if (events.size() > 0) {
+            setText(events.get(0).asText());
         }
     }
 }
